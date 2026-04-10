@@ -2,24 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Sound Game</title>
+<title>Bird Game Pro</title>
 
 <style>
 body { font-family: Arial; padding: 20px; }
-button { margin: 5px; padding: 10px 15px; font-size: 16px; }
-select { margin: 5px; padding: 5px; }
-#info { margin-top: 15px; padding: 10px; border-top: 1px solid #ccc; }
+button { margin: 5px; padding: 10px 15px; }
+#info { margin-top: 10px; }
+#spectrogram { height: 200px; border: 1px solid #ccc; margin-top: 10px; }
 </style>
+
+<script src="https://unpkg.com/wavesurfer.js"></script>
+<script src="https://unpkg.com/wavesurfer.js/dist/plugin/wavesurfer.spectrogram.min.js"></script>
 
 </head>
 
 <body>
 
-<h1>Bird Sound Game</h1>
+<h1>Bird Sound Game PRO</h1>
 
-<label>Filter:</label>
-<select id="filterType" onchange="updateFilterOptions()">
-  <option value="none">None</option>
+<p>Score: <span id="score">0</span></p>
+
+<select id="filterType" onchange="updateFilter()">
+  <option value="none">All</option>
   <option value="habitat">Habitat</option>
   <option value="hotspot">Hotspot</option>
 </select>
@@ -32,82 +36,94 @@ select { margin: 5px; padding: 5px; }
 
 <div id="gameArea" style="display:none;">
 
+<div id="spectrogram"></div>
+
 <button onclick="togglePlay()">Play / Pause</button>
 
 <div id="options"></div>
 
 <div id="info"></div>
 
-<button id="nextBtn" onclick="nextBird()" style="display:none;">Next</button>
+<button onclick="nextBird()" id="nextBtn" style="display:none;">Next</button>
 
 </div>
 
 <script>
 
-// ================= DATABASE =================
+// ================= DATA =================
 let birds = [
-{english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+{english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", licenseLink:"#", changes:"Original"},
 
-{english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+{english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"#", changes:"Original"},
 
-{english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC475084_BlackCrake.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
-
-{english:"Common Greenshank", afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", audio:"XC670128_CommonGreenshank.mp3", credit:"Tim Cockroft", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
+{english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park; Marievale", habitat:"Wetland", audio:"XC475084_BlackCrake.mp3", credit:"Tony Archer", licenseLink:"#", changes:"Original"}
 ];
 
 // ================= STATE =================
 let filtered = [];
+let queue = [];
 let current = 0;
+let score = 0;
 
-let audio = new Audio();
+// ================= WAVESURFER =================
+let wavesurfer = WaveSurfer.create({
+  container: '#spectrogram',
+  waveColor: '#4f4f4f',
+  progressColor: '#2b8a3e',
+  height: 200,
+  plugins: [
+    WaveSurfer.spectrogram.create({
+      container: '#spectrogram'
+    })
+  ]
+});
+
+// ================= SHUFFLE =================
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*i);
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+  return array;
+}
 
 // ================= AUDIO =================
-function playAudio(file){
-  audio.pause();
-  audio.src = file;
-  audio.load();
-
-  let playPromise = audio.play();
-  if(playPromise !== undefined){
-    playPromise.catch(err => {
-      console.log("Audio blocked:", err);
-    });
-  }
+function play(file){
+  wavesurfer.load(file);
+  wavesurfer.on('ready', () => {
+    wavesurfer.play();
+  });
 }
 
 function togglePlay(){
-  if(audio.paused) audio.play();
-  else audio.pause();
+  wavesurfer.playPause();
 }
 
 // ================= FILTER =================
-function getUnique(key){
-  let arr=[];
-  birds.forEach(b=>{
-    b[key].split(';').forEach(v=>{
-      v=v.trim();
-      if(!arr.includes(v)) arr.push(v);
-    });
-  });
-  return arr;
-}
-
-function updateFilterOptions(){
+function updateFilter(){
   let type=document.getElementById("filterType").value;
   let sel=document.getElementById("filterValue");
 
   sel.innerHTML="";
 
   if(type==="none"){
-    sel.innerHTML="<option value=''>All</option>";
+    sel.innerHTML="<option value='all'>All</option>";
     return;
   }
 
-  getUnique(type).forEach(v=>{
-    let o=document.createElement("option");
-    o.value=v;
-    o.textContent=v;
-    sel.appendChild(o);
+  let values=[];
+  birds.forEach(b=>{
+    b[type].split(';').forEach(v=>{
+      v=v.trim();
+      if(!values.includes(v)) values.push(v);
+    });
+  });
+
+  values.forEach(v=>{
+    let opt=document.createElement("option");
+    opt.value=v;
+    opt.textContent=v;
+    sel.appendChild(opt);
   });
 }
 
@@ -116,23 +132,29 @@ function startGame(){
   let type=document.getElementById("filterType").value;
   let val=document.getElementById("filterValue").value;
 
-  if(type==="none" || !val){
+  if(type==="none"){
     filtered=[...birds];
   } else {
-    filtered=birds.filter(b=>
-      b[type].toLowerCase().includes(val.toLowerCase())
-    );
+    filtered=birds.filter(b=>b[type].includes(val));
   }
 
+  queue = shuffle([...filtered]);
+
   document.getElementById("gameArea").style.display="block";
+
   nextBird();
 }
 
 function nextBird(){
-  current=Math.floor(Math.random()*filtered.length);
-  let bird=filtered[current];
 
-  playAudio(bird.audio);
+  if(queue.length===0){
+    queue = shuffle([...filtered]);
+  }
+
+  let bird = queue.pop();
+  current = bird;
+
+  play(bird.audio);
 
   let options=[bird.english];
 
@@ -141,15 +163,15 @@ function nextBird(){
     if(!options.includes(r)) options.push(r);
   }
 
-  options.sort(()=>Math.random()-0.5);
+  shuffle(options);
 
   let div=document.getElementById("options");
   div.innerHTML="";
 
   options.forEach(o=>{
     let btn=document.createElement("button");
-    btn.innerText=o;
-    btn.onclick=()=>check(o);
+    btn.onclick=()=>check(o,bird);
+    btn.textContent=o;
     div.appendChild(btn);
   });
 
@@ -158,22 +180,23 @@ function nextBird(){
 }
 
 // ================= CHECK =================
-function check(ans){
-  let b=filtered[current];
+function check(ans,bird){
+
+  if(ans===bird.english){
+    score++;
+  }
+
+  document.getElementById("score").textContent=score;
 
   document.getElementById("info").innerHTML=`
-    <b>${ans===b.english?"Correct ✔":"Wrong ✖"}</b><br><br>
-    <b>English:</b> ${b.english}<br>
-    <b>Afrikaans:</b> ${b.afrikaans}<br>
-    <b>Credit:</b> ${b.credit}<br>
-    <b>Changes:</b> ${b.changes}<br>
-    <b>License:</b> <a href="${b.licenseLink}" target="_blank">View</a>
+    <b>${ans===bird.english?"Correct ✔":"Wrong ✖"}</b><br>
+    <b>${bird.english}</b> (${bird.afrikaans})<br>
+    <small>${bird.credit}</small><br>
+    <small>${bird.changes}</small>
   `;
 
   document.getElementById("nextBtn").style.display="inline-block";
 }
-
-updateFilterOptions();
 
 </script>
 
