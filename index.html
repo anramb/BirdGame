@@ -2,17 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Game Stable</title>
+<title>Bird Sound Game</title>
 
 <style>
 body { font-family: Arial; padding: 20px; }
 button { margin: 5px; padding: 10px 15px; }
+select { margin: 5px; padding: 5px; }
 #info { margin-top: 10px; }
-#spectrogram {
-  margin-top: 10px;
+#waveform {
   width: 100%;
-  height: 150px;
-  background: black;
+  height: 120px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
 }
 </style>
 
@@ -26,6 +27,7 @@ button { margin: 5px; padding: 10px 15px; }
 
 <p>Score: <span id="score">0</span></p>
 
+<label>Filter:</label>
 <select id="filterType" onchange="updateFilters()">
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
@@ -40,9 +42,9 @@ button { margin: 5px; padding: 10px 15px; }
 
 <div id="gameArea" style="display:none;">
 
-<button onclick="togglePlay()">Play / Pause</button>
+<div id="waveform"></div>
 
-<canvas id="spectrogram"></canvas>
+<button onclick="togglePlay()">Play / Pause</button>
 
 <div id="options"></div>
 
@@ -56,7 +58,8 @@ button { margin: 5px; padding: 10px 15px; }
 
 // ================= DATA =================
 let birds = [
-{english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Nylsvley", habitat:"Wetland", audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", changes:"Original"},
+{english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley", habitat:"Wetland", audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", changes:"Original"},
+{english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", changes:"Original"},
 {english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger NP", habitat:"Wetland", audio:"XC475084_BlackCrake.mp3", credit:"Tony Archer", changes:"Original"}
 ];
 
@@ -66,46 +69,25 @@ let queue=[];
 let current=null;
 let score=0;
 
-let audio=new Audio();
+// ================= WAVESURFER =================
+let wavesurfer = WaveSurfer.create({
+  container: '#waveform',
+  waveColor: '#4f4f4f',
+  progressColor: '#2b8a3e',
+  height: 120
+});
 
-// ================= AUDIO (SAFE) =================
+// ================= AUDIO =================
 function play(file){
+  wavesurfer.load(file);
 
-  audio.pause();
-  audio = new Audio(file);
-
-  audio.play().catch(err=>{
-    console.log("Autoplay blocked:", err);
+  wavesurfer.on('ready', function(){
+    wavesurfer.play();
   });
-
-  drawFakeSpectrogram(); // visual fallback
 }
 
 function togglePlay(){
-  if(audio.paused) audio.play();
-  else audio.pause();
-}
-
-// ================= FAKE SPECTROGRAM (SAFE) =================
-function drawFakeSpectrogram(){
-
-  let canvas=document.getElementById("spectrogram");
-  let ctx=canvas.getContext("2d");
-
-  canvas.width=canvas.offsetWidth;
-  canvas.height=150;
-
-  ctx.fillStyle="black";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  let bars=60;
-
-  for(let i=0;i<bars;i++){
-    let h=Math.random()*120;
-
-    ctx.fillStyle=`rgb(0,200,100)`;
-    ctx.fillRect(i*(canvas.width/bars), 150-h, 5, h);
-  }
+  wavesurfer.playPause();
 }
 
 // ================= FILTER =================
@@ -207,7 +189,9 @@ function check(ans){
 
   document.getElementById("info").innerHTML=
     (ans===current.english?"✔ Correct":"✖ Wrong") +
-    "<br>" + current.english + " - " + current.afrikaans;
+    "<br>" + current.english + " - " + current.afrikaans +
+    "<br><br>Credit: " + current.credit +
+    "<br>Changes: " + current.changes;
 
   document.getElementById("nextBtn").style.display="inline-block";
 }
