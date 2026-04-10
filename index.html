@@ -9,10 +9,9 @@ body { font-family: Arial; padding: 20px; }
 button { margin: 5px; padding: 10px 15px; font-size: 16px; }
 select { margin: 5px; padding: 5px; }
 #info { margin-top: 15px; }
-#spectrogram { width: 100%; height: 160px; border: 1px solid #ccc; margin-top: 10px; }
+canvas { width: 100%; height: 160px; border: 1px solid #ccc; margin-top: 10px; }
 </style>
 
-<script src="https://unpkg.com/wavesurfer.js"></script>
 <script src="https://unpkg.com/wavesurfer.js@6.6.3/dist/wavesurfer.min.js"></script>
 
 </head>
@@ -36,9 +35,9 @@ select { margin: 5px; padding: 5px; }
 
 <div id="gameArea" style="display:none;">
 
-<div id="spectrogram"></div>
+<canvas id="spectrogram"></canvas>
 
-<button id="playBtn" onclick="togglePlay()">Play / Pause</button>
+<button onclick="togglePlay()">Play / Pause</button>
 
 <div id="options"></div>
 
@@ -50,7 +49,7 @@ select { margin: 5px; padding: 5px; }
 
 <script>
 
-// ================= YOUR DATABASE =================
+// ================= DATA =================
 let birds = [
 {english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
 
@@ -63,26 +62,64 @@ let birds = [
 let filtered = [];
 let current = 0;
 
-let wavesurfer = WaveSurfer.create({
-  container: '#spectrogram',
-  waveColor: 'transparent',
-  progressColor: 'transparent',
-  backend: 'WebAudio',
-  plugins: [
-    WaveSurfer.spectrogram.create({
-      container: '#spectrogram',
-      fftSamples: 1024,
-      labels: true
-    })
-  ]
-});
+let audio = new Audio();
+let ctx = new (window.AudioContext || window.webkitAudioContext)();
+let analyser = ctx.createAnalyser();
+analyser.fftSize = 2048;
 
-wavesurfer.on('ready', () => {
-  wavesurfer.play();
-});
+let source;
+let dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+// ================= AUDIO =================
+function loadAudio(file){
+  audio.src = file;
+  audio.crossOrigin = "anonymous";
+
+  audio.onplay = () => {
+    if(!source){
+      source = ctx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+    }
+    drawSpectrogram();
+  };
+
+  audio.play();
+}
 
 function togglePlay(){
-  wavesurfer.playPause();
+  if(audio.paused) audio.play();
+  else audio.pause();
+}
+
+// ================= SPECTROGRAM =================
+function drawSpectrogram(){
+  let canvas = document.getElementById("spectrogram");
+  let c = canvas.getContext("2d");
+
+  function draw(){
+    requestAnimationFrame(draw);
+
+    analyser.getByteFrequencyData(dataArray);
+
+    c.fillStyle = "black";
+    c.fillRect(0,0,canvas.width,canvas.height);
+
+    let barWidth = canvas.width / dataArray.length * 2;
+    let x = 0;
+
+    for(let i=0;i<dataArray.length;i++){
+      let v = dataArray[i];
+      let y = v / 255 * canvas.height;
+
+      c.fillStyle = "lime";
+      c.fillRect(x, canvas.height - y, barWidth, y);
+
+      x += barWidth;
+    }
+  }
+
+  draw();
 }
 
 // ================= FILTER =================
@@ -136,7 +173,7 @@ function nextBird(){
   current=Math.floor(Math.random()*filtered.length);
   let bird=filtered[current];
 
-  wavesurfer.load(bird.audio);
+  loadAudio(bird.audio);
 
   let opts=[bird.english];
 
@@ -161,6 +198,7 @@ function nextBird(){
   document.getElementById("nextBtn").style.display="none";
 }
 
+// ================= CHECK =================
 function check(ans){
   let b=filtered[current];
 
