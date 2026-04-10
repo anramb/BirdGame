@@ -8,8 +8,7 @@
 body { font-family: Arial; padding: 20px; }
 button { margin: 5px; padding: 10px 15px; font-size: 16px; }
 select { margin: 5px; padding: 5px; }
-#info { margin-top: 15px; }
-canvas { width: 100%; height: 160px; border: 1px solid #ccc; margin-top: 10px; }
+#info { margin-top: 15px; padding: 10px; border-top: 1px solid #ccc; }
 </style>
 
 </head>
@@ -33,8 +32,6 @@ canvas { width: 100%; height: 160px; border: 1px solid #ccc; margin-top: 10px; }
 
 <div id="gameArea" style="display:none;">
 
-<canvas id="spectrogram"></canvas>
-
 <button onclick="togglePlay()">Play / Pause</button>
 
 <div id="options"></div>
@@ -47,11 +44,15 @@ canvas { width: 100%; height: 160px; border: 1px solid #ccc; margin-top: 10px; }
 
 <script>
 
-// ================= DATA =================
+// ================= DATABASE =================
 let birds = [
 {english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
 
-{english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
+{english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+
+{english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park; Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat:"Wetland", audio:"XC475084_BlackCrake.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+
+{english:"Common Greenshank", afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", audio:"XC670128_CommonGreenshank.mp3", credit:"Tim Cockroft", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
 ];
 
 // ================= STATE =================
@@ -61,10 +62,17 @@ let current = 0;
 let audio = new Audio();
 
 // ================= AUDIO =================
-function loadAudio(file){
+function playAudio(file){
   audio.pause();
-  audio = new Audio(file);
-  audio.play();
+  audio.src = file;
+  audio.load();
+
+  let playPromise = audio.play();
+  if(playPromise !== undefined){
+    playPromise.catch(err => {
+      console.log("Audio blocked:", err);
+    });
+  }
 }
 
 function togglePlay(){
@@ -87,6 +95,7 @@ function getUnique(key){
 function updateFilterOptions(){
   let type=document.getElementById("filterType").value;
   let sel=document.getElementById("filterValue");
+
   sel.innerHTML="";
 
   if(type==="none"){
@@ -123,25 +132,25 @@ function nextBird(){
   current=Math.floor(Math.random()*filtered.length);
   let bird=filtered[current];
 
-  loadAudio(bird.audio);
+  playAudio(bird.audio);
 
-  let opts=[bird.english];
+  let options=[bird.english];
 
-  while(opts.length<4){
+  while(options.length<4){
     let r=filtered[Math.floor(Math.random()*filtered.length)].english;
-    if(!opts.includes(r)) opts.push(r);
+    if(!options.includes(r)) options.push(r);
   }
 
-  opts.sort(()=>Math.random()-0.5);
+  options.sort(()=>Math.random()-0.5);
 
   let div=document.getElementById("options");
   div.innerHTML="";
 
-  opts.forEach(o=>{
-    let b=document.createElement("button");
-    b.innerText=o;
-    b.onclick=()=>check(o);
-    div.appendChild(b);
+  options.forEach(o=>{
+    let btn=document.createElement("button");
+    btn.innerText=o;
+    btn.onclick=()=>check(o);
+    div.appendChild(btn);
   });
 
   document.getElementById("info").innerHTML="";
