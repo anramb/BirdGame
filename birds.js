@@ -38,7 +38,7 @@ english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata Nationa
 },
 {
 english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC347035_AfricanRail.mp3", spectogram: "XC347035_AfricanRail.mp3", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
+ audio: "XC347035_AfricanRail.mp3", spectrogram: "XC347035_AfricanRail.mp3", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
 },
 {
 english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
