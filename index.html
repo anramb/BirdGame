@@ -4,19 +4,43 @@
 <meta charset="UTF-8">
 <title>Bird Sound Game</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body { font-family: Arial; padding: 20px; }
-button { margin: 5px; padding: 10px 15px; font-size: 16px; }
-select { margin: 5px; padding: 5px; }
-#info { margin-top: 15px; padding: 10px; border-top: 1px solid #ccc; }
+body {
+  font-family: Arial, sans-serif;
+  padding: 10px;
+  max-width: 600px;
+  margin: auto;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin: 6px 0;
+  font-size: 18px;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+#info {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #ccc;
+}
 </style>
 </head>
 
 <body>
 
-<h1>Bird Sound Game</h1>
+<h2>Bird Sound Game</h2>
 
-<label>Filter:</label>
+<label>Filter by:</label>
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">None</option>
   <option value="habitat">Habitat</option>
@@ -42,70 +66,13 @@ select { margin: 5px; padding: 5px; }
 
 </div>
 
+<!-- 🔗 Data file -->
+<script src="birds.js"></script>
+
 <script>
-
-// ================= DATABASE =================
-// 🔴 ENIGSTE PLEK WAAR JY NUWE VOËLS BYSIT
-let birds = [
-{
-  english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Nylsvley", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-},
-{
-  english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-},
-{
-  english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC475084_BlackCrake.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-},
-{english: "Allen's Gallinule", afrikaans: "Kleinkoningriethaan", hotspot: "Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC1081358_AllensGallinule.mp3", credit: "Credit: Peter Boesman, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{english: "African Swamphen", afrikaans: "Grootkoningriethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC276894_AfricanSwamphen.mp3", credit: "Andrew Spencer", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-  
-{english: "Fulvous Whistling Duck", afrikaans: "Fluiteend", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC280235_FulvousWhistlingDuck.mp3", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-  
-{english: "African Black Duck", afrikaans: "Swarteend", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC615647_AfricanBlackDuck.mp3", credit: "Nature sounds by Simply Birding", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{english: "Spur-winged Goose",  afrikaans: "Wildemakou",  hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC126343_Spur-wingedGoose.mp3", credit: "Sander Bot", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/3.0/", changes: "Original recording"
-},
-{english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata National Park", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC791510_LesserJacana.mp3", credit: "Dries Van de Loock", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC347035_AfricanRail.mp3", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC495341_AfricanSnipe.mp3", credit: "Credit: Tony Archer, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"
-},
-
-
-
-  
-{
-  english:"Common Greenshank",
-  afrikaans:"Groenpootruiter",
-  hotspot:"Marievale Bird Sanctuary",
-  habitat:"Wetland",
-  birdgroup:"Waders",
-  audio:"XC670128_CommonGreenshank.mp3",
-  credit:"Tim Cockroft",
-  licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
-  changes:"Original recording"
-}
-];
-
 // ================= STATE =================
 let filtered = [];
-let queue = [];
-let index = 0;
+let remaining = [];
 let currentBird = null;
 
 let audio = new Audio();
@@ -115,7 +82,10 @@ function playAudio(file){
   audio.pause();
   audio.src = file;
   audio.load();
-  audio.play().catch(()=>{});
+
+  audio.play().catch(()=>{
+    console.log("Audio blocked until user interaction");
+  });
 }
 
 function togglePlay(){
@@ -123,105 +93,99 @@ function togglePlay(){
   else audio.pause();
 }
 
-// ================= HELPERS =================
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-}
-
+// ================= FILTER HELPERS =================
 function getUnique(key){
-  let arr=[];
+  let arr = [];
   birds.forEach(b=>{
-    if(!b[key]) return;
-    b[key].split(';').forEach(v=>{
-      v=v.trim();
-      if(v && !arr.includes(v)) arr.push(v);
+    b[key].split(";").forEach(v=>{
+      v = v.trim();
+      if(!arr.includes(v)) arr.push(v);
     });
   });
   return arr;
 }
 
-// ================= FILTER =================
 function updateFilterOptions(){
-  let type=document.getElementById("filterType").value;
-  let sel=document.getElementById("filterValue");
-  sel.innerHTML="";
+  let type = document.getElementById("filterType").value;
+  let sel = document.getElementById("filterValue");
 
-  if(type==="none"){
-    sel.innerHTML="<option value=''>All</option>";
+  sel.innerHTML = "";
+
+  if(type === "none"){
+    sel.innerHTML = "<option value=''>All</option>";
     return;
   }
 
   getUnique(type).forEach(v=>{
-    let o=document.createElement("option");
-    o.value=v;
-    o.textContent=v;
+    let o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
     sel.appendChild(o);
   });
 }
 
-// ================= GAME =================
+// ================= GAME LOGIC =================
 function startGame(){
-  let type=document.getElementById("filterType").value;
-  let val=document.getElementById("filterValue").value;
+  let type = document.getElementById("filterType").value;
+  let val = document.getElementById("filterValue").value;
 
-  if(type==="none" || !val){
-    filtered=[...birds];
+  if(type === "none" || !val){
+    filtered = [...birds];
   } else {
-    filtered=birds.filter(b =>
+    filtered = birds.filter(b =>
       b[type].toLowerCase().includes(val.toLowerCase())
     );
   }
 
-  queue=[...filtered];
-  shuffle(queue);
-  index=0;
+  if(filtered.length === 0){
+    alert("No birds found for this filter");
+    return;
+  }
 
-  document.getElementById("gameArea").style.display="block";
+  remaining = [...filtered];
+  document.getElementById("gameArea").style.display = "block";
   nextBird();
 }
 
 function nextBird(){
-  if(index >= queue.length){
-    shuffle(queue);
-    index=0;
+  if(remaining.length === 0){
+    alert("You’ve heard all birds for this filter!");
+    remaining = [...filtered];
   }
 
-  currentBird = queue[index];
-  index++;
+  let idx = Math.floor(Math.random() * remaining.length);
+  currentBird = remaining.splice(idx,1)[0];
 
   playAudio(currentBird.audio);
 
-  let options=[currentBird.english];
+  let options = [currentBird.english];
 
-  while(options.length<4){
-    let r=filtered[Math.floor(Math.random()*filtered.length)].english;
+  while(options.length < 4){
+    let r = filtered[Math.floor(Math.random()*filtered.length)].english;
     if(!options.includes(r)) options.push(r);
   }
 
-  shuffle(options);
+  options.sort(()=>Math.random()-0.5);
 
-  let div=document.getElementById("options");
-  div.innerHTML="";
+  let div = document.getElementById("options");
+  div.innerHTML = "";
 
   options.forEach(o=>{
-    let btn=document.createElement("button");
-    btn.innerText=o;
-    btn.onclick=()=>check(o);
+    let btn = document.createElement("button");
+    btn.textContent = o;
+    btn.onclick = ()=>checkAnswer(o);
     div.appendChild(btn);
   });
 
-  document.getElementById("info").innerHTML="";
-  document.getElementById("nextBtn").style.display="none";
+  document.getElementById("info").innerHTML = "";
+  document.getElementById("nextBtn").style.display = "none";
 }
 
-function check(ans){
-  let b=currentBird;
+function checkAnswer(answer){
+  let b = currentBird;
 
-  document.getElementById("info").innerHTML=`
-    <b>${ans===b.english?"Correct ✔":"Wrong ✖"}</b><br><br>
+  document.getElementById("info").innerHTML = `
+    <b>${answer === b.english ? "Correct ✔" : "Wrong ✖"}</b><br><br>
     <b>English:</b> ${b.english}<br>
     <b>Afrikaans:</b> ${b.afrikaans}<br>
     <b>Credit:</b> ${b.credit}<br>
@@ -229,11 +193,12 @@ function check(ans){
     <b>License:</b> <a href="${b.licenseLink}" target="_blank">View</a>
   `;
 
-  document.getElementById("nextBtn").style.display="inline-block";
+  document.getElementById("nextBtn").style.display = "block";
 }
 
+// Init
 updateFilterOptions();
-
 </script>
+
 </body>
 </html>
