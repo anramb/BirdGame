@@ -2,22 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Sound Game</title>
+<title>Bird Sound Game SAFE</title>
 
 <style>
 body { font-family: Arial; padding: 20px; }
 button { margin: 5px; padding: 10px 15px; }
 select { margin: 5px; padding: 5px; }
-#info { margin-top: 10px; }
-#waveform {
-  width: 100%;
-  height: 120px;
-  border: 1px solid #ccc;
-  margin-top: 10px;
-}
+#info { margin-top: 10px; padding: 10px; border-top: 1px solid #ccc; }
 </style>
-
-<script src="https://unpkg.com/wavesurfer.js"></script>
 
 </head>
 
@@ -28,6 +20,7 @@ select { margin: 5px; padding: 5px; }
 <p>Score: <span id="score">0</span></p>
 
 <label>Filter:</label>
+
 <select id="filterType" onchange="updateFilters()">
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
@@ -42,9 +35,7 @@ select { margin: 5px; padding: 5px; }
 
 <div id="gameArea" style="display:none;">
 
-<div id="waveform"></div>
-
-<button onclick="togglePlay()">Play / Pause</button>
+<button onclick="playCurrent()">Play Sound</button>
 
 <div id="options"></div>
 
@@ -64,51 +55,57 @@ let birds = [
 ];
 
 // ================= STATE =================
-let filtered=[];
-let queue=[];
-let current=null;
-let score=0;
+let filtered = [];
+let queue = [];
+let current = null;
+let score = 0;
+let audio = new Audio();
 
-// ================= WAVESURFER =================
-let wavesurfer = WaveSurfer.create({
-  container: '#waveform',
-  waveColor: '#4f4f4f',
-  progressColor: '#2b8a3e',
-  height: 120
-});
+// ================= PLAY =================
+function playCurrent(){
 
-// ================= AUDIO =================
-function play(file){
-  wavesurfer.load(file);
+  if(!current){
+    alert("No bird loaded yet!");
+    return;
+  }
 
-  wavesurfer.on('ready', function(){
-    wavesurfer.play();
+  audio.pause();
+  audio = new Audio(current.audio);
+
+  audio.play().catch(err=>{
+    alert("Audio blocked or missing file: " + current.audio);
+    console.log(err);
   });
-}
-
-function togglePlay(){
-  wavesurfer.playPause();
 }
 
 // ================= FILTER =================
 function updateFilters(){
-  let type=document.getElementById("filterType").value;
-  let sel=document.getElementById("filterValue");
 
-  sel.innerHTML="";
+  let type = document.getElementById("filterType").value;
+  let sel = document.getElementById("filterValue");
 
-  if(type==="none"){
-    sel.innerHTML="<option value='all'>All</option>";
+  sel.innerHTML = "";
+
+  if(type === "none"){
+    sel.innerHTML = "<option value='all'>All</option>";
     return;
   }
 
-  let values=[];
+  let values = [];
+
   birds.forEach(b=>{
+    if(!b[type]) return;
+
     b[type].split(';').forEach(v=>{
-      v=v.trim();
+      v = v.trim();
       if(!values.includes(v)) values.push(v);
     });
   });
+
+  if(values.length === 0){
+    sel.innerHTML = "<option>No options</option>";
+    return;
+  }
 
   values.forEach(v=>{
     let o=document.createElement("option");
@@ -118,83 +115,92 @@ function updateFilters(){
   });
 }
 
-// ================= GAME =================
+// ================= START =================
 function startGame(){
-  let type=document.getElementById("filterType").value;
-  let val=document.getElementById("filterValue").value;
 
-  if(type==="none"){
-    filtered=[...birds];
+  let type = document.getElementById("filterType").value;
+  let val = document.getElementById("filterValue").value;
+
+  if(type === "none" || val === "all" || !val){
+    filtered = [...birds];
   } else {
-    filtered=birds.filter(b=>b[type].includes(val));
+    filtered = birds.filter(b =>
+      (b[type] || "").toLowerCase().includes(val.toLowerCase())
+    );
   }
 
-  queue=[...filtered];
+  if(filtered.length === 0){
+    alert("No birds found for this filter!");
+    return;
+  }
+
+  queue = [...filtered];
   shuffle(queue);
 
-  document.getElementById("gameArea").style.display="block";
+  document.getElementById("gameArea").style.display = "block";
 
   nextBird();
-}
-
-// ================= SHUFFLE =================
-function shuffle(a){
-  for(let i=a.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*i);
-    [a[i],a[j]]=[a[j],a[i]];
-  }
 }
 
 // ================= NEXT =================
 function nextBird(){
 
-  if(queue.length===0){
-    queue=[...filtered];
+  if(queue.length === 0){
+    queue = [...filtered];
     shuffle(queue);
   }
 
-  current=queue.pop();
+  current = queue.pop();
 
-  play(current.audio);
+  let opts = [current.english];
 
-  let opts=[current.english];
-
-  while(opts.length<4){
-    let r=filtered[Math.floor(Math.random()*filtered.length)].english;
-    if(!opts.includes(r)) opts.push(r);
+  while(opts.length < 4){
+    let r = filtered[Math.floor(Math.random()*filtered.length)];
+    if(!opts.includes(r.english)) opts.push(r.english);
   }
 
   shuffle(opts);
 
-  let div=document.getElementById("options");
-  div.innerHTML="";
+  let div = document.getElementById("options");
+  div.innerHTML = "";
 
   opts.forEach(o=>{
-    let b=document.createElement("button");
-    b.textContent=o;
-    b.onclick=()=>check(o);
+    let b = document.createElement("button");
+    b.textContent = o;
+    b.onclick = ()=>check(o);
     div.appendChild(b);
   });
 
-  document.getElementById("info").innerHTML="";
-  document.getElementById("nextBtn").style.display="none";
+  document.getElementById("info").innerHTML = "";
+  document.getElementById("nextBtn").style.display = "none";
 }
 
 // ================= CHECK =================
 function check(ans){
 
-  if(ans===current.english) score++;
+  if(ans === current.english) score++;
 
-  document.getElementById("score").textContent=score;
+  document.getElementById("score").textContent = score;
 
-  document.getElementById("info").innerHTML=
-    (ans===current.english?"✔ Correct":"✖ Wrong") +
-    "<br>" + current.english + " - " + current.afrikaans +
-    "<br><br>Credit: " + current.credit +
-    "<br>Changes: " + current.changes;
+  document.getElementById("info").innerHTML =
+    (ans === current.english ? "✔ Correct" : "✖ Wrong") +
+    "<br><br><b>Answer:</b> " + current.english +
+    "<br><b>Afrikaans:</b> " + current.afrikaans +
+    "<br><b>Credit:</b> " + current.credit +
+    "<br><b>Changes:</b> " + current.changes;
 
-  document.getElementById("nextBtn").style.display="inline-block";
+  document.getElementById("nextBtn").style.display = "inline-block";
 }
+
+// ================= SHUFFLE =================
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+}
+
+updateFilters();
 
 </script>
 
