@@ -40,10 +40,13 @@ english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata Nationa
 english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", 
  audio: "XC347035_AfricanRail.mp3", spectrogram: "XC347035_AfricanRail.png", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
 },
-{
-english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC495341_AfricanSnipe.mp3", credit: "Credit: Tony Archer, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"
-},
+  
+{english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
+audio: "XC495341_AfricanSnipe.mp3", credit: "Credit: Tony Archer, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "African Crake", afrikaans: "Afrikaanse Riethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
+ audio: "XC39321_AfricanCrake.mp3", spectrogram: "XC39321_AfricanCrake.png",credit: "Credit: Derek Solomon", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/2.5/", changes: "Original recording"},
+  
 {
   english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders",
   audio:"XC670128_CommonGreenshank.mp3", credit:"Tim Cockroft", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
