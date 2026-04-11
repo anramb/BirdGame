@@ -30,7 +30,7 @@ english: "African Black Duck", afrikaans: "Swarteend", hotspot: "Marievale Bird 
 },
 {
 english: "Spur-winged Goose",  afrikaans: "Wildemakou",  hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC126343_Spur-wingedGoose.mp3", credit: "Sander Bot", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/3.0/", changes: "Original recording"
+ audio: "XC126343_Spur-wingedGoose.mp3", spectrogram: "XC126343_Spur-wingedGoose.png", credit: "Sander Bot", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/3.0/", changes: "Original recording"
 },
 {
 english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata National Park", habitat: "Wetland", birdgroup: "Waders", 
