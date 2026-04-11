@@ -7,37 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  font-family: Arial;
-  max-width: 650px;
-  margin: auto;
-  padding: 10px;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  margin: 5px 0;
-  font-size: 16px;
-}
-
-select {
-  width: 100%;
-  padding: 8px;
-  margin: 5px 0;
-}
-
-img {
-  width: 100%;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-}
-
-#info {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #ddd;
-}
+body { font-family: Arial; max-width: 650px; margin:auto; padding:10px; }
+button { width:100%; padding:12px; margin:5px 0; font-size:16px; }
+select { width:100%; padding:8px; margin:5px 0; }
+img { width:100%; margin-top:10px; border:1px solid #ccc; }
+#info { margin-top:10px; border-top:1px solid #ddd; padding-top:10px; }
 </style>
 </head>
 
@@ -56,7 +30,6 @@ img {
 <select id="filterValue"></select>
 
 <button onclick="startGame()">Start</button>
-
 <button onclick="reviewMode()" style="background:#ffcc00;">Review Mistakes</button>
 
 <hr>
@@ -71,7 +44,7 @@ img {
 
 <div id="info"></div>
 
-<button id="nextBtn" onclick="nextBird()">Next</button>
+<button onclick="nextBird()">Next</button>
 
 </div>
 
@@ -79,11 +52,9 @@ img {
 
 <script>
 
-// ---------------- STATE ----------------
 let filtered = [];
-let remaining = [];
+let queue = [];
 let currentBird = null;
-
 let wrongAnswers = [];
 
 let audio = new Audio();
@@ -97,8 +68,7 @@ function playAudio(file){
 }
 
 function togglePlay(){
-  if(audio.paused) audio.play();
-  else audio.pause();
+  audio.paused ? audio.play() : audio.pause();
 }
 
 // ---------------- FILTER ----------------
@@ -132,7 +102,12 @@ function updateFilterOptions(){
   });
 }
 
-// ---------------- GAME START ----------------
+// ---------------- SHUFFLE ----------------
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+// ---------------- START ----------------
 function startGame(){
 
   wrongAnswers = [];
@@ -143,37 +118,32 @@ function startGame(){
   if(type==="none" || !val){
     filtered=[...birds];
   } else {
-    filtered=birds.filter(b =>
+    filtered = birds.filter(b =>
       b[type].toLowerCase().includes(val.toLowerCase())
     );
   }
 
-  remaining = shuffle([...filtered]);
+  queue = shuffle([...filtered]);   // 🔒 FIXED CORE LOGIC
 
   document.getElementById("gameArea").style.display="block";
 
   nextBird();
 }
 
-// ---------------- SHUFFLE ----------------
-function shuffle(arr){
-  return arr.sort(()=>Math.random()-0.5);
-}
-
-// ---------------- NEXT BIRD (NO REPEATS) ----------------
+// ---------------- NEXT BIRD (STRICT NO REPEAT) ----------------
 function nextBird(){
 
-  if(remaining.length === 0){
-    remaining = shuffle([...filtered]);
+  if(queue.length === 0){
+    queue = shuffle([...filtered]); // new cycle only when empty
   }
 
-  currentBird = remaining.pop();
+  currentBird = queue.shift(); // take FIRST item only
 
   playAudio(currentBird.audio);
 
-  let img = document.getElementById("spectrogram");
+  let img=document.getElementById("spectrogram");
   if(currentBird.spectrogram){
-    img.src = currentBird.spectrogram;
+    img.src=currentBird.spectrogram;
     img.style.display="block";
   } else {
     img.style.display="none";
@@ -181,8 +151,11 @@ function nextBird(){
 
   let options=[currentBird.english];
 
-  while(options.length<4){
-    let r = filtered[Math.floor(Math.random()*filtered.length)].english;
+  // ensure no duplicates from same set
+  let pool = [...filtered].filter(b => b.english !== currentBird.english);
+
+  while(options.length<4 && pool.length>0){
+    let r = pool[Math.floor(Math.random()*pool.length)].english;
     if(!options.includes(r)) options.push(r);
   }
 
@@ -201,7 +174,7 @@ function nextBird(){
   document.getElementById("info").innerHTML="";
 }
 
-// ---------------- CHECK ANSWER ----------------
+// ---------------- CHECK ----------------
 function check(ans){
 
   let correct = ans === currentBird.english;
@@ -220,7 +193,7 @@ function check(ans){
   `;
 }
 
-// ---------------- REVIEW MODE ----------------
+// ---------------- REVIEW ----------------
 function reviewMode(){
 
   if(wrongAnswers.length === 0){
@@ -229,14 +202,13 @@ function reviewMode(){
   }
 
   filtered = [...wrongAnswers];
-  remaining = shuffle([...filtered]);
+  queue = shuffle([...filtered]);
 
   document.getElementById("gameArea").style.display="block";
 
   nextBird();
 }
 
-// init
 updateFilterOptions();
 
 </script>
