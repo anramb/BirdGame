@@ -16,17 +16,12 @@ select { margin: 5px; padding: 5px; }
 
 <h1>Bird Sound Game</h1>
 
-<p>
-Score: <b><span id="score">0</span></b> |
-Level: <b><span id="level">1</span></b>
-</p>
-
 <label>Filter:</label>
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">None</option>
   <option value="habitat">Habitat</option>
   <option value="hotspot">Hotspot</option>
-  <option value="family">Family</option>
+  <option value="birdgroup">Bird Group</option>
 </select>
 
 <select id="filterValue"></select>
@@ -50,13 +45,14 @@ Level: <b><span id="level">1</span></b>
 <script>
 
 // ================= DATABASE =================
+// 🔴 ENIGSTE PLEK WAAR JY NUWE VOËLS BYSIT
 let birds = [
 {
   english:"African Jacana",
   afrikaans:"Grootlangtoon",
   hotspot:"Kruger National Park; Nylsvley",
   habitat:"Wetland",
-  family:"Jacanidae",
+  birdgroup:"Waders",
   audio:"XC651037_AfricanJacana.mp3",
   credit:"Tony Archer",
   licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
@@ -67,7 +63,7 @@ let birds = [
   afrikaans:"Gestreepte Riethaan",
   hotspot:"Nylsvley; Zaagkuildrift",
   habitat:"Wetland",
-  family:"Rallidae",
+  birdgroup:"Waders",
   audio:"XC1079092_StripedCrake.mp3",
   credit:"Niall Perrins",
   licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
@@ -78,7 +74,7 @@ let birds = [
   afrikaans:"Swartriethaan",
   hotspot:"Kruger National Park",
   habitat:"Wetland",
-  family:"Rallidae",
+  birdgroup:"Waders",
   audio:"XC475084_BlackCrake.mp3",
   credit:"Tony Archer",
   licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
@@ -89,7 +85,7 @@ let birds = [
   afrikaans:"Groenpootruiter",
   hotspot:"Marievale Bird Sanctuary",
   habitat:"Wetland",
-  family:"Scolopacidae",
+  birdgroup:"Waders",
   audio:"XC670128_CommonGreenshank.mp3",
   credit:"Tim Cockroft",
   licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
@@ -99,11 +95,11 @@ let birds = [
 
 // ================= STATE =================
 let filtered = [];
-let current = 0;
-let audio = new Audio();
+let queue = [];
+let index = 0;
+let currentBird = null;
 
-let score = 0;
-let level = 1;
+let audio = new Audio();
 
 // ================= AUDIO =================
 function playAudio(file){
@@ -118,46 +114,47 @@ function togglePlay(){
   else audio.pause();
 }
 
-// ================= FILTER =================
+// ================= HELPERS =================
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+}
+
 function getUnique(key){
-  let arr = [];
+  let arr=[];
   birds.forEach(b=>{
-    if(!b[key]) return;   // 🔴 STOP as die veld nie bestaan nie
+    if(!b[key]) return;
     b[key].split(';').forEach(v=>{
-      v = v.trim();
+      v=v.trim();
       if(v && !arr.includes(v)) arr.push(v);
     });
   });
   return arr;
 }
 
+// ================= FILTER =================
 function updateFilterOptions(){
-  let type = document.getElementById("filterType").value;
-  let sel = document.getElementById("filterValue");
+  let type=document.getElementById("filterType").value;
+  let sel=document.getElementById("filterValue");
+  sel.innerHTML="";
 
-  sel.innerHTML = "";
-
-  if(type === "none"){
-    sel.innerHTML = "<option value=''>All</option>";
+  if(type==="none"){
+    sel.innerHTML="<option value=''>All</option>";
     return;
   }
 
-  let values = getUnique(type);
-
-  values.forEach(v=>{
-    let o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
+  getUnique(type).forEach(v=>{
+    let o=document.createElement("option");
+    o.value=v;
+    o.textContent=v;
     sel.appendChild(o);
   });
 }
 
 // ================= GAME =================
 function startGame(){
-  score = 0;
-  level = 1;
-  updateStats();
-
   let type=document.getElementById("filterType").value;
   let val=document.getElementById("filterValue").value;
 
@@ -169,25 +166,33 @@ function startGame(){
     );
   }
 
+  queue=[...filtered];
+  shuffle(queue);
+  index=0;
+
   document.getElementById("gameArea").style.display="block";
   nextBird();
 }
 
 function nextBird(){
-  current=Math.floor(Math.random()*filtered.length);
-  let bird=filtered[current];
+  if(index >= queue.length){
+    shuffle(queue);
+    index=0;
+  }
 
-  playAudio(bird.audio);
+  currentBird = queue[index];
+  index++;
 
-  let options=[bird.english];
-  let totalOptions = 3 + level; // level scaling
+  playAudio(currentBird.audio);
 
-  while(options.length<totalOptions){
+  let options=[currentBird.english];
+
+  while(options.length<4){
     let r=filtered[Math.floor(Math.random()*filtered.length)].english;
     if(!options.includes(r)) options.push(r);
   }
 
-  options.sort(()=>Math.random()-0.5);
+  shuffle(options);
 
   let div=document.getElementById("options");
   div.innerHTML="";
@@ -203,15 +208,8 @@ function nextBird(){
   document.getElementById("nextBtn").style.display="none";
 }
 
-// ================= CHECK =================
 function check(ans){
-  let b=filtered[current];
-
-  if(ans===b.english){
-    score++;
-    if(score % 5 === 0) level++;
-    updateStats();
-  }
+  let b=currentBird;
 
   document.getElementById("info").innerHTML=`
     <b>${ans===b.english?"Correct ✔":"Wrong ✖"}</b><br><br>
@@ -223,11 +221,6 @@ function check(ans){
   `;
 
   document.getElementById("nextBtn").style.display="inline-block";
-}
-
-function updateStats(){
-  document.getElementById("score").innerText = score;
-  document.getElementById("level").innerText = level;
 }
 
 updateFilterOptions();
