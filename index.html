@@ -8,7 +8,7 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   padding: 10px;
   max-width: 600px;
   margin: auto;
@@ -24,7 +24,6 @@ button {
 select {
   width: 100%;
   padding: 10px;
-  font-size: 16px;
   margin-bottom: 10px;
 }
 
@@ -33,6 +32,12 @@ select {
   padding-top: 10px;
   border-top: 1px solid #ccc;
 }
+
+img {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+}
 </style>
 </head>
 
@@ -40,7 +45,7 @@ select {
 
 <h2>Bird Sound Game</h2>
 
-<label>Filter by:</label>
+<label>Filter:</label>
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">None</option>
   <option value="habitat">Habitat</option>
@@ -58,6 +63,8 @@ select {
 
 <button onclick="togglePlay()">Play / Pause</button>
 
+<img id="spectrogram" style="display:none;">
+
 <div id="options"></div>
 
 <div id="info"></div>
@@ -66,26 +73,21 @@ select {
 
 </div>
 
-<!-- 🔗 Data file -->
 <script src="birds.js"></script>
 
 <script>
-// ================= STATE =================
+
 let filtered = [];
-let remaining = [];
 let currentBird = null;
 
 let audio = new Audio();
 
-// ================= AUDIO =================
+// AUDIO
 function playAudio(file){
   audio.pause();
   audio.src = file;
   audio.load();
-
-  audio.play().catch(()=>{
-    console.log("Audio blocked until user interaction");
-  });
+  audio.play().catch(()=>{});
 }
 
 function togglePlay(){
@@ -93,12 +95,12 @@ function togglePlay(){
   else audio.pause();
 }
 
-// ================= FILTER HELPERS =================
+// FILTER
 function getUnique(key){
-  let arr = [];
+  let arr=[];
   birds.forEach(b=>{
     b[key].split(";").forEach(v=>{
-      v = v.trim();
+      v=v.trim();
       if(!arr.includes(v)) arr.push(v);
     });
   });
@@ -106,86 +108,85 @@ function getUnique(key){
 }
 
 function updateFilterOptions(){
-  let type = document.getElementById("filterType").value;
-  let sel = document.getElementById("filterValue");
+  let type=document.getElementById("filterType").value;
+  let sel=document.getElementById("filterValue");
 
-  sel.innerHTML = "";
+  sel.innerHTML="";
 
-  if(type === "none"){
-    sel.innerHTML = "<option value=''>All</option>";
+  if(type==="none"){
+    sel.innerHTML="<option value=''>All</option>";
     return;
   }
 
   getUnique(type).forEach(v=>{
-    let o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
+    let o=document.createElement("option");
+    o.value=v;
+    o.textContent=v;
     sel.appendChild(o);
   });
 }
 
-// ================= GAME LOGIC =================
+// GAME
 function startGame(){
-  let type = document.getElementById("filterType").value;
-  let val = document.getElementById("filterValue").value;
+  let type=document.getElementById("filterType").value;
+  let val=document.getElementById("filterValue").value;
 
-  if(type === "none" || !val){
-    filtered = [...birds];
+  if(type==="none" || !val){
+    filtered=[...birds];
   } else {
-    filtered = birds.filter(b =>
+    filtered=birds.filter(b=>
       b[type].toLowerCase().includes(val.toLowerCase())
     );
   }
 
-  if(filtered.length === 0){
-    alert("No birds found for this filter");
-    return;
-  }
-
-  remaining = [...filtered];
-  document.getElementById("gameArea").style.display = "block";
+  document.getElementById("gameArea").style.display="block";
   nextBird();
 }
 
 function nextBird(){
-  if(remaining.length === 0){
-    alert("You’ve heard all birds for this filter!");
-    remaining = [...filtered];
-  }
 
-  let idx = Math.floor(Math.random() * remaining.length);
-  currentBird = remaining.splice(idx,1)[0];
+  currentBird = filtered[Math.floor(Math.random()*filtered.length)];
 
   playAudio(currentBird.audio);
 
-  let options = [currentBird.english];
+  // spectrogram
+  let img = document.getElementById("spectrogram");
+  if(currentBird.spectrogram){
+    img.src = currentBird.spectrogram;
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
 
-  while(options.length < 4){
+  // options
+  let options=[currentBird.english];
+
+  while(options.length<4){
     let r = filtered[Math.floor(Math.random()*filtered.length)].english;
     if(!options.includes(r)) options.push(r);
   }
 
   options.sort(()=>Math.random()-0.5);
 
-  let div = document.getElementById("options");
-  div.innerHTML = "";
+  let div=document.getElementById("options");
+  div.innerHTML="";
 
   options.forEach(o=>{
-    let btn = document.createElement("button");
-    btn.textContent = o;
-    btn.onclick = ()=>checkAnswer(o);
+    let btn=document.createElement("button");
+    btn.textContent=o;
+    btn.onclick=()=>check(o);
     div.appendChild(btn);
   });
 
-  document.getElementById("info").innerHTML = "";
-  document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("info").innerHTML="";
+  document.getElementById("nextBtn").style.display="none";
 }
 
-function checkAnswer(answer){
-  let b = currentBird;
+function check(ans){
+  let b=currentBird;
 
-  document.getElementById("info").innerHTML = `
-    <b>${answer === b.english ? "Correct ✔" : "Wrong ✖"}</b><br><br>
+  document.getElementById("info").innerHTML=`
+    <b>${ans===b.english?"Correct ✔":"Wrong ✖"}</b><br><br>
     <b>English:</b> ${b.english}<br>
     <b>Afrikaans:</b> ${b.afrikaans}<br>
     <b>Credit:</b> ${b.credit}<br>
@@ -193,11 +194,11 @@ function checkAnswer(answer){
     <b>License:</b> <a href="${b.licenseLink}" target="_blank">View</a>
   `;
 
-  document.getElementById("nextBtn").style.display = "block";
+  document.getElementById("nextBtn").style.display="block";
 }
 
-// Init
 updateFilterOptions();
+
 </script>
 
 </body>
