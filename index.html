@@ -2,41 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Sound Game</title>
+<title>Bird Game</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
   font-family: Arial;
-  padding: 10px;
-  max-width: 600px;
+  max-width: 650px;
   margin: auto;
+  padding: 10px;
 }
 
 button {
   width: 100%;
-  padding: 14px;
-  margin: 6px 0;
-  font-size: 18px;
+  padding: 12px;
+  margin: 5px 0;
+  font-size: 16px;
 }
 
 select {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-#info {
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px solid #ccc;
+  padding: 8px;
+  margin: 5px 0;
 }
 
 img {
   width: 100%;
   margin-top: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
+}
+
+#info {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd;
 }
 </style>
 </head>
@@ -47,7 +47,7 @@ img {
 
 <label>Filter:</label>
 <select id="filterType" onchange="updateFilterOptions()">
-  <option value="none">None</option>
+  <option value="none">All</option>
   <option value="habitat">Habitat</option>
   <option value="hotspot">Hotspot</option>
   <option value="birdgroup">Bird Group</option>
@@ -55,7 +55,9 @@ img {
 
 <select id="filterValue"></select>
 
-<button onclick="startGame()">Begin</button>
+<button onclick="startGame()">Start</button>
+
+<button onclick="reviewMode()" style="background:#ffcc00;">Review Mistakes</button>
 
 <hr>
 
@@ -63,13 +65,13 @@ img {
 
 <button onclick="togglePlay()">Play / Pause</button>
 
-<img id="spectrogram" style="display:none;">
+<img id="spectrogram">
 
 <div id="options"></div>
 
 <div id="info"></div>
 
-<button id="nextBtn" onclick="nextBird()" style="display:none;">Next</button>
+<button id="nextBtn" onclick="nextBird()">Next</button>
 
 </div>
 
@@ -77,12 +79,16 @@ img {
 
 <script>
 
+// ---------------- STATE ----------------
 let filtered = [];
+let remaining = [];
 let currentBird = null;
+
+let wrongAnswers = [];
 
 let audio = new Audio();
 
-// AUDIO
+// ---------------- AUDIO ----------------
 function playAudio(file){
   audio.pause();
   audio.src = file;
@@ -95,7 +101,7 @@ function togglePlay(){
   else audio.pause();
 }
 
-// FILTER
+// ---------------- FILTER ----------------
 function getUnique(key){
   let arr=[];
   birds.forEach(b=>{
@@ -126,39 +132,53 @@ function updateFilterOptions(){
   });
 }
 
-// GAME
+// ---------------- GAME START ----------------
 function startGame(){
+
+  wrongAnswers = [];
+
   let type=document.getElementById("filterType").value;
   let val=document.getElementById("filterValue").value;
 
   if(type==="none" || !val){
     filtered=[...birds];
   } else {
-    filtered=birds.filter(b=>
+    filtered=birds.filter(b =>
       b[type].toLowerCase().includes(val.toLowerCase())
     );
   }
 
+  remaining = shuffle([...filtered]);
+
   document.getElementById("gameArea").style.display="block";
+
   nextBird();
 }
 
+// ---------------- SHUFFLE ----------------
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+// ---------------- NEXT BIRD (NO REPEATS) ----------------
 function nextBird(){
 
-  currentBird = filtered[Math.floor(Math.random()*filtered.length)];
+  if(remaining.length === 0){
+    remaining = shuffle([...filtered]);
+  }
+
+  currentBird = remaining.pop();
 
   playAudio(currentBird.audio);
 
-  // spectrogram
   let img = document.getElementById("spectrogram");
   if(currentBird.spectrogram){
     img.src = currentBird.spectrogram;
-    img.style.display = "block";
+    img.style.display="block";
   } else {
-    img.style.display = "none";
+    img.style.display="none";
   }
 
-  // options
   let options=[currentBird.english];
 
   while(options.length<4){
@@ -166,7 +186,7 @@ function nextBird(){
     if(!options.includes(r)) options.push(r);
   }
 
-  options.sort(()=>Math.random()-0.5);
+  shuffle(options);
 
   let div=document.getElementById("options");
   div.innerHTML="";
@@ -179,24 +199,44 @@ function nextBird(){
   });
 
   document.getElementById("info").innerHTML="";
-  document.getElementById("nextBtn").style.display="none";
 }
 
+// ---------------- CHECK ANSWER ----------------
 function check(ans){
-  let b=currentBird;
+
+  let correct = ans === currentBird.english;
+
+  if(!correct){
+    wrongAnswers.push(currentBird);
+  }
 
   document.getElementById("info").innerHTML=`
-    <b>${ans===b.english?"Correct ✔":"Wrong ✖"}</b><br><br>
-    <b>English:</b> ${b.english}<br>
-    <b>Afrikaans:</b> ${b.afrikaans}<br>
-    <b>Credit:</b> ${b.credit}<br>
-    <b>Changes:</b> ${b.changes}<br>
-    <b>License:</b> <a href="${b.licenseLink}" target="_blank">View</a>
+    <b>${correct ? "Correct ✔" : "Wrong ✖"}</b><br><br>
+    <b>English:</b> ${currentBird.english}<br>
+    <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
+    <b>Credit:</b> ${currentBird.credit}<br>
+    <b>Changes:</b> ${currentBird.changes}<br>
+    <b>License:</b> <a href="${currentBird.licenseLink}" target="_blank">View</a>
   `;
-
-  document.getElementById("nextBtn").style.display="block";
 }
 
+// ---------------- REVIEW MODE ----------------
+function reviewMode(){
+
+  if(wrongAnswers.length === 0){
+    alert("No mistakes to review!");
+    return;
+  }
+
+  filtered = [...wrongAnswers];
+  remaining = shuffle([...filtered]);
+
+  document.getElementById("gameArea").style.display="block";
+
+  nextBird();
+}
+
+// init
 updateFilterOptions();
 
 </script>
