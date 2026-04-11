@@ -120,31 +120,34 @@ function togglePlay(){
 
 // ================= FILTER =================
 function getUnique(key){
-  let arr=[];
+  let arr = [];
   birds.forEach(b=>{
-    if(!b[key]) return;
+    if(!b[key]) return;   // 🔴 STOP as die veld nie bestaan nie
     b[key].split(';').forEach(v=>{
-      v=v.trim();
-      if(!arr.includes(v)) arr.push(v);
+      v = v.trim();
+      if(v && !arr.includes(v)) arr.push(v);
     });
   });
   return arr;
 }
 
 function updateFilterOptions(){
-  let type=document.getElementById("filterType").value;
-  let sel=document.getElementById("filterValue");
-  sel.innerHTML="";
+  let type = document.getElementById("filterType").value;
+  let sel = document.getElementById("filterValue");
 
-  if(type==="none"){
-    sel.innerHTML="<option value=''>All</option>";
+  sel.innerHTML = "";
+
+  if(type === "none"){
+    sel.innerHTML = "<option value=''>All</option>";
     return;
   }
 
-  getUnique(type).forEach(v=>{
-    let o=document.createElement("option");
-    o.value=v;
-    o.textContent=v;
+  let values = getUnique(type);
+
+  values.forEach(v=>{
+    let o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
     sel.appendChild(o);
   });
 }
