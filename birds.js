@@ -4,7 +4,7 @@ const birds = [
   audio:"XC651037_AfricanJacana.mp3", spectrogram: "XC651037_AfricanJacana.png", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
   
 { english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+  audio:"XC1079092_StripedCrake.mp3", spectrogram: "XC1079092_StripedCrake.png", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
 
 { english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park", habitat:"Wetland", birdgroup:"Waders",
   audio:"XC475084_BlackCrake.mp3", spectrogram: "XC475084_BlackCrake.png", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
