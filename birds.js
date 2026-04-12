@@ -63,22 +63,22 @@ const birds = [
 {english: "Buff-spotted Flufftail", afrikaans: "Gevlekte Vleikuiken", hotspot: "St Lucia; Drakensberg", habitat: "Forest", birdgroup: "Flufftail", level: "3 Advanced",
  audio: "XC1097222_Buff-spottedFlufftail.mp3", spectrogram: "XC1097222_Buff-spottedFlufftail.png",credit: "© Marna Buys, www.xeno-canto.org, XC1097222, Background birds: Bar-throated apalis, Dark-capped bulbul", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Red-chested Flufftail Call 1", afrikaans: "Rooiborsvleikuiken 1", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", level: "3 Advanced",
+{english: "Red-chested Flufftail Call male", afrikaans: "Rooiborsvleikuiken male", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", level: "3 Advanced",
  audio: "XC520141_Red-chestedFlufftail.mp3", spectrogram: "XC520141_Red-chestedFlufftail.png",credit: "© Tony Archer, www.xeno-canto.org, XC520141", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Red-chested Flufftail Call 2", afrikaans: "Rooiborsvleikuiken 2", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", level: "3 Advanced",
+{english: "Red-chested Flufftail territorial call", afrikaans: "Rooiborsvleikuiken territorial call", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", level: "3 Advanced",
  audio: "XC546433_Red-chestedFlufftail.mp3", spectrogram: "XC546433_Red-chestedFlufftail.png",credit: "© Dries Van de Loock, www.xeno-canto.org, XC546433", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Olive-tree Warbler", afrikaans: "Olyfboomsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
  audio: "XC819380_Olive-treeWarbler.mp3", spectrogram: "XC819380_Olive-treeWarbler.png",credit: "© Rick Nuttall, www.xeno-canto.org, XC819380", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Common Whitethroat", afrikaans: "Witkeelsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+{english: "Common Whitethroat alarm call", afrikaans: "Witkeelsanger alarm call", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
  audio: "XC521207_CommonWhitethroat.mp3", spectrogram: "XC521207_CommonWhitethroat.png",credit: "© Tony Archer, www.xeno-canto.org, XC521207, Alarm call, Background birds: red-faced mousebird", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Barred Wren-Warbler", afrikaans: "Gebande Sanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "2 Intermediate", 
  audio: "XC708257_BarredWren-Warbler.mp3", spectrogram: "XC708257_BarredWren-Warbler.png",credit: "© Tony Archer, www.xeno-canto.org, XC708257", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-  {english: "Marsh Warbler", afrikaans: "Europese Rietsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+  {english: "Marsh Warbler alarm call", afrikaans: "Europese Rietsanger alarm call", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
    audio: "XC632299_MarshWarbler.mp3", spectrogram: "XC632299_MarshWarbler.png",credit: "© Tony Archer, www.xeno-canto.org, XC632299; Alarm call", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
   
 { english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
