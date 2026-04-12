@@ -78,6 +78,8 @@ const birds = [
 {english: "Barred Wren-Warbler", afrikaans: "Gebande Sanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "2 Intermediate", 
  audio: "XC708257_BarredWren-Warbler.mp3", spectrogram: "XC708257_BarredWren-Warbler.png",credit: "© Tony Archer, www.xeno-canto.org, XC708257", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
+  {english: "Marsh Warbler", afrikaans: "Europese Rietsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+   audio: "XC632299_MarshWarbler.mp3", spectrogram: "XC632299_MarshWarbler.png",credit: "© Tony Archer, www.xeno-canto.org, XC632299; Alarm call", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
   
 { english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
   audio:"XC670128_CommonGreenshank.mp3", spectrogram: "XC670128_CommonGreenshank.png", credit:"© Tim Cockroft, www.xeno-canto.org, XC670128", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
