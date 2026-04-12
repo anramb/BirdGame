@@ -31,7 +31,7 @@ const birds = [
   audio: "XC347035_AfricanRail.mp3", spectrogram: "XC347035_AfricanRail.png", credit: "© Peter Boesman, www.xeno-canto.org, XC347035", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
   
 { english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate",
-  audio: "XC495341_AfricanSnipe.mp3", spectrogram: "XC495341_AfricanSnipe.png", credit: "© Tony Archer, www.xeno-canto.org, XC495341, licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+  audio: "XC495341_AfricanSnipe.mp3", spectrogram: "XC495341_AfricanSnipe.png", credit: "© Tony Archer, www.xeno-canto.org, XC495341", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 { english: "African Crake", afrikaans: "Afrikaanse Riethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced",
   audio: "XC39321_AfricanCrake.mp3", spectrogram: "XC39321_AfricanCrake.png", credit: "© Derek Solomon, www.xeno-canto.org, XC39321", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/2.5/", changes: "Original recording"},
