@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Call Game</title>
+<title>Bird Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,77 +10,66 @@ body { font-family: Arial; max-width:700px; margin:auto; padding:10px; }
 button, select { width:100%; padding:12px; margin:6px 0; font-size:16px; }
 img { width:100%; margin-top:10px; border:1px solid #ccc; }
 #info { margin-top:10px; border-top:1px solid #ddd; padding-top:10px; }
-.lang-btn { background:#eee; }
+.small { font-size:13px; color:#666; }
 </style>
 </head>
 
 <body>
 
-<h2 id="title">Bird Call Game</h2>
+<h2>Bird Sound Game</h2>
 
-<button class="lang-btn" onclick="toggleLanguage()">Switch Language</button>
+<button onclick="toggleLang()">Switch to Afrikaans Names</button>
+<div class="small">Only bird names change language</div>
 
-<label id="lblHabitat">Habitat:</label>
-<select id="habitatSelect"></select>
+<br>
 
-<label id="lblHotspot">Hotspot:</label>
-<select id="hotspotSelect"></select>
+<label>Habitat:</label>
+<select id="habitat"></select>
 
-<label id="lblGroup">Bird Group:</label>
-<select id="groupSelect"></select>
+<label>Hotspot:</label>
+<select id="hotspot"></select>
 
-<label id="lblLevel">Abundance Level:</label>
-<select id="levelSelect"></select>
+<label>Bird Group:</label>
+<select id="group"></select>
 
-<button onclick="startGame()" id="startBtn">Start</button>
-<button onclick="reviewMode()" style="background:#ffcc00;" id="reviewBtn">Review Mistakes</button>
+<button onclick="startGame()">Start</button>
+<button onclick="reviewMode()" style="background:#ffd166;">Review Mistakes</button>
 
 <hr>
 
 <div id="gameArea" style="display:none;">
 
-<button onclick="togglePlay()" id="playBtn">Play / Pause</button>
+<button onclick="togglePlay()">Play / Pause</button>
 
-<img id="spectrogram" style="display:none">
+<img id="spectrogram">
 
 <div id="options"></div>
+
 <div id="info"></div>
 
-<button onclick="nextBird()" id="nextBtn">Next</button>
+<button onclick="nextBird()">Next</button>
 
 </div>
 
 <script src="birds.js"></script>
 
 <script>
-// ================= LANGUAGE =================
-let language = "en"; // default
 
-function toggleLanguage(){
-  language = language === "en" ? "af" : "en";
-  updateLanguage();
-}
-
-function updateLanguage(){
-  document.getElementById("title").textContent = language==="en" ? "Bird Call Game" : "Voëlroep Speletjie";
-  document.getElementById("startBtn").textContent = language==="en" ? "Start" : "Begin";
-  document.getElementById("reviewBtn").textContent = language==="en" ? "Review Mistakes" : "Hersien Foute";
-  document.getElementById("playBtn").textContent = language==="en" ? "Play / Pause" : "Speel / Stop";
-  document.getElementById("nextBtn").textContent = language==="en" ? "Next" : "Volgende";
-  document.getElementById("lblHabitat").textContent = language==="en" ? "Habitat:" : "Habitat:";
-  document.getElementById("lblHotspot").textContent = language==="en" ? "Hotspot:" : "Ligging:";
-  document.getElementById("lblGroup").textContent = language==="en" ? "Bird Group:" : "Voëlgroep:";
-  document.getElementById("lblLevel").textContent = language==="en" ? "Abundance Level:" : "Voorkoms Vlak:";
-}
-
-// ================= GAME STATE =================
-let filtered=[], queue=[], current=null, wrongAnswers=[];
+// ================= STATE =================
+let lang = "en"; // en or af
+let filtered=[], queue=[], current=null, wrong=[];
 let audio = new Audio();
+
+// ================= LANGUAGE TOGGLE =================
+function toggleLang(){
+  lang = (lang === "en") ? "af" : "en";
+  nextBird(); // refresh current question
+}
 
 // ================= AUDIO =================
 function playAudio(file){
   audio.pause();
-  audio.src = file;
+  audio.src=file;
   audio.load();
   audio.play().catch(()=>{});
 }
@@ -89,9 +78,9 @@ function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
 }
 
-// ================= FILTER DROPDOWNS =================
-function fillDropdown(id,key){
-  let set = new Set();
+// ================= DROPDOWNS =================
+function fill(id,key){
+  let set=new Set();
   birds.forEach(b=>{
     if(b[key]){
       b[key].split(";").forEach(v=>set.add(v.trim()));
@@ -100,7 +89,8 @@ function fillDropdown(id,key){
 
   let sel=document.getElementById(id);
   sel.innerHTML="<option value=''>All</option>";
-  [...set].forEach(v=>{
+
+  [...set].sort().forEach(v=>{
     let o=document.createElement("option");
     o.value=v;
     o.textContent=v;
@@ -108,30 +98,23 @@ function fillDropdown(id,key){
   });
 }
 
-fillDropdown("habitatSelect","habitat");
-fillDropdown("hotspotSelect","hotspot");
-fillDropdown("groupSelect","birdgroup");
-fillDropdown("levelSelect","abundance");
+fill("habitat","habitat");
+fill("hotspot","hotspot");
+fill("group","birdgroup");
 
-// ================= SHUFFLE =================
-function shuffle(arr){
-  return arr.sort(()=>Math.random()-0.5);
-}
-
-// ================= START GAME =================
+// ================= START =================
 function startGame(){
-  wrongAnswers=[];
 
-  let h=document.getElementById("habitatSelect").value.toLowerCase();
-  let s=document.getElementById("hotspotSelect").value.toLowerCase();
-  let g=document.getElementById("groupSelect").value.toLowerCase();
-  let l=document.getElementById("levelSelect").value.toLowerCase();
+  wrong=[];
+
+  let h=document.getElementById("habitat").value.toLowerCase();
+  let s=document.getElementById("hotspot").value.toLowerCase();
+  let g=document.getElementById("group").value.toLowerCase();
 
   filtered = birds.filter(b=>
-    (!h || (b.habitat||"").toLowerCase().includes(h)) &&
-    (!s || (b.hotspot||"").toLowerCase().includes(s)) &&
-    (!g || (b.birdgroup||"").toLowerCase().includes(g)) &&
-    (!l || (b.abundance||"").toLowerCase().includes(l))
+    (!h || b.habitat.toLowerCase().includes(h)) &&
+    (!s || b.hotspot.toLowerCase().includes(s)) &&
+    (!g || b.birdgroup.toLowerCase().includes(g))
   );
 
   queue = shuffle([...filtered]);
@@ -140,9 +123,16 @@ function startGame(){
   nextBird();
 }
 
-// ================= NEXT (NO REPEAT) =================
+// ================= SHUFFLE =================
+function shuffle(a){
+  return a.sort(()=>Math.random()-0.5);
+}
+
+// ================= NEXT BIRD (NO REPEAT) =================
 function nextBird(){
-  if(queue.length===0) queue=shuffle([...filtered]);
+
+  if(queue.length===0) queue = shuffle([...filtered]);
+
   current = queue.shift();
 
   playAudio(current.audio);
@@ -151,16 +141,19 @@ function nextBird(){
   if(current.spectrogram){
     img.src=current.spectrogram;
     img.style.display="block";
-  } else img.style.display="none";
+  } else {
+    img.style.display="none";
+  }
 
-  let correctName = language==="en" ? current.english : current.afrikaans;
+  let correct = (lang==="en") ? current.english : current.afrikaans;
 
-  let options=[correctName];
-  let pool=[...filtered].filter(b=>b!==current);
+  let options=[correct];
 
-  while(options.length<4 && pool.length>0){
-    let r=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
-    options.push(language==="en"?r.english:r.afrikaans);
+  let pool = [...filtered].filter(b=>b!==current);
+
+  while(options.length<4 && pool.length){
+    let r = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+    options.push(lang==="en"?r.english:r.afrikaans);
   }
 
   shuffle(options);
@@ -178,34 +171,34 @@ function nextBird(){
   document.getElementById("info").innerHTML="";
 }
 
-// ================= CHECK ANSWER =================
+// ================= CHECK =================
 function check(ans){
-  let correctName = language==="en" ? current.english : current.afrikaans;
-  let correct = ans === correctName;
 
-  if(!correct) wrongAnswers.push(current);
+  let correct = (lang==="en") ? current.english : current.afrikaans;
+  let ok = ans === correct;
+
+  if(!ok) wrong.push(current);
 
   document.getElementById("info").innerHTML=`
-    <b>${correct ? "✔" : "✖"} ${correctName}</b><br>
+    <b>${ok?"✔ Correct":"✖ Wrong"}</b><br><br>
     English: ${current.english}<br>
     Afrikaans: ${current.afrikaans}<br>
     Credit: ${current.credit}<br>
-    License: <a href="${current.licenseLink}" target="_blank">View</a>
   `;
 }
 
 // ================= REVIEW =================
 function reviewMode(){
-  if(wrongAnswers.length===0){
-    alert(language==="en"?"No mistakes!":"Geen foute nie!");
+  if(wrong.length===0){
+    alert("No mistakes!");
     return;
   }
-  filtered=[...wrongAnswers];
+  filtered=[...wrong];
   queue=shuffle([...filtered]);
   nextBird();
 }
 
-updateLanguage();
 </script>
+
 </body>
 </html>
