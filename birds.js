@@ -54,17 +54,19 @@ const birds = [
 {english: "Dwarf Bittern", afrikaans: "Dwergrietreier", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Egrets & Herons", 
  audio: "XC827385_DwarfBittern.mp3", spectrogram: "XC827385_DwarfBittern.png",credit: "© Ehren Eksteen, www.xeno-canto.org, XC827385; Background birds: Cape Turtle (RIng-necked) Dove, Woodland Kingfisher", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Black-crowned Night Heron", afrikaans: "Gewone Nagreier", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Egrets & Herons", audio: "XC280512_Black-crownedNightHeron. mp3", spectrogram: "XC280512_Black-crownedNightHeron.png",credit: "Credit: © Peter Boesman, www.xeno-canto.org, XC280512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+{english: "Black-crowned Night Heron", afrikaans: "Gewone Nagreier", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Egrets & Herons", 
+ audio: "XC280512_Black-crownedNightHeron.mp3", spectrogram: "XC280512_Black-crownedNightHeron.png",credit: "© Peter Boesman, www.xeno-canto.org, XC280512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
 {english: "Squacco Heron", afrikaans: "Ralreier", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Egrets & Herons", 
  audio: "XC299963_SquaccoHeron.mp3", spectrogram: "XC299963_SquaccoHeron.png",credit: "© Peter Boesman, www.xeno-canto.org, XC299963", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Buff-spotted Flufftail", afrikaans: "Gevlekte Vleikuiken", hotspot: "St Lucia; Drakensberg", habitat: "Forest", birdgroup: "Flufftail", 
  audio: "XC1097222_Buff-spottedFlufftail.mp3", spectrogram: "XC1097222_Buff-spottedFlufftail.png",credit: "© Marna Buys, www.xeno-canto.org, XC1097222, Background birds: Bar-throated apalis, Dark-capped bulbul", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Red-chested Flufftail", afrikaans: "Rooiborsvleikuiken", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", 
+{english: "Red-chested Flufftail Call 1", afrikaans: "Rooiborsvleikuiken 1", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", 
  audio: "XC520141_Red-chestedFlufftail.mp3", spectrogram: "XC520141_Red-chestedFlufftail.png",credit: "© Tony Archer, www.xeno-canto.org, XC520141", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Red-chested Flufftail", afrikaans: "Rooiborsvleikuiken", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", 
+{english: "Red-chested Flufftail Call 2", afrikaans: "Rooiborsvleikuiken 2", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", 
  audio: "XC546433_Red-chestedFlufftail.mp3", spectrogram: "XC546433_Red-chestedFlufftail.png",credit: "© Dries Van de Loock, www.xeno-canto.org, XC546433", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
   
 { english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
