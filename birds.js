@@ -12,10 +12,10 @@ const birds = [
 { english: "Allen's Gallinule", afrikaans: "Kleinkoningriethaan", hotspot: "Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "Level 3",
   audio: "XC1081358_AllensGallinule.mp3", spectrogram: "XC1081358_AllensGallinule.png", credit: "Credit: Peter Boesman, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{ english: "African Swamphen", afrikaans: "Grootkoningriethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "Level 1",
+{ english: "African Swamphen", afrikaans: "Grootkoningriethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "Level 2",
   audio: "XC276894_AfricanSwamphen.mp3", spectrogram: "XC276894_AfricanSwamphen.png", credit: "Andrew Spencer", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{ english: "Fulvous Whistling Duck", afrikaans: "Fluiteend", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", level: "Level 1",
+{ english: "Fulvous Whistling Duck", afrikaans: "Fluiteend", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", level: "Level 2",
   audio: "XC280235_FulvousWhistlingDuck.mp3", spectrogram: "XC280235_FulvousWhistlingDuck.png", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
   
 { english: "African Black Duck", afrikaans: "Swarteend", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", level: "Level 1",
@@ -27,16 +27,16 @@ const birds = [
 { english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata National Park", habitat: "Wetland", birdgroup: "Waders", level: "Level 3",
  audio: "XC791510_LesserJacana.mp3", spectrogram: "XC791510_LesserJacana.png", credit: "Dries Van de Loock", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{ english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", level: "Level 1",
+{ english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", level: "Level 2",
   audio: "XC347035_AfricanRail.mp3", spectrogram: "XC347035_AfricanRail.png", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
   
-{ english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "Level 1",
+{ english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "Level 2",
   audio: "XC495341_AfricanSnipe.mp3", spectrogram: "XC495341_AfricanSnipe.png", credit: "Credit: Tony Archer, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 { english: "African Crake", afrikaans: "Afrikaanse Riethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "Level 3",
   audio: "XC39321_AfricanCrake.mp3", spectrogram: "XC39321_AfricanCrake.png", credit: "Credit: Derek Solomon", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/2.5/", changes: "Original recording"},
   
-{ english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "Level 1",
+{ english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "Level 2",
   audio:"XC670128_CommonGreenshank.mp3", spectrogram: "XC670128_CommonGreenshank.png", credit:"Tim Cockroft", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
   
 ];
