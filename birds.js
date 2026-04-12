@@ -68,8 +68,18 @@ const birds = [
 
 {english: "Red-chested Flufftail Call 2", afrikaans: "Rooiborsvleikuiken 2", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Flufftail", level: "3 Advanced",
  audio: "XC546433_Red-chestedFlufftail.mp3", spectrogram: "XC546433_Red-chestedFlufftail.png",credit: "© Dries Van de Loock, www.xeno-canto.org, XC546433", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Olive-tree Warbler", afrikaans: "Olyfboomsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+ audio: "XC819380_Olive-treeWarbler.mp3", spectrogram: "XC819380_Olive-treeWarbler.png",credit: "© Rick Nuttall, www.xeno-canto.org, XC819380", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Common Whitethroat", afrikaans: "Witkeelsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+ audio: "XC521207_CommonWhitethroat.mp3", spectrogram: "XC521207_CommonWhitethroat.png",credit: "© Tony Archer, www.xeno-canto.org, XC521207, Alarm call, Background birds: red-faced mousebird", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Barred Wren-Warbler", afrikaans: "Gebande Sanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "2 Intermediate", 
+ audio: "XC708257_BarredWren-Warbler.mp3", spectrogram: "XC708257_BarredWren-Warbler.png",credit: "© Tony Archer, www.xeno-canto.org, XC708257", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
   
 { english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
   audio:"XC670128_CommonGreenshank.mp3", spectrogram: "XC670128_CommonGreenshank.png", credit:"© Tim Cockroft, www.xeno-canto.org, XC670128", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
-  
+
 ];
