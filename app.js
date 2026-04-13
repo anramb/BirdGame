@@ -2,7 +2,7 @@ let allData = {
   waders,
   cisticolas,
   waterbirds,
-  raptors
+  warblers
 };
 
 let birds = [];
