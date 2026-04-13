@@ -7,13 +7,47 @@
 <title>Bird Sound Game</title>
 
 <style>
-body { font-family: Arial; max-width: 700px; margin:auto; padding:10px; }
-button { width:100%; padding:12px; margin:5px 0; }
-select { width:100%; padding:8px; margin:5px 0; }
-img { width:100%; margin-top:10px; border:1px solid #ccc; }
-.correct { color:green; font-weight:bold; }
-.wrong { color:red; font-weight:bold; }
-.small { font-size:12px; color:#666; }
+body {
+  font-family: Arial;
+  max-width: 700px;
+  margin: auto;
+  padding: 10px;
+}
+
+h2 { text-align:center; }
+
+button, select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  font-size: 16px;
+}
+
+#controls {
+  display: grid;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  gap: 5px;
+}
+
+.row button {
+  flex: 1;
+}
+
+img {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+}
+
+.correct { color: green; font-weight: bold; }
+.wrong { color: red; font-weight: bold; }
+
+.small { font-size: 13px; color: #666; }
+
 </style>
 </head>
 
@@ -21,35 +55,55 @@ img { width:100%; margin-top:10px; border:1px solid #ccc; }
 
 <h2>Bird Sound Game</h2>
 
-<select id="category">
-  <option value="">All Categories</option>
-  <option value="waders">Waders</option>
-  <option value="waterbirds">Waterbirds</option>
-  <option value="cisticolas">Cisticolas</option>
-  <option value="warblers">Warblers</option>
+<p class="small">
+Improve your bird sound identification skills using real recordings and spectrograms.
+</p>
+
+<!-- LANGUAGE -->
+<select id="lang">
+  <option value="en">English</option>
+  <option value="af">Afrikaans</option>
 </select>
 
-<button onclick="startGame()">Start</button>
-<button onclick="togglePlay()">Play / Pause</button>
+<!-- FILTERS -->
+<select id="category" onchange="loadCategory()">
+  <option value="waders">Waders</option>
+  <option value="cisticolas">Cisticolas</option>
+  <option value="waterbirds">Waterbirds</option>
+  <option value="raptors">Raptors</option>
+</select>
+
+<select id="level">
+  <option value="all">All Levels</option>
+  <option value="1 Beginner">Level 1</option>
+  <option value="2 Intermediate">Level 2</option>
+  <option value="3 Advanced">Level 3</option>
+</select>
+
+<div id="controls">
+  <button onclick="startGame()">Start Game</button>
+</div>
 
 <hr>
 
-<div id="gameArea" style="display:none;">
+<div id="game" style="display:none;">
+
+<button onclick="togglePlay()">Play / Pause</button>
 
 <img id="spectrogram">
 
 <div id="options"></div>
 
-<div id="info"></div>
+<div id="result"></div>
 
 <button onclick="nextBird()">Next</button>
 
 </div>
 
-<script src="data/birds_waders.js"></script>
-<script src="data/birds_waterbirds.js"></script>
-<script src="data/birds_cisticolas.js"></script>
-<script src="data/birds_warblers.js"></script>
+<script src="waders.js"></script>
+<script src="cisticolas.js"></script>
+<script src="waterbirds.js"></script>
+<script src="raptors.js"></script>
 
 <script src="app.js"></script>
 
