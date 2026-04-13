@@ -7,37 +7,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  font-family: Arial;
-  max-width: 600px;
-  margin:auto;
-  padding:10px;
-  font-size:14px;
-}
+body { font-family: Arial; max-width: 600px; margin:auto; padding:10px; font-size:14px; }
+button { padding:10px; font-size:14px; }
+select { padding:6px; font-size:14px; }
 
-h2 { margin-bottom:5px; }
-
-.intro {
-  font-size:13px;
-  margin-bottom:10px;
-  color:#555;
-}
-
-.controls, .filters {
+.filters {
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap:6px;
   margin-bottom:8px;
-}
-
-button {
-  padding:10px;
-  font-size:14px;
-}
-
-select {
-  padding:6px;
-  font-size:14px;
 }
 
 #mainBtn {
@@ -55,18 +33,9 @@ select {
   margin-top:10px;
 }
 
-img {
-  width:100%;
-  margin-top:8px;
-  border:1px solid #ccc;
-}
+img { width:100%; margin-top:8px; border:1px solid #ccc; }
 
-#info {
-  margin-top:8px;
-  padding-top:8px;
-  border-top:1px solid #ddd;
-  font-size:13px;
-}
+#info { margin-top:8px; border-top:1px solid #ddd; padding-top:8px; }
 
 .correct { color:green; font-weight:bold; }
 .wrong { color:red; font-weight:bold; }
@@ -77,25 +46,19 @@ img {
   gap:6px;
   margin-top:10px;
 }
-
-#reviewBtn {
-  background:#ffc107;
-}
 </style>
 </head>
 
 <body>
 
-<h2>Southern Africa Bird ID Game</h2>
+<h2>Bird Sound Game</h2>
 
-<div class="intro">
+<p style="font-size:13px; color:#555;">
 Improve your bird identification skills using sound recognition.
-</div>
+</p>
 
-<!-- LANGUAGE -->
 <button onclick="toggleLanguage()">Language: <span id="langLabel">English</span></button>
 
-<!-- FILTERS -->
 <div class="filters">
 
 <select id="filterType" onchange="updateFilterOptions()">
@@ -131,13 +94,42 @@ Improve your bird identification skills using sound recognition.
 
 <div class="bottomButtons">
 <button onclick="nextBird()">Next</button>
-<button id="reviewBtn" onclick="reviewMode()">Review</button>
+<button onclick="reviewMode()">Review</button>
 </div>
 
 </div>
 
-<script src="birds.js"></script>
+<!-- ================= LOAD FILES ================= -->
+<script src="birds_waders.js"></script>
+<script src="birds_waterbirds.js"></script>
+<script src="birds_cisticolas.js"></script>
+<script src="birds_raptors.js"></script>
+<script src="birds_groundbirds.js"></script>
+<script src="birds_woodland.js"></script>
+<script src="birds_garden.js"></script>
+<script src="birds_seedeaters.js"></script>
+<script src="birds_lbjs.js"></script>
+<script src="birds_warblers.js"></script>  
+<script src="birds_other.js"></script>
 
+<!-- ================= COMBINE ================= -->
+<script>
+const birds = [
+  ...birds_waders,
+  ...birds_waterbirds,
+  ...birds_cisticolas,
+  ...birds_raptors,
+  ...birds_groundbirds,
+  ...birds_woodland,
+  ...birds_garden,
+  ...birds_seedeaters,
+  ...birds_lbjs,
+  ...birds_warblers,
+  ...birds_other
+];
+</script>
+
+<!-- ================= GAME LOGIC ================= -->
 <script>
 
 let filtered = [];
@@ -149,14 +141,12 @@ let audio = new Audio();
 let started = false;
 let language = "english";
 
-// -------- LANGUAGE --------
 function toggleLanguage(){
   language = (language === "english") ? "afrikaans" : "english";
   document.getElementById("langLabel").textContent =
     language === "english" ? "English" : "Afrikaans";
 }
 
-// -------- AUDIO --------
 function playAudio(file){
   audio.pause();
   audio.src = file;
@@ -173,7 +163,6 @@ function startOrPlay(){
   }
 }
 
-// -------- FILTER --------
 function getUnique(key){
   let arr=[];
   birds.forEach(b=>{
@@ -204,12 +193,10 @@ function updateFilterOptions(){
   });
 }
 
-// -------- SHUFFLE --------
 function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
 }
 
-// -------- START --------
 function startGame(){
 
   wrongAnswers = [];
@@ -231,7 +218,6 @@ function startGame(){
   nextBird();
 }
 
-// -------- NEXT --------
 function nextBird(){
 
   document.getElementById("birdImage").style.display="none";
@@ -244,8 +230,7 @@ function nextBird(){
 
   playAudio(currentBird.audio);
 
-  let img=document.getElementById("spectrogram");
-  img.src = currentBird.spectrogram || "";
+  document.getElementById("spectrogram").src = currentBird.spectrogram || "";
 
   let options=[ currentBird[language] ];
 
@@ -272,7 +257,6 @@ function nextBird(){
   document.getElementById("info").innerHTML="";
 }
 
-// -------- CHECK --------
 function check(ans){
 
   let correct = ans === currentBird[language];
@@ -297,7 +281,6 @@ function check(ans){
   `;
 }
 
-// -------- REVIEW --------
 function reviewMode(){
 
   if(wrongAnswers.length === 0){
