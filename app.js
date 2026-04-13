@@ -1,20 +1,25 @@
+let allData = {
+  waders,
+  cisticolas,
+  waterbirds,
+  raptors
+};
+
 let birds = [];
 let queue = [];
 let current = null;
-let audio = new Audio();
 let wrong = [];
+let audio = new Audio();
 
-// LOAD DATA FILES
-function loadBirdData(){
-  if(window.birds_waders) birds = birds.concat(window.birds_waders);
-  if(window.birds_waterbirds) birds = birds.concat(window.birds_waterbirds);
-  if(window.birds_cisticolas) birds = birds.concat(window.birds_cisticolas);
-  if(window.birds_warblers) birds = birds.concat(window.birds_warblers);
+function loadCategory(){
+  let cat = document.getElementById("category").value;
+  birds = allData[cat] || [];
+  queue = [];
 }
 
-loadBirdData();
+loadCategory();
 
-// AUDIO
+// ---------------- AUDIO ----------------
 function playAudio(file){
   audio.pause();
   audio.src = file;
@@ -26,49 +31,57 @@ function togglePlay(){
   audio.paused ? audio.play() : audio.pause();
 }
 
-// SHUFFLE
+// ---------------- SHUFFLE ----------------
 function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
 }
 
-// START GAME
+// ---------------- START ----------------
 function startGame(){
 
   wrong = [];
 
-  let cat = document.getElementById("category").value;
+  let level = document.getElementById("level").value;
 
-  let filtered = (cat)
-    ? birds.filter(b => b.category === cat)
-    : [...birds];
+  let filtered = birds.filter(b =>
+    level === "all" || b.level === level
+  );
 
-  queue = shuffle(filtered);
+  queue = shuffle([...filtered]);
 
-  document.getElementById("gameArea").style.display = "block";
+  document.getElementById("game").style.display = "block";
 
   nextBird();
 }
 
-// NEXT BIRD (NO REPEATS)
+// ---------------- NEXT ----------------
 function nextBird(){
 
   if(queue.length === 0){
-    alert("Finished!");
-    return;
+    let level = document.getElementById("level").value;
+
+    let filtered = birds.filter(b =>
+      level === "all" || b.level === level
+    );
+
+    queue = shuffle([...filtered]);
   }
 
   current = queue.shift();
 
   playAudio(current.audio);
 
-  document.getElementById("spectrogram").src = current.spectrogram;
+  document.getElementById("spectrogram").src = current.spectrogram || "";
+  document.getElementById("spectrogram").style.display =
+    current.spectrogram ? "block" : "none";
 
-  let options = [current];
+  let options = [current.english];
 
-  let pool = birds.filter(b => b !== current);
+  let pool = birds.filter(b => b.english !== current.english);
 
   while(options.length < 4 && pool.length){
-    options.push(pool.pop());
+    let r = pool[Math.floor(Math.random()*pool.length)].english;
+    if(!options.includes(r)) options.push(r);
   }
 
   shuffle(options);
@@ -76,30 +89,25 @@ function nextBird(){
   let div = document.getElementById("options");
   div.innerHTML = "";
 
-  options.forEach(b=>{
+  options.forEach(o=>{
     let btn = document.createElement("button");
-    btn.textContent = b.english;
-    btn.onclick = ()=>check(b);
+    btn.textContent = o;
+    btn.onclick = ()=>check(o);
     div.appendChild(btn);
   });
 
-  document.getElementById("info").innerHTML = "";
+  document.getElementById("result").innerHTML = "";
 }
 
-// CHECK ANSWER
-function check(bird){
+// ---------------- CHECK ----------------
+function check(ans){
 
-  let correct = bird.english === current.english;
+  let correct = ans === current.english;
 
   if(!correct) wrong.push(current);
 
-  document.getElementById("info").innerHTML = `
-    <div style="color:${correct ? 'green':'red'};font-weight:bold;">
-      ${correct ? "Correct ✔" : "Wrong ✖"}
-    </div>
-
-    <b>${current.english}</b> / ${current.afrikaans}<br>
-
-    <img src="${current.image || ''}" style="width:100%;margin-top:10px;">
-  `;
+  document.getElementById("result").innerHTML =
+    correct
+    ? `<div class="correct">Correct ✔</div>`
+    : `<div class="wrong">Wrong ✖</div>`;
 }
