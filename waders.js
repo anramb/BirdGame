@@ -1,51 +1,47 @@
 const birds = [
-{
-  english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Nylsvley", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC651037_AfricanJacana.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-},
-{
-  english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC1079092_StripedCrake.mp3", credit:"Niall Perrins", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-},
-{
-  english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC475084_BlackCrake.mp3", credit:"Tony Archer", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-},
-{
-  english: "Allen's Gallinule", afrikaans: "Kleinkoningriethaan", hotspot: "Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC1081358_AllensGallinule.mp3", credit: "Credit: Peter Boesman, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{
-  english: "African Swamphen", afrikaans: "Grootkoningriethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC276894_AfricanSwamphen.mp3", credit: "Andrew Spencer", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{
-  english: "Fulvous Whistling Duck", afrikaans: "Fluiteend", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC280235_FulvousWhistlingDuck.mp3", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
+{ english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Nylsvley", habitat:"Wetland", birdgroup:"Waders", level: "1 Beginner",
+  audio:"waders/XC651037_AfricanJacana.mp3", spectrogram: "waders/XC651037_AfricanJacana.png", credit:"© Tony Archer, www.xeno-canto.org, XC651037", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
   
-{
-english: "African Black Duck", afrikaans: "Swarteend", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC615647_AfricanBlackDuck.mp3", credit: "Nature sounds by Simply Birding", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{
-english: "Spur-winged Goose",  afrikaans: "Wildemakou",  hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Ducks&Geese", 
- audio: "XC126343_Spur-wingedGoose.mp3", credit: "Sander Bot", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/3.0/", changes: "Original recording"
-},
-{
-english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata National Park", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC791510_LesserJacana.mp3", credit: "Dries Van de Loock", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{
-english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC347035_AfricanRail.mp3", credit: "Peter Boesman", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"
-},
-{
-english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", 
- audio: "XC495341_AfricanSnipe.mp3", credit: "Credit: Tony Archer, Xeno-Canto", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"
-},
-{
-  english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders",
-  audio:"XC670128_CommonGreenshank.mp3", credit:"Tim Cockroft", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"
-}
+{ english:"Striped Crake", afrikaans:"Gestreepte Riethaan", hotspot:"Nylsvley; Zaagkuildrift", habitat:"Wetland", birdgroup:"Waders", level: "3 Advanced",
+  audio:"waders/XC1079092_StripedCrake.mp3", spectrogram: "waders/XC1079092_StripedCrake.png", credit:"© Niall Perrins, www.xeno-canto.org, XC1079092", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+
+{ english:"Black Crake", afrikaans:"Swartriethaan", hotspot:"Kruger National Park", habitat:"Wetland", birdgroup:"Waders", level: "1 Beginner",
+  audio:"waders/XC475084_BlackCrake.mp3", spectrogram: "waders/XC475084_BlackCrake.png", credit:"© Tony Archer, www.xeno-canto.org, XC475084", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+
+{ english: "Allen's Gallinule", afrikaans: "Kleinkoningriethaan", hotspot: "Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced",
+  audio: "waders/XC1081358_AllensGallinule.mp3", spectrogram: "waders/XC1081358_AllensGallinule.png", credit: "© Peter Boesman, www.xeno-canto.org, XC1081358", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{ english: "African Swamphen", afrikaans: "Grootkoningriethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate",
+  audio: "waders/XC276894_AfricanSwamphen.mp3", spectrogram: "waders/XC276894_AfricanSwamphen.png", credit: "© Andrew Spencer, www.xeno-canto.org, XC276894", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{ english: "Lesser Jacana", afrikaans: "Dwerglangtoon", hotspot: "Bwabwata National Park", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced",
+ audio: "waders/XC791510_LesserJacana.mp3", spectrogram: "waders/XC791510_LesserJacana.png", credit: "© Dries Van de Loock, www.xeno-canto.org, XC791510", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{ english: "African Rail", afrikaans: "Grootriethaan", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate",
+  audio: "waders/XC347035_AfricanRail.mp3", spectrogram: "waders/XC347035_AfricanRail.png", credit: "© Peter Boesman, www.xeno-canto.org, XC347035", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+  
+{ english: "African Snipe", afrikaans: "Afrikaanse Snip", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate",
+  audio: "waders/XC495341_AfricanSnipe.mp3", spectrogram: "waders/XC495341_AfricanSnipe.png", credit: "© Tony Archer, www.xeno-canto.org, XC495341", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{ english: "African Crake", afrikaans: "Afrikaanse Riethaan", hotspot: "Marievale Bird Sanctuary; Nylsvley; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced",
+  audio: "waders/XC39321_AfricanCrake.mp3", spectrogram: "waders/XC39321_AfricanCrake.png", credit: "© Derek Solomon, www.xeno-canto.org, XC39321", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/2.5/", changes: "Original recording"},
+
+{english: "Long-toed Lapwing", afrikaans: "Witvlerkkiewiet", hotspot: "Caprivi River System", habitat: "Wetland", birdgroup: "Lapwings", level: "3 Advanced",
+ audio: "waders/XC740061_Long-toedLapwing.mp3", spectrogram: "waders/XC740061_Long-toedLapwing.png",credit: "© Peter Boesman, www.xeno-canto.org, XC740061", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Hamerkop", afrikaans: "Hamerkop", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Waders", level: "1 Beginner",
+ audio: "waders/XC269286_Hamerkop.mp3", spectrogram: "waders/XC269286_Hamerkop.png",credit: "© Andrew Spencer, www.xeno-canto.org, XC269286; More than 1 individual calling", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Buff-spotted Flufftail", afrikaans: "Gevlekte Vleikuiken", hotspot: "St Lucia; Drakensberg", habitat: "Forest", birdgroup: "Waders", level: "3 Advanced",
+ audio: "waders/XC1097222_Buff-spottedFlufftail.mp3", spectrogram: "waders/XC1097222_Buff-spottedFlufftail.png",credit: "© Marna Buys, www.xeno-canto.org, XC1097222, Background birds: Bar-throated apalis, Dark-capped bulbul", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red-chested Flufftail Call male", afrikaans: "Rooiborsvleikuiken male", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Waders", level: "3 Advanced",
+ audio: "waders/XC520141_Red-chestedFlufftail.mp3", spectrogram: "waders/XC520141_Red-chestedFlufftail.png",credit: "© Tony Archer, www.xeno-canto.org, XC520141", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red-chested Flufftail territorial call", afrikaans: "Rooiborsvleikuiken territorial call", hotspot: "Marievale Bird Sanctuary; Rietvleidam Nature Reserve", habitat: "Forest", birdgroup: "Waders", level: "3 Advanced",
+ audio: "waders/XC546433_Red-chestedFlufftail.mp3", spectrogram: "waders/XC546433_Red-chestedFlufftail.png",credit: "© Dries Van de Loock, www.xeno-canto.org, XC546433", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{ english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
+  audio:"waders/XC670128_CommonGreenshank.mp3", spectrogram: "waders/XC670128_CommonGreenshank.png", credit:"© Tim Cockroft, www.xeno-canto.org, XC670128", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
+
 ];
