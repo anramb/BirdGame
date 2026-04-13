@@ -3,44 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <title>Bird Game</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { font-family: Arial; max-width:700px; margin:auto; padding:10px; }
-button, select { width:100%; padding:12px; margin:6px 0; font-size:16px; }
-img { width:100%; margin-top:10px; border:1px solid #ccc; }
-#info { margin-top:10px; border-top:1px solid #ddd; padding-top:10px; }
-.small { font-size:13px; color:#666; }
+body {
+  font-family: Arial;
+  max-width: 600px;
+  margin:auto;
+  padding:10px;
+  font-size:14px;
+}
+
+h2 { margin-bottom:5px; }
+
+.controls, .filters {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:6px;
+  margin-bottom:8px;
+}
+
+button {
+  padding:10px;
+  font-size:14px;
+}
+
+select {
+  padding:6px;
+  font-size:14px;
+}
+
+#mainBtn {
+  width:100%;
+  background:#007bff;
+  color:white;
+  font-weight:bold;
+}
+
+#options {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:6px;
+  margin-top:10px;
+}
+
+img {
+  width:100%;
+  margin-top:8px;
+  border:1px solid #ccc;
+}
+
+#info {
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid #ddd;
+  font-size:13px;
+}
+
+.bottomButtons {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:6px;
+  margin-top:10px;
+}
+
+#reviewBtn {
+  background:#ffc107;
+}
+
 </style>
 </head>
 
 <body>
 
-<h2>Southern Africa Bird Sound Game</h2>
+<h2>Bird Sound Game</h2>
 
-<button id="langBtn" onclick="toggleLang()">Afrikaans</button>
-<div class="small">Toggle bird names only</div>
+<!-- FILTERS -->
+<div class="filters">
+<select id="filterType" onchange="updateFilterOptions()">
+  <option value="none">All</option>
+  <option value="habitat">Habitat</option>
+  <option value="hotspot">Hotspot</option>
+  <option value="birdgroup">Group</option>
+</select>
 
-<label>Habitat:</label>
-<select id="habitat"></select>
+<select id="filterValue"></select>
 
-<label>Hotspot:</label>
-<select id="hotspot"></select>
+<select id="levelFilter">
+  <option value="">All Levels</option>
+  <option value="1">Level 1</option>
+  <option value="2">Level 2</option>
+  <option value="3">Level 3</option>
+</select>
 
-<label>Bird Group:</label>
-<select id="group"></select>
-
-<label>Level:</label>
-<select id="level"></select>
-
-<button onclick="startGame()">Start</button>
-<button onclick="reviewMode()" style="background:#ffd166;">Review Mistakes</button>
+<button id="mainBtn" onclick="startOrPlay()">Start / Play</button>
+</div>
 
 <hr>
 
 <div id="gameArea" style="display:none;">
-
-<button onclick="togglePlay()">Play / Pause</button>
 
 <img id="spectrogram">
 
@@ -48,7 +110,10 @@ img { width:100%; margin-top:10px; border:1px solid #ccc; }
 
 <div id="info"></div>
 
+<div class="bottomButtons">
 <button onclick="nextBird()">Next</button>
+<button id="reviewBtn" onclick="reviewMode()">Review</button>
+</div>
 
 </div>
 
@@ -56,48 +121,55 @@ img { width:100%; margin-top:10px; border:1px solid #ccc; }
 
 <script>
 
-// ================= STATE =================
-let lang = "en";
-let filtered=[], queue=[], current=null, wrong=[];
+let filtered = [];
+let queue = [];
+let currentBird = null;
+let wrongAnswers = [];
+
 let audio = new Audio();
+let started = false;
 
-// ================= LANGUAGE =================
-function toggleLang(){
-  lang = (lang==="en") ? "af" : "en";
-
-  // 🔥 change button text
-  document.getElementById("langBtn").textContent =
-    (lang==="en") ? "Afrikaans" : "English";
-
-  nextBird();
-}
-
-// ================= AUDIO =================
+// -------- AUDIO --------
 function playAudio(file){
   audio.pause();
-  audio.src=file;
+  audio.src = file;
   audio.load();
   audio.play().catch(()=>{});
 }
 
-function togglePlay(){
-  audio.paused ? audio.play() : audio.pause();
+function startOrPlay(){
+  if(!started){
+    startGame();
+    started = true;
+  } else {
+    audio.paused ? audio.play() : audio.pause();
+  }
 }
 
-// ================= DROPDOWNS =================
-function fill(id,key){
-  let set=new Set();
-
+// -------- FILTER --------
+function getUnique(key){
+  let arr=[];
   birds.forEach(b=>{
-    if(b[key]){
-      b[key].split(";").forEach(v=>set.add(v.trim()));
-    }
+    (b[key] || "").split(";").forEach(v=>{
+      v=v.trim();
+      if(v && !arr.includes(v)) arr.push(v);
+    });
   });
+  return arr;
+}
 
-  let sel=document.getElementById(id);
-  sel.innerHTML="<option value=''>All</option>";
+function updateFilterOptions(){
+  let type=document.getElementById("filterType").value;
+  let sel=document.getElementById("filterValue");
 
-  [...set].sort().forEach(v=>{
+  sel.innerHTML="";
+
+  if(type==="none"){
+    sel.innerHTML="<option value=''>All</option>";
+    return;
+  }
+
+  getUnique(type).forEach(v=>{
     let o=document.createElement("option");
     o.value=v;
     o.textContent=v;
@@ -105,71 +177,59 @@ function fill(id,key){
   });
 }
 
-// 🔥 IMPORTANT: level now included
-fill("habitat","habitat");
-fill("hotspot","hotspot");
-fill("group","birdgroup");
-fill("level","level");
+// -------- SHUFFLE --------
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
 
-// ================= START =================
+// -------- START --------
 function startGame(){
 
-  wrong=[];
+  wrongAnswers = [];
 
-  let h=document.getElementById("habitat").value.toLowerCase();
-  let s=document.getElementById("hotspot").value.toLowerCase();
-  let g=document.getElementById("group").value.toLowerCase();
-  let l=document.getElementById("level").value.toLowerCase();
+  let type=document.getElementById("filterType").value;
+  let val=document.getElementById("filterValue").value;
+  let lvl=document.getElementById("levelFilter").value;
 
-  filtered = birds.filter(b=>
-    (!h || (b.habitat||"").toLowerCase().includes(h)) &&
-    (!s || (b.hotspot||"").toLowerCase().includes(s)) &&
-    (!g || (b.birdgroup||"").toLowerCase().includes(g)) &&
-    (!l || (b.level||"").toLowerCase().includes(l))
-  );
-
-  if(filtered.length===0){
-    alert("No birds found!");
-    return;
-  }
+  filtered = birds.filter(b=>{
+    let match1 = (type==="none" || !val || (b[type] || "").toLowerCase().includes(val.toLowerCase()));
+    let match2 = (!lvl || (b.level || "").startsWith(lvl));
+    return match1 && match2;
+  });
 
   queue = shuffle([...filtered]);
 
   document.getElementById("gameArea").style.display="block";
+
   nextBird();
 }
 
-// ================= SHUFFLE =================
-function shuffle(a){
-  return a.sort(()=>Math.random()-0.5);
-}
-
-// ================= NEXT =================
+// -------- NEXT (NO REPEAT) --------
 function nextBird(){
 
-  if(queue.length===0){
+  if(queue.length === 0){
     queue = shuffle([...filtered]);
   }
 
-  current = queue.shift();
+  currentBird = queue.shift();
 
-  playAudio(current.audio);
+  playAudio(currentBird.audio);
 
   let img=document.getElementById("spectrogram");
-  if(current.spectrogram){
-    img.src=current.spectrogram;
+  if(currentBird.spectrogram){
+    img.src=currentBird.spectrogram;
     img.style.display="block";
-  } else img.style.display="none";
+  } else {
+    img.style.display="none";
+  }
 
-  let correct = (lang==="en") ? current.english : current.afrikaans;
+  let options=[currentBird.english];
 
-  let options=[correct];
+  let pool = filtered.filter(b => b.english !== currentBird.english);
 
-  let pool=[...filtered].filter(b=>b!==current);
-
-  while(options.length<4 && pool.length){
-    let r=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
-    options.push(lang==="en"?r.english:r.afrikaans);
+  while(options.length<4 && pool.length>0){
+    let r = pool[Math.floor(Math.random()*pool.length)].english;
+    if(!options.includes(r)) options.push(r);
   }
 
   shuffle(options);
@@ -187,32 +247,39 @@ function nextBird(){
   document.getElementById("info").innerHTML="";
 }
 
-// ================= CHECK =================
+// -------- CHECK --------
 function check(ans){
 
-  let correct = (lang==="en") ? current.english : current.afrikaans;
-  let ok = ans === correct;
+  let correct = ans === currentBird.english;
 
-  if(!ok) wrong.push(current);
+  if(!correct){
+    wrongAnswers.push(currentBird);
+  }
 
   document.getElementById("info").innerHTML=`
-    <b>${ok?"✔ Correct":"✖ Wrong"}</b><br><br>
-    English: ${current.english}<br>
-    Afrikaans: ${current.afrikaans}<br>
-    Credit: ${current.credit}
+    <b>${correct ? "✔ Correct" : "✖ Wrong"}</b><br>
+    ${currentBird.english} / ${currentBird.afrikaans}<br>
+    <small>${currentBird.credit}</small>
   `;
 }
 
-// ================= REVIEW =================
+// -------- REVIEW --------
 function reviewMode(){
-  if(wrong.length===0){
-    alert("No mistakes!");
+
+  if(wrongAnswers.length === 0){
+    alert("No mistakes yet");
     return;
   }
-  filtered=[...wrong];
-  queue=shuffle([...filtered]);
+
+  filtered = [...wrongAnswers];
+  queue = shuffle([...filtered]);
+
+  document.getElementById("gameArea").style.display="block";
+
   nextBird();
 }
+
+updateFilterOptions();
 
 </script>
 
