@@ -17,6 +17,12 @@ body {
 
 h2 { margin-bottom:5px; }
 
+.intro {
+  font-size:13px;
+  margin-bottom:10px;
+  color:#555;
+}
+
 .controls, .filters {
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -39,6 +45,7 @@ select {
   background:#007bff;
   color:white;
   font-weight:bold;
+  margin-top:8px;
 }
 
 #options {
@@ -61,6 +68,9 @@ img {
   font-size:13px;
 }
 
+.correct { color:green; font-weight:bold; }
+.wrong { color:red; font-weight:bold; }
+
 .bottomButtons {
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -71,16 +81,23 @@ img {
 #reviewBtn {
   background:#ffc107;
 }
-
 </style>
 </head>
 
 <body>
 
-<h2>Bird Sound Game</h2>
+<h2>Southern Africa Bird ID Game</h2>
+
+<div class="intro">
+Improve your bird identification skills using sound recognition.
+</div>
+
+<!-- LANGUAGE -->
+<button onclick="toggleLanguage()">Language: <span id="langLabel">English</span></button>
 
 <!-- FILTERS -->
 <div class="filters">
+
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
@@ -97,14 +114,16 @@ img {
   <option value="3">Level 3</option>
 </select>
 
-<button id="mainBtn" onclick="startOrPlay()">Start / Play</button>
 </div>
+
+<button id="mainBtn" onclick="startOrPlay()">Start / Play / Pause</button>
 
 <hr>
 
 <div id="gameArea" style="display:none;">
 
 <img id="spectrogram">
+<img id="birdImage" style="display:none;">
 
 <div id="options"></div>
 
@@ -128,6 +147,14 @@ let wrongAnswers = [];
 
 let audio = new Audio();
 let started = false;
+let language = "english";
+
+// -------- LANGUAGE --------
+function toggleLanguage(){
+  language = (language === "english") ? "afrikaans" : "english";
+  document.getElementById("langLabel").textContent =
+    language === "english" ? "English" : "Afrikaans";
+}
 
 // -------- AUDIO --------
 function playAudio(file){
@@ -204,8 +231,10 @@ function startGame(){
   nextBird();
 }
 
-// -------- NEXT (NO REPEAT) --------
+// -------- NEXT --------
 function nextBird(){
+
+  document.getElementById("birdImage").style.display="none";
 
   if(queue.length === 0){
     queue = shuffle([...filtered]);
@@ -216,20 +245,16 @@ function nextBird(){
   playAudio(currentBird.audio);
 
   let img=document.getElementById("spectrogram");
-  if(currentBird.spectrogram){
-    img.src=currentBird.spectrogram;
-    img.style.display="block";
-  } else {
-    img.style.display="none";
-  }
+  img.src = currentBird.spectrogram || "";
 
-  let options=[currentBird.english];
+  let options=[ currentBird[language] ];
 
   let pool = filtered.filter(b => b.english !== currentBird.english);
 
   while(options.length<4 && pool.length>0){
-    let r = pool[Math.floor(Math.random()*pool.length)].english;
-    if(!options.includes(r)) options.push(r);
+    let r = pool[Math.floor(Math.random()*pool.length)];
+    let name = r[language];
+    if(!options.includes(name)) options.push(name);
   }
 
   shuffle(options);
@@ -250,14 +275,23 @@ function nextBird(){
 // -------- CHECK --------
 function check(ans){
 
-  let correct = ans === currentBird.english;
+  let correct = ans === currentBird[language];
 
   if(!correct){
     wrongAnswers.push(currentBird);
   }
 
+  let img=document.getElementById("birdImage");
+
+  if(currentBird.image){
+    img.src=currentBird.image;
+    img.style.display="block";
+  }
+
   document.getElementById("info").innerHTML=`
-    <b>${correct ? "✔ Correct" : "✖ Wrong"}</b><br>
+    <div class="${correct ? "correct" : "wrong"}">
+      ${correct ? "Correct ✔" : "Wrong ✖"}
+    </div>
     ${currentBird.english} / ${currentBird.afrikaans}<br>
     <small>${currentBird.credit}</small>
   `;
