@@ -1,4 +1,4 @@
-const birds = [
+const waders = [
 { english:"African Jacana", afrikaans:"Grootlangtoon", hotspot:"Kruger National Park; Nylsvley", habitat:"Wetland", birdgroup:"Waders", level: "1 Beginner",
   audio:"waders/XC651037_AfricanJacana.mp3", spectrogram: "waders/XC651037_AfricanJacana.png", credit:"© Tony Archer, www.xeno-canto.org, XC651037", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
   
