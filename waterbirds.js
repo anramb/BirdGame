@@ -1,4 +1,4 @@
-const birds_waders = [
+const waterbirds = [
   
 { english: "Fulvous Whistling Duck", afrikaans: "Fluiteend", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Waterbirds", level: "2 Intermediate",
   audio: "waterbirds/XC280235_FulvousWhistlingDuck.mp3", spectrogram: "waterbirds/XC280235_FulvousWhistlingDuck.png", credit: "© Peter Boesman, www.xeno-canto.org, XC280235", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
