@@ -21,7 +21,6 @@ function loadCategory(){
   updateFilterOptions();
 }
 
-// default load
 loadCategory();
 
 // -------- AUDIO --------
@@ -99,7 +98,7 @@ function startGame(){
   nextBird();
 }
 
-// -------- NEXT (NO REPEAT) --------
+// -------- NEXT --------
 function nextBird(){
 
   if(queue.length === 0){
@@ -119,12 +118,15 @@ function nextBird(){
     img.style.display="none";
   }
 
-  let options=[currentBird.english];
+  let lang = document.getElementById("lang").value;
+  let nameField = (lang === "af") ? "afrikaans" : "english";
 
-  let pool = filtered.filter(b => b.english !== currentBird.english);
+  let options=[currentBird[nameField]];
+
+  let pool = filtered.filter(b => b[nameField] !== currentBird[nameField]);
 
   while(options.length<4 && pool.length>0){
-    let r = pool[Math.floor(Math.random()*pool.length)].english;
+    let r = pool[Math.floor(Math.random()*pool.length)][nameField];
     if(!options.includes(r)) options.push(r);
   }
 
@@ -146,7 +148,10 @@ function nextBird(){
 // -------- CHECK --------
 function check(ans){
 
-  let correct = ans === currentBird.english;
+  let lang = document.getElementById("lang").value;
+  let nameField = (lang === "af") ? "afrikaans" : "english";
+
+  let correct = ans === currentBird[nameField];
 
   if(!correct){
     wrongAnswers.push(currentBird);
