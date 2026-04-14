@@ -1,4 +1,4 @@
-const birds_waders = [
+const warblers = [
   
 {english: "Olive-tree Warbler", afrikaans: "Olyfboomsanger", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
  audio: "warblers/XC819380_Olive-treeWarbler.mp3", spectrogram: "warblers/XC819380_Olive-treeWarbler.png",credit: "© Rick Nuttall, www.xeno-canto.org, XC819380", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
