@@ -14,6 +14,13 @@ let wrongAnswers = [];
 let audio = new Audio();
 let started = false;
 
+let language = "en";
+
+// ---------------- LANGUAGE ----------------
+function setLanguage(){
+  language = document.getElementById("lang").value;
+}
+
 // ---------------- LOAD CATEGORY ----------------
 function loadCategory(){
   let cat = document.getElementById("category").value;
@@ -40,7 +47,7 @@ function startOrPlay(){
   }
 }
 
-// ---------------- FILTER HELPERS ----------------
+// ---------------- FILTERS ----------------
 function getUnique(key){
   let arr = [];
 
@@ -78,7 +85,7 @@ function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
 }
 
-// ---------------- START GAME ----------------
+// ---------------- START ----------------
 function startGame(){
 
   wrongAnswers = [];
@@ -90,7 +97,7 @@ function startGame(){
   filtered = birds.filter(b=>{
     let match1 =
       (type === "none" || !val ||
-      (String(b[type] || "").toLowerCase().includes(val.toLowerCase())));
+      String(b[type] || "").toLowerCase().includes(val.toLowerCase()));
 
     let match2 =
       (!lvl || (b.level || "").startsWith(lvl));
@@ -124,13 +131,22 @@ function nextBird(){
     img.style.display = "none";
   }
 
-  let options = [currentBird.english];
+  let correctName = language === "af"
+    ? currentBird.afrikaans
+    : currentBird.english;
 
-  let pool = filtered.filter(b => b.english !== currentBird.english);
+  let options = [correctName];
+
+  let pool = filtered.filter(b=>{
+    let name = language === "af" ? b.afrikaans : b.english;
+    return name !== correctName;
+  });
 
   while(options.length < 4 && pool.length){
-    let r = pool[Math.floor(Math.random()*pool.length)].english;
-    if(!options.includes(r)) options.push(r);
+    let r = pool[Math.floor(Math.random()*pool.length)];
+    let name = language === "af" ? r.afrikaans : r.english;
+
+    if(!options.includes(name)) options.push(name);
   }
 
   shuffle(options);
@@ -148,27 +164,31 @@ function nextBird(){
   document.getElementById("info").innerHTML = "";
 }
 
-// ---------------- CHECK ANSWER ----------------
+// ---------------- CHECK ----------------
 function check(ans){
 
-  let correct = ans === currentBird.english;
+  let correctName = language === "af"
+    ? currentBird.afrikaans
+    : currentBird.english;
+
+  let correct = ans === correctName;
 
   if(!correct){
     wrongAnswers.push(currentBird);
   }
 
   document.getElementById("info").innerHTML = `
-    <b style="color:${correct ? 'green' : 'red'}">
+    <div class="${correct ? 'correct' : 'wrong'}">
       ${correct ? "✔ Correct" : "✖ Wrong"}
-    </b><br><br>
+    </div><br>
 
     <b>English:</b> ${currentBird.english}<br>
-    <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
+    <b>Afrikaans:</b> ${currentBird.afrikaans}<br><br>
+
     <b>Habitat:</b> ${currentBird.habitat || "-"}<br>
     <b>Hotspot:</b> ${currentBird.hotspot || "-"}<br><br>
 
     <small>${currentBird.credit}</small><br>
-
     <a href="${currentBird.licenseLink}" target="_blank">License</a>
   `;
 }
