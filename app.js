@@ -9,8 +9,10 @@ let birds = [];
 let queue = [];
 let current = null;
 let wrong = [];
+
 let audio = new Audio();
 
+// ---------------- LOAD CATEGORY ----------------
 function loadCategory(){
   let cat = document.getElementById("category").value;
   birds = allData[cat] || [];
@@ -71,17 +73,35 @@ function nextBird(){
 
   playAudio(current.audio);
 
-  document.getElementById("spectrogram").src = current.spectrogram || "";
-  document.getElementById("spectrogram").style.display =
-    current.spectrogram ? "block" : "none";
+  // spectrogram
+  let img = document.getElementById("spectrogram");
+  if(current.spectrogram){
+    img.src = current.spectrogram;
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
 
-  let options = [current.english];
+  let lang = document.getElementById("lang").value;
 
-  let pool = birds.filter(b => b.english !== current.english);
+  let correctName = lang === "af"
+    ? current.afrikaans
+    : current.english;
+
+  let options = [correctName];
+
+  let pool = birds.filter(b => b !== current);
 
   while(options.length < 4 && pool.length){
-    let r = pool[Math.floor(Math.random()*pool.length)].english;
-    if(!options.includes(r)) options.push(r);
+    let rBird = pool[Math.floor(Math.random()*pool.length)];
+
+    let r = lang === "af"
+      ? rBird.afrikaans
+      : rBird.english;
+
+    if(!options.includes(r)){
+      options.push(r);
+    }
   }
 
   shuffle(options);
@@ -102,12 +122,47 @@ function nextBird(){
 // ---------------- CHECK ----------------
 function check(ans){
 
-  let correct = ans === current.english;
+  let lang = document.getElementById("lang").value;
 
-  if(!correct) wrong.push(current);
+  let correctName = lang === "af"
+    ? current.afrikaans
+    : current.english;
 
-  document.getElementById("result").innerHTML =
-    correct
-    ? `<div class="correct">Correct ✔</div>`
-    : `<div class="wrong">Wrong ✖</div>`;
+  let correct = ans === correctName;
+
+  if(!correct){
+    wrong.push(current);
+  }
+
+  document.getElementById("result").innerHTML = `
+    <div class="${correct ? "correct" : "wrong"}">
+      ${correct ? "Correct ✔" : "Wrong ✖"}
+    </div>
+
+    <br><b>English:</b> ${current.english}
+    <br><b>Afrikaans:</b> ${current.afrikaans}
+    <br><b>Habitat:</b> ${current.habitat}
+    <br><b>Hotspot:</b> ${current.hotspot}
+    <br><b>Level:</b> ${current.level || "-"}
+
+    <br><br><b>Credit:</b> ${current.credit}
+    <br><b>Changes:</b> ${current.changes}
+    <br><b>License:</b> <a href="${current.licenseLink}" target="_blank">View</a>
+  `;
+}
+
+// ---------------- REVIEW MODE ----------------
+function reviewMode(){
+
+  if(wrong.length === 0){
+    alert("No mistakes yet!");
+    return;
+  }
+
+  birds = [...wrong];
+  queue = shuffle([...birds]);
+
+  document.getElementById("game").style.display = "block";
+
+  nextBird();
 }
