@@ -185,9 +185,6 @@ function check(ans){
     <b>English:</b> ${currentBird.english}<br>
     <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
 
-    <b>Habitat:</b> ${currentBird.habitat || "-"}<br>
-    <b>Hotspot:</b> ${currentBird.hotspot || "-"}<br>
-
     <small>${currentBird.credit}</small><br>
     <a href="${currentBird.licenseLink}" target="_blank">License</a>
   `;
