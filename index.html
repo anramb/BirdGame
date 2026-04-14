@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>South African Bird Sound Game</title>
+<title>Bird Sound Game</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -16,6 +16,13 @@ body {
 }
 
 h2 { margin-bottom: 5px; }
+
+.topBar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
 
 .filters {
   display: grid;
@@ -75,15 +82,24 @@ img {
 
 <h2>Bird Sound Game</h2>
 
-<p>Improve your bird sound identification skills using real recordings.</p>
+<p>Improve your bird sound identification skills.</p>
 
-<!-- CATEGORY -->
+<!-- TOP BAR -->
+<div class="topBar">
+
+<select id="lang" onchange="setLanguage()">
+  <option value="en">English</option>
+  <option value="af">Afrikaans</option>
+</select>
+
 <select id="category" onchange="loadCategory()">
   <option value="waders">Waders</option>
   <option value="waterbirds">Waterbirds</option>
   <option value="cisticolas">Cisticolas</option>
   <option value="warblers">Warblers</option>
 </select>
+
+</div>
 
 <!-- FILTERS -->
 <div class="filters">
@@ -125,7 +141,6 @@ img {
 
 </div>
 
-<!-- DATA FILES -->
 <script src="waders.js"></script>
 <script src="waterbirds.js"></script>
 <script src="cisticolas.js"></script>
