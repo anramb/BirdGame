@@ -1,8 +1,10 @@
 let allData = {
-  waders,
-  waterbirds,
   cisticolas,
-  warblers
+  waders,
+  warblers,
+  waterbirds
+  
+  
 };
 
 let birds = [];
@@ -184,7 +186,10 @@ function check(ans){
       ${correct ? "✔ Correct" : "✖ Wrong"}
     </div>
     ${lang==="af" ? currentBird.afrikaans : currentBird.english}<br>
-    <small>${currentBird.credit || ""}</small>
+    <b>English:</b> ${currentBird.english}<br>
+    <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
+    <small>${currentBird.credit || ""}</small><br>
+    <a href="${currentBird.licenseLink}" target="_blank">License</a>        
   `;
 }
 
