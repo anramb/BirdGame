@@ -185,7 +185,6 @@ function check(ans){
     <div class="${correct ? "correct" : "wrong"}">
       ${correct ? "✔ Correct" : "✖ Wrong"}
     </div>
-    ${lang==="af" ? currentBird.afrikaans : currentBird.english}<br>
     <b>English:</b> ${currentBird.english}<br>
     <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
     <small>${currentBird.credit || ""}</small><br>
