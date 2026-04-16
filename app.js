@@ -28,6 +28,24 @@ function loadCategory(){
   updateFilterOptions();
 }
 
+function changeCategory(){
+  loadCategory();
+
+  // RESET GAME
+  started = false;
+  queue = [];
+  filtered = [];
+  currentBird = null;
+  wrongAnswers = [];
+
+  audio.pause();
+
+  document.getElementById("gameArea").style.display = "none";
+  document.getElementById("info").innerHTML = "";
+  document.getElementById("options").innerHTML = "";
+}
+
+// default load
 loadCategory();
 
 // -------- AUDIO --------
