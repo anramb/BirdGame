@@ -1,10 +1,6 @@
 const seedeaters = [
   
-{english: "Chirping Cisticola", afrikaans: "Piepende Tinktinkie", hotspot: "Caprivi River System", habitat: "Riverine shrubs", birdgroup: "Cisticola", level: "3 Advanced",
- audio: "cisticolas/XC339101_ChirpingCisticola.mp3", spectrogram: "cisticolas/XC339101_ChirpingCisticola.png",credit: "© Peter Boesman, www.xeno-canto.org, XC339101", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
-
-{english: "Luapula Cisticola", afrikaans: "Luapulatinktinkie", hotspot: "Caprivi River System", habitat: "Grassland", birdgroup: "Cisticola", level: "3 Advanced",
- audio: "cisticolas/XC978973_LuapulaCisticola.mp3", spectrogram: "cisticolas/XC978973_LuapulaCisticola.png",credit: "© Dries Van de Loock, www.xeno-canto.org, XC978973", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
-
+{english: "Dark-backed Weaver", afrikaans: "Bosmusikant", hotspot: "KZN; Eastern Cape", habitat: "Forest", birdgroup: "Seedeaters", level: "2 Intermediate", 
+ audio: "seedeaters/XC923579_Dark-backedWeaver.mp3", spectrogram: "seedeaters/XC923579_Dark-backedWeaver.png",image: "seedeaters/XC923579_Dark-backedWeaver.jpg", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC923579", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 ];
