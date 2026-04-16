@@ -179,7 +179,7 @@ function check(ans){
     </div><br>
 
     <b>English:</b> ${currentBird.english}<br>
-    <b>Afrikaans:</b> ${currentBird.afrikaans}<br><br>
+    <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
 
     <small>${currentBird.credit || ""}</small><br>
     <a href="${currentBird.licenseLink}" target="_blank">License</a>
