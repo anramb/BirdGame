@@ -1,8 +1,15 @@
 let allData = {
-  waders,
-  waterbirds,
   cisticolas,
-  warblers
+  gardenwoodland,
+  groundbirds,
+  LBJs,
+  other,
+  raptors,
+  seedeaters,
+  waders,
+  warblers,
+  waterbirds
+   
 };
 
 let birds = [];
