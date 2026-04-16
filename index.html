@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Sound Game</title>
+<title>Bird Game</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -10,71 +10,77 @@
 body {
   font-family: Arial;
   max-width: 600px;
-  margin: auto;
-  padding: 10px;
-  font-size: 14px;
+  margin:auto;
+  padding:10px;
+  font-size:14px;
 }
 
-h2 { margin-bottom: 5px; }
+h2 { margin-bottom:5px; }
 
-.topBar {
-  display: grid;
+.controls, .filters {
+  display:grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap:6px;
+  margin-bottom:8px;
 }
 
-.filters {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
+button {
+  padding:10px;
+  font-size:14px;
 }
 
-button, select {
-  padding: 10px;
-  font-size: 14px;
+select {
+  padding:6px;
+  font-size:14px;
 }
 
 #mainBtn {
-  width: 100%;
-  background: #007bff;
-  color: white;
-  font-weight: bold;
+  width:100%;
+  background:#007bff;
+  color:white;
+  font-weight:bold;
 }
 
 #options {
-  display: grid;
+  display:grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-top: 10px;
+  gap:6px;
+  margin-top:10px;
 }
 
 img {
-  width: 100%;
-  margin-top: 8px;
-  border: 1px solid #ccc;
+  width:100%;
+  margin-top:8px;
+  border:1px solid #ccc;
+}
+
+#birdImage {
+  opacity:0;
+  transition: opacity 0.5s ease-in;
+  border:2px solid #444;
 }
 
 #info {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #ddd;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid #ddd;
+  font-size:13px;
 }
 
-.correct { color: green; font-weight: bold; }
-.wrong { color: red; font-weight: bold; }
-
 .bottomButtons {
-  display: grid;
+  display:grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-top: 10px;
+  gap:6px;
+  margin-top:10px;
 }
 
 #reviewBtn {
-  background: #ffc107;
+  background:#ffc107;
 }
+
+.correct { color: green; font-weight:bold; }
+.wrong { color: red; font-weight:bold; }
+
 </style>
 </head>
 
@@ -82,16 +88,17 @@ img {
 
 <h2>Bird Sound Game</h2>
 
-<p>Improve your bird sound identification skills.</p>
+<p style="font-size:13px; color:#666;">
+Improve your bird sound identification skills using real recordings and spectrograms.
+</p>
 
-<!-- TOP BAR -->
-<div class="topBar">
-
-<select id="lang" onchange="setLanguage()">
+<!-- LANGUAGE TOGGLE -->
+<select id="lang">
   <option value="en">English</option>
   <option value="af">Afrikaans</option>
 </select>
 
+<!-- CATEGORY -->
 <select id="category" onchange="loadCategory()">
   <option value="waders">Waders</option>
   <option value="waterbirds">Waterbirds</option>
@@ -99,11 +106,8 @@ img {
   <option value="warblers">Warblers</option>
 </select>
 
-</div>
-
 <!-- FILTERS -->
 <div class="filters">
-
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
@@ -120,23 +124,23 @@ img {
   <option value="3">Level 3</option>
 </select>
 
-</div>
-
 <button id="mainBtn" onclick="startOrPlay()">Start / Play / Pause</button>
+</div>
 
 <hr>
 
 <div id="gameArea" style="display:none;">
 
 <img id="spectrogram">
+<img id="birdImage" style="display:none;">
 
 <div id="options"></div>
 
 <div id="info"></div>
 
 <div class="bottomButtons">
-<button onclick="nextBird()">Next</button>
 <button id="reviewBtn" onclick="reviewMode()">Review</button>
+<button onclick="nextBird()">Next</button>
 </div>
 
 </div>
