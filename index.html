@@ -54,7 +54,10 @@ img {
   border:1px solid #ccc;
 }
 
+/* SMALLER BIRD IMAGE */
 #birdImage {
+  max-height:250px;
+  object-fit:cover;
   opacity:0;
   transition: opacity 0.5s ease-in;
   border:2px solid #444;
@@ -86,13 +89,13 @@ img {
 
 <body>
 
-<h2>Southern Africa Bird Call Game</h2>
+<h2>Bird Sound Game</h2>
 
 <p style="font-size:13px; color:#666;">
 Improve your bird sound identification skills using real recordings and spectrograms.
 </p>
 
-<!-- LANGUAGE TOGGLE -->
+<!-- LANGUAGE -->
 <select id="lang">
   <option value="en">English</option>
   <option value="af">Afrikaans</option>
@@ -100,14 +103,15 @@ Improve your bird sound identification skills using real recordings and spectrog
 
 <!-- CATEGORY -->
 <select id="category" onchange="loadCategory()">
-  <option value="cisticolas">Cisticolas</option>  
   <option value="waders">Waders</option>
-  <option value="warblers">Warblers</option>  
   <option value="waterbirds">Waterbirds</option>
+  <option value="cisticolas">Cisticolas</option>
+  <option value="warblers">Warblers</option>
 </select>
 
 <!-- FILTERS -->
 <div class="filters">
+
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
@@ -125,6 +129,7 @@ Improve your bird sound identification skills using real recordings and spectrog
 </select>
 
 <button id="mainBtn" onclick="startOrPlay()">Start / Play / Pause</button>
+
 </div>
 
 <hr>
@@ -144,11 +149,11 @@ Improve your bird sound identification skills using real recordings and spectrog
 </div>
 
 </div>
-  
-<script src="cisticolas.js"></script>
+
 <script src="waders.js"></script>
-<script src="warblers.js"></script>  
 <script src="waterbirds.js"></script>
+<script src="cisticolas.js"></script>
+<script src="warblers.js"></script>
 
 <script src="app.js"></script>
 
