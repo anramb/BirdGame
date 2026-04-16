@@ -1,10 +1,6 @@
 const other = [
   
-{english: "Chirping Cisticola", afrikaans: "Piepende Tinktinkie", hotspot: "Caprivi River System", habitat: "Riverine shrubs", birdgroup: "Cisticola", level: "3 Advanced",
- audio: "cisticolas/XC339101_ChirpingCisticola.mp3", spectrogram: "cisticolas/XC339101_ChirpingCisticola.png",credit: "© Peter Boesman, www.xeno-canto.org, XC339101", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
-
-{english: "Luapula Cisticola", afrikaans: "Luapulatinktinkie", hotspot: "Caprivi River System", habitat: "Grassland", birdgroup: "Cisticola", level: "3 Advanced",
- audio: "cisticolas/XC978973_LuapulaCisticola.mp3", spectrogram: "cisticolas/XC978973_LuapulaCisticola.png",credit: "© Dries Van de Loock, www.xeno-canto.org, XC978973", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
-
+{english: "Mangrove Kingfisher", afrikaans: "Manglietvisvanger", hotspot: "St Lucia; KZN; Eastern Cape", habitat: "Woodland", birdgroup: "Other", level: "1 Beginner", 
+ audio: "other/XC755900_MangroveKingfisher.mp3", spectrogram: "other/XC755900_MangroveKingfisher.png",credit: "© Isaac Kilusu, www.xeno-canto.org, XC755900", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 ];
