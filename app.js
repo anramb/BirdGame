@@ -1,10 +1,8 @@
 let allData = {
-  cisticolas,
   waders,
-  warblers,
-  waterbirds
-  
-  
+  waterbirds,
+  cisticolas,
+  warblers
 };
 
 let birds = [];
@@ -114,7 +112,6 @@ function nextBird(){
 
   playAudio(currentBird.audio);
 
-  // Spectrogram
   let spec=document.getElementById("spectrogram");
   if(currentBird.spectrogram){
     spec.src = currentBird.spectrogram;
@@ -123,12 +120,10 @@ function nextBird(){
     spec.style.display="none";
   }
 
-  // HIDE IMAGE
   let img=document.getElementById("birdImage");
   img.style.display="none";
   img.style.opacity = 0;
 
-  // OPTIONS
   let options=[currentBird.english];
   let pool = filtered.filter(b => b.english !== currentBird.english);
 
@@ -167,15 +162,12 @@ function check(ans){
     wrongAnswers.push(currentBird);
   }
 
-  let lang=document.getElementById("lang").value;
-
   let img=document.getElementById("birdImage");
 
   if(currentBird.image){
     img.src = currentBird.image;
     img.style.display="block";
 
-    // fade-in
     setTimeout(()=>{
       img.style.opacity = 1;
     },50);
@@ -184,11 +176,13 @@ function check(ans){
   document.getElementById("info").innerHTML = `
     <div class="${correct ? "correct" : "wrong"}">
       ${correct ? "✔ Correct" : "✖ Wrong"}
-    </div>
+    </div><br>
+
     <b>English:</b> ${currentBird.english}<br>
-    <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
+    <b>Afrikaans:</b> ${currentBird.afrikaans}<br><br>
+
     <small>${currentBird.credit || ""}</small><br>
-    <a href="${currentBird.licenseLink}" target="_blank">License</a>        
+    <a href="${currentBird.licenseLink}" target="_blank">License</a>
   `;
 }
 
