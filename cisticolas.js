@@ -6,7 +6,7 @@ const cisticolas = [
 
 
 {english: "Rattling Cisticola", afrikaans: "Bosveldtinktinkie", hotspot: "Northern South Africa", habitat: "Bushveld", birdgroup: "Cisticolas", level: "2 Intermediate", 
- audio: "cisticolas/XC1100387_RattlingCisticola.mp3", spectrogram: "cisticolas/XC1100387_RattlingCisticola.png",credit: "© Marna Buys, www.xeno-canto.org, XC1100387", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+ audio: "cisticolas/XC1100387_RattlingCisticola.mp3", spectrogram: "cisticolas/XC1100387_RattlingCisticola.png", image: "cisticolas/XC1100387_RattlingCisticola.jpg", credit: "© Marna Buys, www.xeno-canto.org, XC1100387", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 
   
