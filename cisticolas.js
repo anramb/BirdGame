@@ -1,7 +1,7 @@
 const cisticolas = [
   
 {english: "Chirping Cisticola", afrikaans: "Piepende Tinktinkie", hotspot: "Botswana; Namibia", habitat: "Reedbeds", birdgroup: "Cisticolas", level: "3 Advanced", 
- audio: "cisticolas/XC339101_ChirpingCisticola.mp3", spectrogram: "cisticolas/XC339101_ChirpingCisticola.png",credit: "© Peter Boesman, www.xeno-canto.org, XC339101", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+ audio: "cisticolas/XC339101_ChirpingCisticola.mp3", spectrogram: "cisticolas/XC339101_ChirpingCisticola.png", image: "cisticolas/XC339101_ChirpingCisticola.jpg", credit: "© Peter Boesman, www.xeno-canto.org, XC339101", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Common Whitethroat alarm call", afrikaans: "Witkeelsanger alarm call", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
  audio: "warblers/XC521207_CommonWhitethroat.mp3", spectrogram: "warblers/XC521207_CommonWhitethroat.png",credit: "© Tony Archer, www.xeno-canto.org, XC521207, Alarm call, Background birds: red-faced mousebird", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
