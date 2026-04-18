@@ -7,6 +7,12 @@ const gardenwoodland = [
   audio: "gardenwoodland/XC1100676_Blue-mantledCrestedFlycatcher.mp3", spectrogram: "gardenwoodland/XC1100676_Blue-mantledCrestedFlycatcher.png",image: "gardenwoodland/XC1100676_Blue-mantledCrestedFlycatcher.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1100676", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Woodwards Batis", afrikaans: "Woodwardbosbontrokkie", hotspot: "KZN; St Lucia", habitat: "Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
-audio: "gardenwoodland/XC1100685_WoodwardsBatis.mp3", spectrogram: "gardenwoodland/XC1100685_WoodwardsBatis.png",image: "gardenwoodland/XC1100685_WoodwardsBatis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1100685", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "gardenwoodland/XC1100685_WoodwardsBatis.mp3", spectrogram: "gardenwoodland/XC1100685_WoodwardsBatis.png",image: "gardenwoodland/XC1100685_WoodwardsBatis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1100685", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Broad-billed Roller", afrikaans: "Geelbektroupant", hotspot: "KZN; Limpopo; Mpumalanga", habitat: "Grassland; Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC398047_Broad-billedRoller.mp3", spectrogram: "gardenwoodland/XC398047_Broad-billedRoller.png",image: "gardenwoodland/XC398047_Broad-billedRoller.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC398047", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Racket-tailed Roller", afrikaans: "Knopsterttroupant", hotspot: "Limpopo", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC854403_Racket-tailedRoller.mp3", spectrogram: "gardenwoodland/XC854403_Racket-tailedRoller.png",image: "gardenwoodland/XC854403_Racket-tailedRoller.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC854403", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
   
 ];
