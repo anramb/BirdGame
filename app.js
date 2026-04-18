@@ -25,6 +25,7 @@ let started = false;
 function loadCategory(){
   let cat = document.getElementById("category").value;
   birds = allData[cat] || [];
+  console.log(`Loading category: ${cat}, found ${birds.length} birds`);
   updateFilterOptions();
 }
 
@@ -134,11 +135,23 @@ function nextBird(){
   }
 
   currentBird = queue.shift();
+  console.log("Current bird:", currentBird);
 
-  playAudio(currentBird.audio);
+  // Handle audio with error checking
+  if(currentBird.audio){
+    audio.onerror = function() {
+      console.log("Audio file not found:", currentBird.audio);
+    };
+    playAudio(currentBird.audio);
+  }
 
+  // Handle spectrogram with error checking
   let spec=document.getElementById("spectrogram");
   if(currentBird.spectrogram){
+    spec.onerror = function() {
+      console.log("Spectrogram file not found:", currentBird.spectrogram);
+      spec.style.display="none";
+    };
     spec.src = currentBird.spectrogram;
     spec.style.display="block";
   } else {
@@ -233,5 +246,6 @@ function reviewMode(){
 
 // INIT
 updateFilterOptions();
+
 
 
