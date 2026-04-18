@@ -1,3 +1,4 @@
+// Clean version - no infinite loops, no memory leaks
 let allData = {
   cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
   gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
@@ -134,12 +135,18 @@ function nextBird() {
     playAudio(currentBird.audio);
   }
 
-  const spec = document.getElementById("spectrogram");
-  if (currentBird?.spectrogram) {
-    spec.src = currentBird.spectrogram;
-    spec.style.display = "block";
+  // Use interactive spectrogram if available, otherwise fallback to regular
+  if (currentBird?.spectrogram && typeof initInteractiveSpectrogram === 'function') {
+    initInteractiveSpectrogram(currentBird.audio, currentBird.spectrogram);
   } else {
-    spec.style.display = "none";
+    // Fallback to regular spectrogram
+    const spec = document.getElementById("spectrogram");
+    if (currentBird?.spectrogram) {
+      spec.src = currentBird.spectrogram;
+      spec.style.display = "block";
+    } else {
+      spec.style.display = "none";
+    }
   }
 
   const img = document.getElementById("birdImage");
@@ -227,6 +234,7 @@ function reviewMode() {
 // Initialize
 loadCategory();
 updateFilterOptions();
+
 
 
 
