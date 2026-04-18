@@ -1,14 +1,14 @@
 let allData = {
-  cisticolas,
-  gardenwoodland,
-  groundbirds,
-  LBJs,
-  other,
-  raptors,
-  seedeaters,
-  waders,
-  warblers,
-  waterbirds
+  cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
+  gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
+  groundbirds: typeof groundbirds !== 'undefined' ? groundbirds : [],
+  LBJs: typeof LBJs !== 'undefined' ? LBJs : [],
+  other: typeof other !== 'undefined' ? other : [],
+  raptors: typeof raptors !== 'undefined' ? raptors : [],
+  seedeaters: typeof seedeaters !== 'undefined' ? seedeaters : [],
+  waders: typeof waders !== 'undefined' ? waders : [],
+  warblers: typeof warblers !== 'undefined' ? warblers : [],
+  waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : []
    
 };
 
@@ -233,4 +233,5 @@ function reviewMode(){
 
 // INIT
 updateFilterOptions();
+
 
