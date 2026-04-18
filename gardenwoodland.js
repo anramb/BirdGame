@@ -13,6 +13,12 @@ audio: "gardenwoodland/XC1100685_WoodwardsBatis.mp3", spectrogram: "gardenwoodla
 audio: "gardenwoodland/XC398047_Broad-billedRoller.mp3", spectrogram: "gardenwoodland/XC398047_Broad-billedRoller.png",image: "gardenwoodland/XC398047_Broad-billedRoller.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC398047", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Racket-tailed Roller", afrikaans: "Knopsterttroupant", hotspot: "Limpopo", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
-audio: "gardenwoodland/XC854403_Racket-tailedRoller.mp3", spectrogram: "gardenwoodland/XC854403_Racket-tailedRoller.png",image: "gardenwoodland/XC854403_Racket-tailedRoller.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC854403", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+audio: "gardenwoodland/XC854403_Racket-tailedRoller.mp3", spectrogram: "gardenwoodland/XC854403_Racket-tailedRoller.png",image: "gardenwoodland/XC854403_Racket-tailedRoller.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC854403", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Lilac-breasted Roller", afrikaans: "Gewone Troupant", hotspot: "Gauteng; KZN; Mpumalanga; Limpopo; Nothern Cape", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC510090_Lilac-breastedRoller.mp3", spectrogram: "gardenwoodland/XC510090_Lilac-breastedRoller.png",image: "gardenwoodland/XC510090_Lilac-breastedRoller.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC510090", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Purple Roller", afrikaans: "Groottroupant", hotspot: "Northwest; Mpumalanga; Limpopo", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC719046_PurpleRoller.mp3", spectrogram: "gardenwoodland/XC719046_PurpleRoller.png",image: "gardenwoodland/XC719046_PurpleRoller.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC719046", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
   
 ];
