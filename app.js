@@ -1,4 +1,3 @@
-// Clean version - no infinite loops, no memory leaks
 let allData = {
   cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
   gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
@@ -198,13 +197,32 @@ function check(answer) {
   }
 
   const img = document.getElementById("birdImage");
+  const copyrightOverlay = document.getElementById("copyrightOverlay");
+  
   if (currentBird.image) {
-    img.onerror = () => img.style.display = "none";
+    img.onerror = () => {
+      img.style.display = "none";
+      copyrightOverlay.style.display = "none";
+    };
     img.onload = () => {
       img.style.display = "block";
+      copyrightOverlay.style.display = "block";
       setTimeout(() => img.style.opacity = 1, 50);
     };
     img.src = currentBird.image;
+    
+    // Set copyright text - check if it's Marna Buys, otherwise use general credit
+    let copyrightText = "© Marna Buys";
+    if (currentBird.credit && !currentBird.credit.includes("Marna Buys")) {
+      // Extract photographer name from credit if it's not Marna Buys
+      const creditMatch = currentBird.credit.match(/©\s*([^,]+)/);
+      if (creditMatch) {
+        copyrightText = creditMatch[0];
+      }
+    }
+    copyrightOverlay.textContent = copyrightText;
+  } else {
+    copyrightOverlay.style.display = "none";
   }
 
   document.getElementById("info").innerHTML = `
@@ -234,8 +252,6 @@ function reviewMode() {
 // Initialize
 loadCategory();
 updateFilterOptions();
-
-
 
 
 
