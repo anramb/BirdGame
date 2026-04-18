@@ -42,6 +42,9 @@ const waders = [
  audio: "waders/XC546433_Red-chestedFlufftail.mp3", spectrogram: "waders/XC546433_Red-chestedFlufftail.png", image: "waders/XC546433_Red-chestedFlufftail.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC546433", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 { english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
-  audio:"waders/XC670128_CommonGreenshank.mp3", spectrogram: "waders/XC670128_CommonGreenshank.png", image: "waders/XC670128_CommonGreenshank.jpg", photographer: "Marna Buys", credit:"© Tim Cockroft, www.xeno-canto.org, XC670128", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"}
+  audio:"waders/XC670128_CommonGreenshank.mp3", spectrogram: "waders/XC670128_CommonGreenshank.png", image: "waders/XC670128_CommonGreenshank.jpg", photographer: "Marna Buys", credit:"© Tim Cockroft, www.xeno-canto.org, XC670128", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
+
+{english: "Lesser Moorhen", afrikaans: "Kleinwaterhoender", hotspot: "KZN; Limpopo; Mpumalanga", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced", audio: "waders/XC791485_LesserMoorhen.mp3", spectrogram: "waders/XC791485_LesserMoorhen.png", image: "waders/XC791485_LesserMoorhen.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC791485", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+
 
 ];
