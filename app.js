@@ -9,7 +9,6 @@ let allData = {
   waders: typeof waders !== 'undefined' ? waders : [],
   warblers: typeof warblers !== 'undefined' ? warblers : [],
   waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : []
-   
 };
 
 let birds = [];
@@ -17,48 +16,38 @@ let filtered = [];
 let queue = [];
 let currentBird = null;
 let wrongAnswers = [];
-
 let audio = new Audio();
 let started = false;
 
-// -------- LOAD CATEGORY --------
-function loadCategory(){
-  let cat = document.getElementById("category").value;
+function loadCategory() {
+  const cat = document.getElementById("category").value;
   birds = allData[cat] || [];
-  console.log(`Loading category: ${cat}, found ${birds.length} birds`);
+  console.log(`Loaded ${cat}: ${birds.length} birds`);
   updateFilterOptions();
 }
 
-function changeCategory(){
+function changeCategory() {
   loadCategory();
-
-  // RESET GAME
   started = false;
   queue = [];
   filtered = [];
   currentBird = null;
   wrongAnswers = [];
-
   audio.pause();
-
   document.getElementById("gameArea").style.display = "none";
   document.getElementById("info").innerHTML = "";
   document.getElementById("options").innerHTML = "";
 }
 
-// default load
-loadCategory();
-
-// -------- AUDIO --------
-function playAudio(file){
+function playAudio(file) {
+  if (!file) return;
   audio.pause();
   audio.src = file;
-  audio.load();
-  audio.play().catch(()=>{});
+  audio.play().catch(e => console.log("Audio play failed:", e));
 }
 
-function startOrPlay(){
-  if(!started){
+function startOrPlay() {
+  if (!started) {
     startGame();
     started = true;
   } else {
@@ -66,202 +55,179 @@ function startOrPlay(){
   }
 }
 
-// -------- FILTER --------
-function getUnique(key){
-  let arr=[];
-  if (!birds || birds.length === 0) return arr;
-  
-  birds.forEach(b=>{
-    if (b && b[key]) {
-      b[key].split(";").forEach(v=>{
-        v=v.trim();
-        if(v && !arr.includes(v)) arr.push(v);
+function getUnique(key) {
+  const uniqueSet = new Set();
+  birds.forEach(bird => {
+    if (bird && bird[key]) {
+      bird[key].split(";").forEach(v => {
+        v = v.trim();
+        if (v) uniqueSet.add(v);
       });
     }
   });
-  return arr;
+  return Array.from(uniqueSet);
 }
 
-function updateFilterOptions(){
-  let type=document.getElementById("filterType").value;
-  let sel=document.getElementById("filterValue");
-
+function updateFilterOptions() {
+  const type = document.getElementById("filterType").value;
+  const sel = document.getElementById("filterValue");
+  
   if (!sel) return;
-  sel.innerHTML="";
+  sel.innerHTML = "";
 
-  if(type==="none"){
-    let o=document.createElement("option");
-    o.value="";
-    o.textContent="All";
-    sel.appendChild(o);
+  if (type === "none") {
+    sel.innerHTML = '<option value="">All</option>';
     return;
   }
 
-  try {
-    getUnique(type).forEach(v=>{
-      let o=document.createElement("option");
-      o.value=v;
-      o.textContent=v;
-      sel.appendChild(o);
-    });
-  } catch (error) {
-    console.error("Error in updateFilterOptions:", error);
+  const values = getUnique(type);
+  values.forEach(v => {
+    sel.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+}
+
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+  return arr;
 }
 
-// -------- SHUFFLE --------
-function shuffle(arr){
-  return arr.sort(()=>Math.random()-0.5);
-}
-
-// -------- START --------
-function startGame(){
+function startGame() {
   console.log("Starting game...");
   wrongAnswers = [];
 
-  try {
-    let type=document.getElementById("filterType").value;
-    let val=document.getElementById("filterValue").value;
-    let lvl=document.getElementById("levelFilter").value;
+  const type = document.getElementById("filterType").value;
+  const val = document.getElementById("filterValue").value;
+  const lvl = document.getElementById("levelFilter").value;
 
-    filtered = birds.filter(b=>{
-      if (!b) return false;
-      let match1 = (type==="none" || !val || (b[type] || "").toLowerCase().includes(val.toLowerCase()));
-      let match2 = (!lvl || (b.level || "").startsWith(lvl));
-      return match1 && match2;
-    });
+  filtered = birds.filter(bird => {
+    if (!bird) return false;
+    const match1 = type === "none" || !val || (bird[type] || "").toLowerCase().includes(val.toLowerCase());
+    const match2 = !lvl || (bird.level || "").startsWith(lvl);
+    return match1 && match2;
+  });
 
-    console.log(`Filtered ${filtered.length} birds`);
+  console.log(`Filtered ${filtered.length} birds`);
+  queue = shuffle([...filtered]);
 
-    queue = shuffle([...filtered]);
-
-    document.getElementById("gameArea").style.display="block";
-
-    nextBird();
-  } catch (error) {
-    console.error("Error in startGame:", error);
-  }
+  document.getElementById("gameArea").style.display = "block";
+  nextBird();
 }
 
-// -------- NEXT --------
-function nextBird(){
+function nextBird() {
+  if (!filtered || filtered.length === 0) {
+    console.log("No birds available");
+    return;
+  }
 
-  if(queue.length === 0){
+  if (queue.length === 0) {
     queue = shuffle([...filtered]);
   }
 
   currentBird = queue.shift();
-  console.log("Current bird:", currentBird);
+  console.log("Current bird:", currentBird?.english);
 
-  // Handle audio with error checking
-  if(currentBird.audio){
-    audio.onerror = function() {
-      console.log("Audio file not found:", currentBird.audio);
-    };
+  if (currentBird?.audio) {
     playAudio(currentBird.audio);
   }
 
-  // Handle spectrogram with error checking
-  let spec=document.getElementById("spectrogram");
-  if(currentBird.spectrogram){
-    spec.onerror = function() {
-      console.log("Spectrogram file not found:", currentBird.spectrogram);
-      spec.style.display="none";
-    };
+  const spec = document.getElementById("spectrogram");
+  if (currentBird?.spectrogram) {
     spec.src = currentBird.spectrogram;
-    spec.style.display="block";
+    spec.style.display = "block";
   } else {
-    spec.style.display="none";
+    spec.style.display = "none";
   }
 
-  let img=document.getElementById("birdImage");
-  img.style.display="none";
+  const img = document.getElementById("birdImage");
+  img.style.display = "none";
   img.style.opacity = 0;
 
-  let options=[currentBird.english];
-  let pool = filtered.filter(b => b.english !== currentBird.english);
+  createOptions();
+  document.getElementById("info").innerHTML = "";
+}
 
-  while(options.length<4 && pool.length>0){
-    let r = pool[Math.floor(Math.random()*pool.length)].english;
-    if(!options.includes(r)) options.push(r);
+function createOptions() {
+  if (!currentBird) return;
+
+  const options = [currentBird.english];
+  const pool = filtered.filter(b => b.english !== currentBird.english);
+
+  while (options.length < 4 && pool.length > 0) {
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const randomBird = pool[randomIndex];
+    if (!options.includes(randomBird.english)) {
+      options.push(randomBird.english);
+    }
+    pool.splice(randomIndex, 1);
   }
 
   shuffle(options);
 
-  let div=document.getElementById("options");
-  div.innerHTML="";
+  const lang = document.getElementById("lang").value;
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
 
-  let lang=document.getElementById("lang").value;
+  options.forEach(option => {
+    const birdObj = filtered.find(b => b.english === option);
+    if (!birdObj) return;
 
-  options.forEach(o=>{
-    let birdObj = filtered.find(b=>b.english===o);
-
-    let btn=document.createElement("button");
-    btn.textContent = lang==="af" ? birdObj.afrikaans : birdObj.english;
-
-    btn.onclick=()=>check(o);
-
-    div.appendChild(btn);
+    const btn = document.createElement("button");
+    btn.textContent = lang === "af" ? birdObj.afrikaans : birdObj.english;
+    btn.onclick = () => check(option);
+    optionsDiv.appendChild(btn);
   });
-
-  document.getElementById("info").innerHTML="";
 }
 
-// -------- CHECK --------
-function check(ans){
+function check(answer) {
+  if (!currentBird) return;
 
-  let correct = ans === currentBird.english;
-
-  if(!correct){
+  const correct = answer === currentBird.english;
+  if (!correct) {
     wrongAnswers.push(currentBird);
   }
 
-  let img=document.getElementById("birdImage");
-
-  if(currentBird.image){
-    img.onerror = function() {
-      img.style.display = "none";
-    };
-    img.onload = function() {
+  const img = document.getElementById("birdImage");
+  if (currentBird.image) {
+    img.onerror = () => img.style.display = "none";
+    img.onload = () => {
       img.style.display = "block";
-      setTimeout(()=>{
-        img.style.opacity = 1;
-      },50);
+      setTimeout(() => img.style.opacity = 1, 50);
     };
     img.src = currentBird.image;
   }
 
   document.getElementById("info").innerHTML = `
     <div class="${correct ? "correct" : "wrong"}">
-      ${correct ? "✔ Correct" : "✖ Wrong"}
-    </div><br>
-
+      ${correct ? "Correct" : "Wrong"}
+    </div>
+    <br>
     <b>English:</b> ${currentBird.english}<br>
     <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
-
     <small>${currentBird.credit || ""}</small><br>
     <a href="${currentBird.licenseLink}" target="_blank">License</a>
   `;
 }
 
-// -------- REVIEW --------
-function reviewMode(){
-
-  if(wrongAnswers.length === 0){
+function reviewMode() {
+  if (wrongAnswers.length === 0) {
     alert("No mistakes yet");
     return;
   }
 
   filtered = [...wrongAnswers];
   queue = shuffle([...filtered]);
-
-  document.getElementById("gameArea").style.display="block";
-
+  document.getElementById("gameArea").style.display = "block";
   nextBird();
 }
 
-// INIT
+// Initialize
+loadCategory();
 updateFilterOptions();
+
 
 
 
