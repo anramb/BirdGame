@@ -161,6 +161,12 @@ function nextBird() {
   img.style.display = "none";
   img.style.opacity = 0;
 
+  // Hide copyright overlay when starting new bird
+  const copyrightOverlay = document.getElementById("copyrightOverlay");
+  if (copyrightOverlay) {
+    copyrightOverlay.style.display = "none";
+  }
+
   createOptions();
   document.getElementById("info").innerHTML = "";
 }
@@ -220,10 +226,13 @@ function check(answer) {
     };
     img.src = currentBird.image;
     
-    // Set copyright text - check if it's Marna Buys, otherwise use general credit
-    let copyrightText = "© Marna Buys";
-    if (currentBird.credit && !currentBird.credit.includes("Marna Buys")) {
-      // Extract photographer name from credit if it's not Marna Buys
+    // Use photographer field for photo credit
+    let copyrightText = "";
+    if (currentBird.photographer) {
+      // Use dedicated photographer field
+      copyrightText = "© " + currentBird.photographer;
+    } else if (currentBird.credit) {
+      // Extract photographer name from credit field
       const creditMatch = currentBird.credit.match(/©\s*([^,]+)/);
       if (creditMatch) {
         copyrightText = creditMatch[0];
@@ -258,8 +267,8 @@ function reviewMode() {
   nextBird();
 }
 
+
 // Initialize
 loadCategory();
 updateFilterOptions();
-
 
