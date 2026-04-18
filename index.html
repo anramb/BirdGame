@@ -54,14 +54,34 @@ img {
   border:1px solid #ccc;
 }
 
-/* SMALLER BIRD IMAGE */
+/* BIRD IMAGE WITH COPYRIGHT */
 #birdImage {
   width: 100%;
-  height: 200px;        /* jy kan 180–250 speel hiermee */
+  height: 180px;        /* kleiner vir beter display */
   object-fit: contain;  /* belangrik: wys hele prent */
   background: #ffffff;  /* net vir netjiese spasie */
   margin-top: 8px;
+  border: 1px solid #ccc;
+  position: relative;
+}
 
+.bird-photo-container {
+  position: relative;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.copyright-overlay {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 3px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  font-family: Arial, sans-serif;
+  z-index: 10;
 }
 
 #info {
@@ -146,7 +166,11 @@ Improve your bird sound identification skills using real recordings and spectrog
 <div id="gameArea" style="display:none;">
 
 <img id="spectrogram">
-<img id="birdImage" style="display:none;">
+
+<div class="bird-photo-container">
+  <img id="birdImage" style="display:none;">
+  <div class="copyright-overlay" id="copyrightOverlay" style="display:none;"></div>
+</div>
 
 <div id="options"></div>
 
@@ -175,4 +199,5 @@ Improve your bird sound identification skills using real recordings and spectrog
 
 </body>
 </html>
+
 
