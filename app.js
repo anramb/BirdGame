@@ -69,11 +69,15 @@ function startOrPlay(){
 // -------- FILTER --------
 function getUnique(key){
   let arr=[];
+  if (!birds || birds.length === 0) return arr;
+  
   birds.forEach(b=>{
-    (b[key] || "").split(";").forEach(v=>{
-      v=v.trim();
-      if(v && !arr.includes(v)) arr.push(v);
-    });
+    if (b && b[key]) {
+      b[key].split(";").forEach(v=>{
+        v=v.trim();
+        if(v && !arr.includes(v)) arr.push(v);
+      });
+    }
   });
   return arr;
 }
@@ -82,6 +86,7 @@ function updateFilterOptions(){
   let type=document.getElementById("filterType").value;
   let sel=document.getElementById("filterValue");
 
+  if (!sel) return;
   sel.innerHTML="";
 
   if(type==="none"){
@@ -92,12 +97,16 @@ function updateFilterOptions(){
     return;
   }
 
-  getUnique(type).forEach(v=>{
-    let o=document.createElement("option");
-    o.value=v;
-    o.textContent=v;
-    sel.appendChild(o);
-  });
+  try {
+    getUnique(type).forEach(v=>{
+      let o=document.createElement("option");
+      o.value=v;
+      o.textContent=v;
+      sel.appendChild(o);
+    });
+  } catch (error) {
+    console.error("Error in updateFilterOptions:", error);
+  }
 }
 
 // -------- SHUFFLE --------
@@ -107,24 +116,31 @@ function shuffle(arr){
 
 // -------- START --------
 function startGame(){
-
+  console.log("Starting game...");
   wrongAnswers = [];
 
-  let type=document.getElementById("filterType").value;
-  let val=document.getElementById("filterValue").value;
-  let lvl=document.getElementById("levelFilter").value;
+  try {
+    let type=document.getElementById("filterType").value;
+    let val=document.getElementById("filterValue").value;
+    let lvl=document.getElementById("levelFilter").value;
 
-  filtered = birds.filter(b=>{
-    let match1 = (type==="none" || !val || (b[type] || "").toLowerCase().includes(val.toLowerCase()));
-    let match2 = (!lvl || (b.level || "").startsWith(lvl));
-    return match1 && match2;
-  });
+    filtered = birds.filter(b=>{
+      if (!b) return false;
+      let match1 = (type==="none" || !val || (b[type] || "").toLowerCase().includes(val.toLowerCase()));
+      let match2 = (!lvl || (b.level || "").startsWith(lvl));
+      return match1 && match2;
+    });
 
-  queue = shuffle([...filtered]);
+    console.log(`Filtered ${filtered.length} birds`);
 
-  document.getElementById("gameArea").style.display="block";
+    queue = shuffle([...filtered]);
 
-  nextBird();
+    document.getElementById("gameArea").style.display="block";
+
+    nextBird();
+  } catch (error) {
+    console.error("Error in startGame:", error);
+  }
 }
 
 // -------- NEXT --------
@@ -246,6 +262,7 @@ function reviewMode(){
 
 // INIT
 updateFilterOptions();
+
 
 
 
