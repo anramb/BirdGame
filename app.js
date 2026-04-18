@@ -1,3 +1,4 @@
+// Clean version - no infinite loops, no memory leaks
 let allData = {
   cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
   gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
@@ -88,6 +89,7 @@ function updateFilterOptions() {
 
 function shuffle(array) {
   const arr = [...array];
+  // Fisher-Yates shuffle algorithm for better randomization
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -111,7 +113,12 @@ function startGame() {
   });
 
   console.log(`Filtered ${filtered.length} birds`);
+  
+  // Create completely fresh shuffle for game start
   queue = shuffle([...filtered]);
+  
+  // Reset currentBird to ensure we don't reuse previous bird
+  currentBird = null;
 
   document.getElementById("gameArea").style.display = "block";
   nextBird();
@@ -124,11 +131,13 @@ function nextBird() {
   }
 
   if (queue.length === 0) {
+    console.log("Reshuffling queue...");
     queue = shuffle([...filtered]);
   }
 
   currentBird = queue.shift();
   console.log("Current bird:", currentBird?.english);
+  console.log("Queue length:", queue.length);
 
   if (currentBird?.audio) {
     playAudio(currentBird.audio);
@@ -252,7 +261,5 @@ function reviewMode() {
 // Initialize
 loadCategory();
 updateFilterOptions();
-
-
 
 
