@@ -190,12 +190,16 @@ function check(ans){
   let img=document.getElementById("birdImage");
 
   if(currentBird.image){
+    img.onerror = function() {
+      img.style.display = "none";
+    };
+    img.onload = function() {
+      img.style.display = "block";
+      setTimeout(()=>{
+        img.style.opacity = 1;
+      },50);
+    };
     img.src = currentBird.image;
-    img.style.display="block";
-
-    setTimeout(()=>{
-      img.style.opacity = 1;
-    },50);
   }
 
   document.getElementById("info").innerHTML = `
@@ -229,3 +233,4 @@ function reviewMode(){
 
 // INIT
 updateFilterOptions();
+
