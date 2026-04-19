@@ -124,24 +124,26 @@ Improve your bird sound identification skills using real recordings and spectrog
 </select>
 
 <!-- CATEGORY -->
+<div class="filters">
+<p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select the group of birds</p>
 <select id="category" onchange="changeCategory()">
+  <option value="all">All Groups</option>
   <option value="cisticolas">Cisticolas</option>
   <option value="gardenwoodland">Garden and Woodland</option>  
   <option value="groundbirds">Groundbirds</option>  
   <option value="LBJs">LBJs</option>  
   <option value="other">Other</option>  
-  <option value="raptors">Raptors</option>  
+  <option value="raptors">Raptors</option>
   <option value="seedeaters">Seedeaters</option>  
   <option value="waders">Waders</option>
   <option value="warblers">Warblers</option>  
   <option value="waterbirds">Waterbirds</option>
-
-
 </select>
+</div>
 
 <!-- FILTERS -->
 <div class="filters">
-
+<p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select hotspot or habitat</p>
 <select id="filterType" onchange="updateFilterOptions()">
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
