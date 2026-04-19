@@ -1,3 +1,4 @@
+// Clean version - no infinite loops, no memory leaks
 let allData = {
   cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
   gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
@@ -21,21 +22,8 @@ let started = false;
 
 function loadCategory() {
   const cat = document.getElementById("category").value;
-  
-  if (cat === "all") {
-    // Combine all bird categories
-    birds = [];
-    Object.keys(allData).forEach(category => {
-      if (allData[category] && Array.isArray(allData[category])) {
-        birds = birds.concat(allData[category]);
-      }
-    });
-    console.log(`Loaded all groups: ${birds.length} birds total`);
-  } else {
-    birds = allData[cat] || [];
-    console.log(`Loaded ${cat}: ${birds.length} birds`);
-  }
-  
+  birds = allData[cat] || [];
+  console.log(`Loaded ${cat}: ${birds.length} birds`);
   updateFilterOptions();
 }
 
@@ -101,6 +89,7 @@ function updateFilterOptions() {
 
 function shuffle(array) {
   const arr = [...array];
+  // Fisher-Yates shuffle algorithm for better randomization
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -124,7 +113,12 @@ function startGame() {
   });
 
   console.log(`Filtered ${filtered.length} birds`);
+  
+  // Create completely fresh shuffle for game start
   queue = shuffle([...filtered]);
+  
+  // Reset currentBird to ensure we don't reuse previous bird
+  currentBird = null;
 
   document.getElementById("gameArea").style.display = "block";
   nextBird();
@@ -137,22 +131,30 @@ function nextBird() {
   }
 
   if (queue.length === 0) {
+    console.log("Reshuffling queue...");
     queue = shuffle([...filtered]);
   }
 
   currentBird = queue.shift();
   console.log("Current bird:", currentBird?.english);
+  console.log("Queue length:", queue.length);
 
   if (currentBird?.audio) {
     playAudio(currentBird.audio);
   }
 
-  const spec = document.getElementById("spectrogram");
-  if (currentBird?.spectrogram) {
-    spec.src = currentBird.spectrogram;
-    spec.style.display = "block";
+  // Use interactive spectrogram if available, otherwise fallback to regular
+  if (currentBird?.spectrogram && typeof initInteractiveSpectrogram === 'function') {
+    initInteractiveSpectrogram(currentBird.audio, currentBird.spectrogram);
   } else {
-    spec.style.display = "none";
+    // Fallback to regular spectrogram
+    const spec = document.getElementById("spectrogram");
+    if (currentBird?.spectrogram) {
+      spec.src = currentBird.spectrogram;
+      spec.style.display = "block";
+    } else {
+      spec.style.display = "none";
+    }
   }
 
   const img = document.getElementById("birdImage");
@@ -265,8 +267,8 @@ function reviewMode() {
   nextBird();
 }
 
+
 // Initialize
 loadCategory();
 updateFilterOptions();
-
 
