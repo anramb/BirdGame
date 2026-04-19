@@ -9,7 +9,8 @@ let allData = {
   seedeaters: typeof seedeaters !== 'undefined' ? seedeaters : [],
   waders: typeof waders !== 'undefined' ? waders : [],
   warblers: typeof warblers !== 'undefined' ? warblers : [],
-  waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : []
+  waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : [],
+  allbirds: typeof allbirds !== 'undefined' ? allbirds : []
 };
 
 let birds = [];
