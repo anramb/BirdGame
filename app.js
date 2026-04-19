@@ -271,4 +271,3 @@ function reviewMode() {
 // Initialize
 loadCategory();
 updateFilterOptions();
-

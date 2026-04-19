@@ -113,21 +113,22 @@ img {
 
 <h2>Bird Sound ID</h2>
 
-<p style="font-size:13px; color:#666;">
-Improve your bird sound identification skills using real recordings and spectrograms.
-</p>
-
+<div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
 <!-- LANGUAGE -->
 <select id="lang">
   <option value="en">English</option>
   <option value="af">Afrikaans</option>
 </select>
+</div>
+
+<p style="font-size:13px; color:#666;">
+Improve your bird sound identification skills using real recordings and spectrograms.
+</p>
 
 <!-- CATEGORY -->
 <div class="filters">
-<p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select the group of birds</p>
+<p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select group of birds</p>
 <select id="category" onchange="changeCategory()">
-  <option value="all">All Groups</option>
   <option value="cisticolas">Cisticolas</option>
   <option value="gardenwoodland">Garden and Woodland</option>  
   <option value="groundbirds">Groundbirds</option>  
@@ -148,7 +149,6 @@ Improve your bird sound identification skills using real recordings and spectrog
   <option value="none">All</option>
   <option value="habitat">Habitat</option>
   <option value="hotspot">Hotspot</option>
-  <option value="birdgroup">Group</option>
 </select>
 
 <select id="filterValue"></select>
@@ -202,4 +202,3 @@ Improve your bird sound identification skills using real recordings and spectrog
 
 </body>
 </html>
-

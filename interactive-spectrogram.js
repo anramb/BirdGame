@@ -35,8 +35,9 @@ class InteractiveSpectrogram {
     this.progressBar.style.height = '100%';
     this.progressBar.style.backgroundColor = 'red';
     this.progressBar.style.pointerEvents = 'none';
-    this.progressBar.style.zIndex = '10';
+    this.progressBar.style.zIndex = '1000';
     this.progressBar.style.display = 'none';
+    this.progressBar.style.border = '1px solid darkred';
     
     container.appendChild(this.canvas);
     container.appendChild(this.progressBar);
