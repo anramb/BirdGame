@@ -154,22 +154,22 @@ const allbirds = [
  audio: "All birds/XC280512_Black-crownedNightHeron.mp3", spectrogram: "All birds/XC280512_Black-crownedNightHeron.png", image: "All birds/XC280512_Black-crownedNightHeron.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC280512", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Green malkoha", afrikaans: "Groenvleiloerie", hotspot: "St Lucia", habitat: "Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
-audio: "gardenwoodland/XC279998_GreenMalkoha.mp3", spectrogram: "gardenwoodland/XC279998_GreenMalkoha.png",image: "gardenwoodland/XC279998_GreenMalkoha.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279998", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+audio: "All birds/XC279998_GreenMalkoha.mp3", spectrogram: "All birds/XC279998_GreenMalkoha.png",image: "All birds/XC279998_GreenMalkoha.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279998", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Livingstons Turaco", afrikaans: "Mosambiekloerie", hotspot: "St Lucia", habitat: "Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
-audio: "gardenwoodland/XC280730_LivingstonesTuraco.mp3", spectrogram: "gardenwoodland/XC280730_LivingstonesTuraco.png",image: "gardenwoodland/XC280730_LivingstonesTuraco.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280730", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+audio: "All birds/XC280730_LivingstonesTuraco.mp3", spectrogram: "All birds/XC280730_LivingstonesTuraco.png",image: "All birds/XC280730_LivingstonesTuraco.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280730", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Karoo Korhaan", afrikaans: "Vaalkorhaan", hotspot: "Platbakkies", habitat: "Stony ground", birdgroup: "Groundbirds", level: "3 Advanced", 
-audio: "groundbirds/XC726757_KarooKorhaan.mp3", spectrogram: "groundbirds/XC726757_KarooKorhaan.png",image: "groundbirds/XC726757_KarooKorhaan.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC726757", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+audio: "All birds/XC726757_KarooKorhaan.mp3", spectrogram: "All birds/XC726757_KarooKorhaan.png",image: "All birds/XC726757_KarooKorhaan.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC726757", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Grey-winged Francolin", afrikaans: "Bergpatrys", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "2 Intermediate", 
-audio: "groundbirds/XC392686_Grey-wingedFrancolin.mp3", spectrogram: "groundbirds/XC392686_Grey-wingedFrancolin.png",image: "groundbirds/XC392686_Grey-wingedFrancolin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392686", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+audio: "All birds/XC392686_Grey-wingedFrancolin.mp3", spectrogram: "All birds/XC392686_Grey-wingedFrancolin.png",image: "All birds/XC392686_Grey-wingedFrancolin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392686", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Double-banded Courser", afrikaans: "Dubbelbanddrawwertjie", hotspot: "Platbakkies", habitat: "Stony ground", birdgroup: "Groundbirds", level: "3 Advanced", 
-audio: "groundbirds/XC625033_Double-bandedCourser.mp3", spectrogram: "groundbirds/XC625033_Double-bandedCourser.png",image: "groundbirds/XC625033_Double-bandedCourser.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC625033", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+audio: "All birds/XC625033_Double-bandedCourser.mp3", spectrogram: "All birds/XC625033_Double-bandedCourser.png",image: "All birds/XC625033_Double-bandedCourser.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC625033", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Burchells Courser", afrikaans: "Bloukopdrawwertjie", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "3 Advanced", 
-audio: "groundbirds/XC597244_BurchellsCourser.mp3", spectrogram: "groundbirds/XC597244_BurchellsCourser.png",image: "groundbirds/XC597244_BurchellsCourser.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC597244", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "All birds/XC597244_BurchellsCourser.mp3", spectrogram: "All birds/XC597244_BurchellsCourser.png",image: "All birds/XC597244_BurchellsCourser.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC597244", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 
 

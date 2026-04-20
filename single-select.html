@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Bird Select</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        select {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .bird-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .bird-name {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .bird-name-afr {
+            font-size: 1.5em;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .bird-credit {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .bird-credit a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .bird-credit a:hover {
+            text-decoration: underline;
+        }
+        
+        #spectrogram-container {
+            position: relative;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #spectrogram-container canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        audio {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .language-selector {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+            background: white;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            select {
+                width: 100%;
+            }
+            
+            .bird-name {
+                font-size: 1.5em;
+            }
+            
+            .bird-name-afr {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Single Bird Select</h1>
+            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+        </div>
+        
+        <div class="controls">
+            <select id="languageSelector" class="language-selector" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+            </select>
+            <select id="birdSelector">
+                <option value="">Select a bird...</option>
+            </select>
+        </div>
+        
+        <div id="birdDisplay" style="display: none;">
+            <div class="bird-info">
+                <div class="bird-name" id="birdName"></div>
+                <div class="bird-name-afr" id="birdNameAfr"></div>
+                <div class="bird-credit" id="birdCredit"></div>
+            </div>
+            
+            <div id="spectrogram-container" style="display: none;"></div>
+            
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+    
+    <script src="allbirds.js"></script>
+    <script src="interactive-spectrogram.js"></script>
+    
+    <script>
+        let currentBird = null;
+        let currentLanguage = 'en';
+        let audio = document.getElementById('audioPlayer');
+        
+        // Change language
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelector').value;
+            populateBirdSelector();
+            if (currentBird) {
+                displayBird();
+            }
+        }
+        
+        // Populate bird selector
+        function populateBirdSelector() {
+            const selector = document.getElementById('birdSelector');
+            
+            if (typeof allbirds === 'undefined' || !Array.isArray(allbirds)) {
+                selector.innerHTML = '<option value="">No birds available</option>';
+                return;
+            }
+            
+            // Sort by selected language
+            allbirds.sort((a, b) => {
+                const nameA = currentLanguage === 'af' ? a.afrikaans : a.english;
+                const nameB = currentLanguage === 'af' ? b.afrikaans : b.english;
+                return nameA.localeCompare(nameB);
+            });
+            
+            // Clear and repopulate
+            const placeholder = currentLanguage === 'af' ? 'Kies \'n voël...' : 'Select a bird...';
+            selector.innerHTML = `<option value="">${placeholder}</option>`;
+            
+            allbirds.forEach((bird, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = currentLanguage === 'af' ? bird.afrikaans : bird.english;
+                selector.appendChild(option);
+            });
+        }
+        
+        // Select bird
+        document.getElementById('birdSelector').addEventListener('change', function() {
+            const index = this.value;
+            if (index === '') {
+                document.getElementById('birdDisplay').style.display = 'none';
+                return;
+            }
+            
+            currentBird = allbirds[index];
+            displayBird();
+        });
+        
+        // Display bird
+        function displayBird() {
+            if (!currentBird) return;
+            
+            const mainName = currentLanguage === 'af' ? currentBird.afrikaans : currentBird.english;
+            const altName = currentLanguage === 'af' ? currentBird.english : currentBird.afrikaans;
+            document.getElementById('birdName').textContent = mainName;
+            document.getElementById('birdNameAfr').textContent = altName;
+            
+            // Display credit info
+            const creditHTML = `
+                <strong>Credit:</strong> ${currentBird.credit}<br>
+                <strong>License:</strong> <a href="${currentBird.licenseLink}" target="_blank">View License</a><br>
+                <strong>Changes:</strong> ${currentBird.changes}
+            `;
+            document.getElementById('birdCredit').innerHTML = creditHTML;
+            
+            // Load audio and auto-play
+            audio.src = currentBird.audio;
+            audio.play();
+            
+            document.getElementById('birdDisplay').style.display = 'block';
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateBirdSelector();
+        });
+    </script>
+</body>
+</html>

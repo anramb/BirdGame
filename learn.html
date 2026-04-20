@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Mode</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        select {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+            min-width: 200px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-stop {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        .current-bird {
+            background: #f8f9fa;
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .bird-name {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .bird-name-afr {
+            font-size: 1.5em;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .bird-credit {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .bird-credit a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .bird-credit a:hover {
+            text-decoration: underline;
+        }
+        
+        #spectrogram-container {
+            position: relative;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #spectrogram-container canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .progress-info {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .language-selector {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+            background: white;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            select, .btn {
+                width: 100%;
+            }
+            
+            .bird-name {
+                font-size: 1.5em;
+            }
+            
+            .bird-name-afr {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Learning Mode</h1>
+            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+        </div>
+        
+        <div class="controls">
+            <select id="languageSelector" class="language-selector" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+            </select>
+            <select id="filterType">
+                <option value="all">All Birds</option>
+                <option value="group">By Group</option>
+                <option value="hotspot">By Hotspot</option>
+            </select>
+            <select id="filterValue" style="display: none;">
+                <option value="">Select...</option>
+            </select>
+            <button id="startBtn" onclick="startLearning()" class="btn">▶ Start</button>
+            <button id="stopBtn" onclick="stopLearning()" class="btn btn-stop" style="display: none;">⏹ Stop</button>
+            <button id="skipBtn" onclick="skipToNext()" class="btn" style="display: none;">⏭ Skip</button>
+        </div>
+        
+        <div id="learningDisplay" style="display: none;">
+            <div class="current-bird">
+                <div class="bird-name" id="birdName"></div>
+                <div class="bird-name-afr" id="birdNameAfr"></div>
+                <div class="bird-credit" id="birdCredit"></div>
+            </div>
+            
+            <div id="spectrogram-container" style="display: none;"></div>
+            
+            <div class="progress-info" id="progressInfo"></div>
+        </div>
+    </div>
+    
+    <script src="allbirds.js"></script>
+    <script src="cisticolas.js"></script>
+    <script src="gardenwoodland.js"></script>
+    <script src="groundbirds.js"></script>
+    <script src="LBJs.js"></script>
+    <script src="other.js"></script>
+    <script src="raptors.js"></script>
+    <script src="seedeaters.js"></script>
+    <script src="waders.js"></script>
+    <script src="warblers.js"></script>
+    <script src="waterbirds.js"></script>
+    <script src="interactive-spectrogram.js"></script>
+    
+    <script>
+        let playlist = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let currentLanguage = 'en';
+        let audio = new Audio();
+        
+        // Change language
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelector').value;
+            updateFilterLabels();
+        }
+        
+        // Update filter labels based on language
+        function updateFilterLabels() {
+            const filterType = document.getElementById('filterType');
+            if (currentLanguage === 'af') {
+                filterType.options[0].text = 'Alle Voëls';
+                filterType.options[1].text = 'Per Groep';
+                filterType.options[2].text = 'Per Hotspot';
+            } else {
+                filterType.options[0].text = 'All Birds';
+                filterType.options[1].text = 'By Group';
+                filterType.options[2].text = 'By Hotspot';
+            }
+        }
+        
+        const allData = {
+            cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
+            gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
+            groundbirds: typeof groundbirds !== 'undefined' ? groundbirds : [],
+            LBJs: typeof LBJs !== 'undefined' ? LBJs : [],
+            other: typeof other !== 'undefined' ? other : [],
+            raptors: typeof raptors !== 'undefined' ? raptors : [],
+            seedeaters: typeof seedeaters !== 'undefined' ? seedeaters : [],
+            waders: typeof waders !== 'undefined' ? waders : [],
+            warblers: typeof warblers !== 'undefined' ? warblers : [],
+            waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : []
+        };
+        
+        // Update filter options
+        document.getElementById('filterType').addEventListener('change', function() {
+            const filterValue = document.getElementById('filterValue');
+            const type = this.value;
+            
+            if (type === 'all') {
+                filterValue.style.display = 'none';
+                return;
+            }
+            
+            filterValue.style.display = 'block';
+            filterValue.innerHTML = '<option value="">Select...</option>';
+            
+            if (type === 'group') {
+                Object.keys(allData).forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group.charAt(0).toUpperCase() + group.slice(1);
+                    filterValue.appendChild(option);
+                });
+            } else if (type === 'hotspot') {
+                const hotspots = new Set();
+                if (typeof allbirds !== 'undefined') {
+                    allbirds.forEach(bird => {
+                        if (bird.hotspot) {
+                            bird.hotspot.split(';').forEach(spot => {
+                                hotspots.add(spot.trim());
+                            });
+                        }
+                    });
+                }
+                Array.from(hotspots).sort().forEach(spot => {
+                    const option = document.createElement('option');
+                    option.value = spot;
+                    option.textContent = spot;
+                    filterValue.appendChild(option);
+                });
+            }
+        });
+        
+        // Start learning
+        function startLearning() {
+            const filterType = document.getElementById('filterType').value;
+            const filterValue = document.getElementById('filterValue').value;
+            
+            // Build playlist
+            playlist = [];
+            
+            if (filterType === 'all') {
+                if (typeof allbirds !== 'undefined') {
+                    playlist = [...allbirds];
+                }
+            } else if (filterType === 'group') {
+                if (filterValue && allData[filterValue]) {
+                    playlist = [...allData[filterValue]];
+                }
+            } else if (filterType === 'hotspot') {
+                if (filterValue && typeof allbirds !== 'undefined') {
+                    playlist = allbirds.filter(bird => 
+                        bird.hotspot && bird.hotspot.includes(filterValue)
+                    );
+                }
+            }
+            
+            if (playlist.length === 0) {
+                alert('No birds found for this selection');
+                return;
+            }
+            
+            // Shuffle playlist
+            playlist = playlist.sort(() => Math.random() - 0.5);
+            
+            currentIndex = 0;
+            isPlaying = true;
+            
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('skipBtn').style.display = 'inline-block';
+            document.getElementById('learningDisplay').style.display = 'block';
+            
+            playNext();
+        }
+        
+        // Play next bird
+        function playNext() {
+            if (!isPlaying || currentIndex >= playlist.length) {
+                // Loop back to start
+                currentIndex = 0;
+            }
+            
+            const bird = playlist[currentIndex];
+            
+            // Display bird name in selected language
+            const birdName = currentLanguage === 'af' ? bird.afrikaans : bird.english;
+            const birdNameAlt = currentLanguage === 'af' ? bird.english : bird.afrikaans;
+            
+            document.getElementById('birdName').textContent = birdName;
+            document.getElementById('birdNameAfr').textContent = birdNameAlt;
+            
+            // Display credit info
+            const creditHTML = `
+                <strong>Credit:</strong> ${bird.credit}<br>
+                <strong>License:</strong> <a href="${bird.licenseLink}" target="_blank">View License</a><br>
+                <strong>Changes:</strong> ${bird.changes}
+            `;
+            document.getElementById('birdCredit').innerHTML = creditHTML;
+            
+            document.getElementById('progressInfo').textContent = 
+                `Bird ${currentIndex + 1} of ${playlist.length}`;
+            
+            // Load audio
+            audio.src = bird.audio;
+            audio.play();
+            
+            currentIndex++;
+        }
+        
+        // Skip to next bird
+        function skipToNext() {
+            if (isPlaying) {
+                audio.pause();
+                playNext();
+            }
+        }
+        
+        // Stop learning
+        function stopLearning() {
+            isPlaying = false;
+            audio.pause();
+            audio.currentTime = 0;
+            
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('skipBtn').style.display = 'none';
+            document.getElementById('learningDisplay').style.display = 'none';
+        }
+        
+        // Auto-advance to next bird
+        audio.addEventListener('ended', function() {
+            if (isPlaying) {
+                setTimeout(playNext, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

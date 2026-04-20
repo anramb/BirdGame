@@ -21,12 +21,10 @@ audio: "gardenwoodland/XC510090_Lilac-breastedRoller.mp3", spectrogram: "gardenw
 {english: "Purple Roller", afrikaans: "Groottroupant", hotspot: "Northwest; Mpumalanga; Limpopo", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "gardenwoodland/XC719046_PurpleRoller.mp3", spectrogram: "gardenwoodland/XC719046_PurpleRoller.png",image: "gardenwoodland/XC719046_PurpleRoller.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC719046", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-
 {english: "Green malkoha", afrikaans: "Groenvleiloerie", hotspot: "St Lucia", habitat: "Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "gardenwoodland/XC279998_GreenMalkoha.mp3", spectrogram: "gardenwoodland/XC279998_GreenMalkoha.png",image: "gardenwoodland/XC279998_GreenMalkoha.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279998", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Livingstons Turaco", afrikaans: "Mosambiekloerie", hotspot: "St Lucia", habitat: "Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "gardenwoodland/XC280730_LivingstonesTuraco.mp3", spectrogram: "gardenwoodland/XC280730_LivingstonesTuraco.png",image: "gardenwoodland/XC280730_LivingstonesTuraco.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280730", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
   
-
 ];

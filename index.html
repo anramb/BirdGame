@@ -106,10 +106,24 @@ img {
 .correct { color: green; font-weight:bold; }
 .wrong { color: red; font-weight:bold; }
 
+.back-link {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
 </style>
 </head>
 
 <body>
+
+<a href="start.html" class="back-link">← Back to Menu</a>
 
 <h2>Bird Sound ID</h2>
 
@@ -129,7 +143,6 @@ Improve your bird sound identification skills using real recordings and spectrog
 <div class="filters">
 <p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select group of birds</p>
 <select id="category" onchange="changeCategory()">
-  <option value="allbirds">All birds</option>
   <option value="cisticolas">Cisticolas</option>
   <option value="gardenwoodland">Garden and Woodland</option>  
   <option value="groundbirds">Groundbirds</option>  
@@ -140,6 +153,7 @@ Improve your bird sound identification skills using real recordings and spectrog
   <option value="waders">Waders</option>
   <option value="warblers">Warblers</option>  
   <option value="waterbirds">Waterbirds</option>
+  <option value="allbirds">All birds</option>
 </select>
 </div>
 
@@ -192,7 +206,7 @@ Improve your bird sound identification skills using real recordings and spectrog
 <script src="groundbirds.js"></script>  
 <script src="LBJs.js"></script>  
 <script src="other.js"></script>  
-<script src="raptors.js"></script>
+<script src="raptors.js"></script>  
 <script src="seedeaters.js"></script>  
 <script src="waders.js"></script>
 <script src="warblers.js"></script>  
