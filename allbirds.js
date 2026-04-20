@@ -169,9 +169,22 @@ audio: "All birds/XC392686_Grey-wingedFrancolin.mp3", spectrogram: "All birds/XC
 audio: "All birds/XC625033_Double-bandedCourser.mp3", spectrogram: "All birds/XC625033_Double-bandedCourser.png",image: "All birds/XC625033_Double-bandedCourser.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC625033", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Burchells Courser", afrikaans: "Bloukopdrawwertjie", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "3 Advanced", 
-audio: "All birds/XC597244_BurchellsCourser.mp3", spectrogram: "All birds/XC597244_BurchellsCourser.png",image: "All birds/XC597244_BurchellsCourser.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC597244", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "All birds/XC597244_BurchellsCourser.mp3", spectrogram: "All birds/XC597244_BurchellsCourser.png",image: "All birds/XC597244_BurchellsCourser.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC597244", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
+{english: "Namaqua Sandgrouse", afrikaans: "Kelkiewyn", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "1 Beginner", 
+audio: "All birds/XC392675_NamaquaSandgrouse", spectrogram: "All birds/XC392675_NamaquaSandgrouse",image: "All birds/XC392675_NamaquaSandgrouse", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392675", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
+{english: "Karoo Scrub-Robin", afrikaans: "Slangverklikker", hotspot: "Platbakkies", habitat: "Fynbos", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "All birds/XC714080_KarooScrubRobin.mp3", spectrogram: "All birds/XC714080_KarooScrubRobin.png",image: "All birds/XC714080_KarooScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC714080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red Lark", afrikaans: "Rooilewerik", hotspot: "Platbakkies", habitat: "Sand dunes", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC392342_RedLark.mp3", spectrogram: "All birds/XC392342_RedLark.png",image: "All birds/XC392342_RedLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392342", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Karoo Long-billed Lark", afrikaans: "Karoolangbeklewerik", hotspot: "Platbakkies", habitat: "Rocky", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC758163_KarooLongbilledLark.mp3", spectrogram: "All birds/XC758163_KarooLongbilledLark.png",image: "All birds/XC758163_KarooLongbilledLark.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC758163", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Starks Lark", afrikaans: "Woestynlewerik", hotspot: "Platbakkies", habitat: "Stony ground", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC696099_StarksLark.mp3", spectrogram: "All birds/XC696099_StarksLark.png",image: "All birds/XC696099_StarksLark.jpg", photographer: "Marna Buys", credit: "© Ken Behrens, www.xeno-canto.org, XC696099", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 
 ];

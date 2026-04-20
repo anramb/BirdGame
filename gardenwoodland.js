@@ -25,6 +25,9 @@ audio: "gardenwoodland/XC719046_PurpleRoller.mp3", spectrogram: "gardenwoodland/
 audio: "gardenwoodland/XC279998_GreenMalkoha.mp3", spectrogram: "gardenwoodland/XC279998_GreenMalkoha.png",image: "gardenwoodland/XC279998_GreenMalkoha.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279998", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Livingstons Turaco", afrikaans: "Mosambiekloerie", hotspot: "St Lucia", habitat: "Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
-audio: "gardenwoodland/XC280730_LivingstonesTuraco.mp3", spectrogram: "gardenwoodland/XC280730_LivingstonesTuraco.png",image: "gardenwoodland/XC280730_LivingstonesTuraco.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280730", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+audio: "gardenwoodland/XC280730_LivingstonesTuraco.mp3", spectrogram: "gardenwoodland/XC280730_LivingstonesTuraco.png",image: "gardenwoodland/XC280730_LivingstonesTuraco.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280730", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Karoo Scrub-Robin", afrikaans: "Slangverklikker", hotspot: "Platbakkies", habitat: "Fynbos", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC714080_KarooScrubRobin.mp3", spectrogram: "gardenwoodland/XC714080_KarooScrubRobin.png",image: "gardenwoodland/XC714080_KarooScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC714080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
   
 ];
