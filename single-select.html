@@ -103,22 +103,34 @@
             text-decoration: underline;
         }
         
-        #spectrogram-container {
+        .spectrogram-wrapper {
             position: relative;
-            margin: 20px 0;
+            margin: 15px 0;
             background: #f8f9fa;
             border-radius: 10px;
-            padding: 20px;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 8px;
+            max-height: 180px;
+            overflow: hidden;
         }
         
-        #spectrogram-container canvas {
-            max-width: 100%;
-            height: auto;
+        .spectrogram-wrapper canvas {
+            width: 100%;
+            max-height: 164px;
+            display: block;
             border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .spectrogram-line {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 2px;
+            bottom: 8px;
+            background-color: red;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
         }
         
         audio {
@@ -186,7 +198,10 @@
                 <div class="bird-credit" id="birdCredit"></div>
             </div>
             
-            <div id="spectrogram-container" style="display: none;"></div>
+            <div class="spectrogram-wrapper" id="spectrogramWrapper" style="display: none;">
+                <canvas id="spectrogramCanvas"></canvas>
+                <div class="spectrogram-line" id="spectrogramLine"></div>
+            </div>
             
             <audio id="audioPlayer" controls></audio>
         </div>
@@ -266,12 +281,107 @@
             `;
             document.getElementById('birdCredit').innerHTML = creditHTML;
             
+            // Load spectrogram
+            loadSpectrogram(currentBird.spectrogram);
+            
             // Load audio and auto-play
             audio.src = currentBird.audio;
             audio.play();
             
             document.getElementById('birdDisplay').style.display = 'block';
         }
+        
+        // Spectrogram
+        let spectrogramImage = null;
+        const canvas = document.getElementById('spectrogramCanvas');
+        const ctx = canvas.getContext('2d');
+        const spectrogramLine = document.getElementById('spectrogramLine');
+        const spectrogramWrapper = document.getElementById('spectrogramWrapper');
+        
+        function loadSpectrogram(imageSrc) {
+            if (!imageSrc) {
+                spectrogramWrapper.style.display = 'none';
+                return;
+            }
+            
+            spectrogramImage = new Image();
+            spectrogramImage.onload = function() {
+                // Set canvas size - limit height to 160px
+                const wrapperWidth = spectrogramWrapper.clientWidth - 16;
+                const maxHeight = 160;
+                const aspectRatio = spectrogramImage.height / spectrogramImage.width;
+                let drawWidth = wrapperWidth;
+                let drawHeight = wrapperWidth * aspectRatio;
+                
+                if (drawHeight > maxHeight) {
+                    drawHeight = maxHeight;
+                    drawWidth = maxHeight / aspectRatio;
+                }
+                
+                canvas.width = drawWidth;
+                canvas.height = drawHeight;
+                
+                // Draw spectrogram
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(spectrogramImage, 0, 0, canvas.width, canvas.height);
+                
+                spectrogramWrapper.style.display = 'block';
+                
+                // Show red line if audio is already playing
+                if (!audio.paused && audio.duration) {
+                    spectrogramLine.style.display = 'block';
+                }
+            };
+            spectrogramImage.onerror = function() {
+                spectrogramWrapper.style.display = 'none';
+            };
+            spectrogramImage.src = imageSrc;
+        }
+        
+        // Update red line position
+        function updateLinePosition() {
+            if (!audio.duration || !spectrogramImage) return;
+            if (spectrogramWrapper.style.display === 'none') return;
+            
+            const progress = audio.currentTime / audio.duration;
+            const canvasRect = canvas.getBoundingClientRect();
+            const wrapperRect = spectrogramWrapper.getBoundingClientRect();
+            const offset = canvasRect.left - wrapperRect.left;
+            const position = offset + (progress * canvasRect.width);
+            
+            spectrogramLine.style.left = position + 'px';
+            spectrogramLine.style.display = 'block';
+        }
+        
+        audio.addEventListener('timeupdate', updateLinePosition);
+        
+        // Show red line when playing
+        audio.addEventListener('play', function() {
+            if (spectrogramImage && spectrogramWrapper.style.display !== 'none') {
+                spectrogramLine.style.display = 'block';
+                updateLinePosition();
+            }
+        });
+        
+        // Keep line visible on pause
+        audio.addEventListener('pause', function() {
+            // line stays visible
+        });
+        
+        // Hide line when ended
+        audio.addEventListener('ended', function() {
+            spectrogramLine.style.display = 'none';
+        });
+        
+        // Click on spectrogram to seek
+        canvas.addEventListener('click', function(e) {
+            if (!audio.duration) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const progress = x / rect.width;
+            audio.currentTime = progress * audio.duration;
+        });
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {

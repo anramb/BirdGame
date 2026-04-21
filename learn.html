@@ -132,6 +132,16 @@
             margin-top: 10px;
         }
         
+        .audio-player {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .btn-pause {
+            background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+            color: #333;
+        }
+        
         .language-selector {
             padding: 12px;
             border-radius: 8px;
@@ -189,8 +199,9 @@
                 <option value="">Select...</option>
             </select>
             <button id="startBtn" onclick="startLearning()" class="btn">▶ Start</button>
-            <button id="stopBtn" onclick="stopLearning()" class="btn btn-stop" style="display: none;">⏹ Stop</button>
+            <button id="pauseBtn" onclick="pauseResume()" class="btn btn-pause" style="display: none;">⏸ Pause</button>
             <button id="skipBtn" onclick="skipToNext()" class="btn" style="display: none;">⏭ Skip</button>
+            <button id="stopBtn" onclick="stopLearning()" class="btn btn-stop" style="display: none;">⏹ Stop</button>
         </div>
         
         <div id="learningDisplay" style="display: none;">
@@ -200,7 +211,7 @@
                 <div class="bird-credit" id="birdCredit"></div>
             </div>
             
-            <div id="spectrogram-container" style="display: none;"></div>
+            <audio id="audioPlayer" class="audio-player" controls></audio>
             
             <div class="progress-info" id="progressInfo"></div>
         </div>
@@ -223,8 +234,9 @@
         let playlist = [];
         let currentIndex = 0;
         let isPlaying = false;
+        let isPaused = false;
         let currentLanguage = 'en';
-        let audio = new Audio();
+        let audio = document.getElementById('audioPlayer');
         
         // Change language
         function changeLanguage() {
@@ -301,6 +313,19 @@
         
         // Start learning
         function startLearning() {
+            // If paused, resume instead of restarting
+            if (isPaused) {
+                isPaused = false;
+                isPlaying = true;
+                audio.play();
+                document.getElementById('pauseBtn').textContent = '⏸ Pause';
+                document.getElementById('pauseBtn').classList.remove('btn-pause');
+                document.getElementById('pauseBtn').classList.add('btn-pause');
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('pauseBtn').style.display = 'inline-block';
+                return;
+            }
+            
             const filterType = document.getElementById('filterType').value;
             const filterValue = document.getElementById('filterValue').value;
             
@@ -333,18 +358,39 @@
             
             currentIndex = 0;
             isPlaying = true;
+            isPaused = false;
             
             document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'inline-block';
             document.getElementById('skipBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'inline-block';
             document.getElementById('learningDisplay').style.display = 'block';
             
             playNext();
         }
         
+        // Pause / Resume
+        function pauseResume() {
+            if (isPaused) {
+                // Resume
+                isPaused = false;
+                isPlaying = true;
+                audio.play();
+                document.getElementById('pauseBtn').textContent = '⏸ Pause';
+            } else {
+                // Pause
+                isPaused = true;
+                isPlaying = false;
+                audio.pause();
+                document.getElementById('pauseBtn').textContent = '▶ Resume';
+            }
+        }
+        
         // Play next bird
         function playNext() {
-            if (!isPlaying || currentIndex >= playlist.length) {
+            if (!isPlaying) return;
+            
+            if (currentIndex >= playlist.length) {
                 // Loop back to start
                 currentIndex = 0;
             }
@@ -387,18 +433,20 @@
         // Stop learning
         function stopLearning() {
             isPlaying = false;
+            isPaused = false;
             audio.pause();
             audio.currentTime = 0;
             
             document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'none';
             document.getElementById('stopBtn').style.display = 'none';
             document.getElementById('skipBtn').style.display = 'none';
             document.getElementById('learningDisplay').style.display = 'none';
         }
         
-        // Auto-advance to next bird
+        // Auto-advance to next bird when audio ends
         audio.addEventListener('ended', function() {
-            if (isPlaying) {
+            if (isPlaying && !isPaused) {
                 setTimeout(playNext, 1000);
             }
         });
