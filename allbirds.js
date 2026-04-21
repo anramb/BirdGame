@@ -184,7 +184,46 @@ audio: "All birds/XC392342_RedLark.mp3", spectrogram: "All birds/XC392342_RedLar
 audio: "All birds/XC758163_KarooLongbilledLark.mp3", spectrogram: "All birds/XC758163_KarooLongbilledLark.png",image: "All birds/XC758163_KarooLongbilledLark.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC758163", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Starks Lark", afrikaans: "Woestynlewerik", hotspot: "Platbakkies", habitat: "Stony ground", birdgroup: "LBJs", level: "3 Advanced", 
-audio: "All birds/XC696099_StarksLark.mp3", spectrogram: "All birds/XC696099_StarksLark.png",image: "All birds/XC696099_StarksLark.jpg", photographer: "Marna Buys", credit: "© Ken Behrens, www.xeno-canto.org, XC696099", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "All birds/XC696099_StarksLark.mp3", spectrogram: "All birds/XC696099_StarksLark.png",image: "All birds/XC696099_StarksLark.jpg", photographer: "Marna Buys", credit: "© Ken Behrens, www.xeno-canto.org, XC696099", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Karoo Chat", afrikaans: "Karoospekvreter", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC392469_KarooChat.mp3", spectrogram: "All birds/XC392469_KarooChat.png",image: "All birds/XC392469_KarooChat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392469", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Tractrac Chat", afrikaans: "Woestynspekvreter", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC392475_TractracChat.mp3", spectrogram: "All birds/XC392475_TractracChat.png",image: "All birds/XC392475_TractracChat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392475", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Sickle-winged Chat", afrikaans: "Vlaktespekvreter", hotspot: "Platbakkies; Lesotho", habitat: "Shrubland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC636143_Sickle-wingedChat.mp3", spectrogram: "All birds/XC636143_Sickle-wingedChat.png",image: "All birds/XC636143_Sickle-wingedChat.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC636143", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Grey-backed Cisticola", afrikaans: "Grysrugtinktinkie", hotspot: "Platbakkies; West Coast NP", habitat: "Shrubland; Fynbos", birdgroup: "Cisticola", level: "2 Intermediate", 
+audio: "All birds/XC385078_Grey-backedCisticola.mp3", spectrogram: "All birds/XC385078_Grey-backedCisticola.png",image: "All birds/XC385078_Grey-backedCisticola.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC385078", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Karoo Eremomela", afrikaans: "Groenbossanger", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "Warblers", level: "2 Intermediate", 
+audio: "All birds/XC392489_KarooEremomela.mp3", spectrogram: "All birds/XC392489_KarooEremomela.png",image: "All birds/XC392489_KarooEremomela.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392489", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Large-billed Lark", afrikaans: "Dikbeklewerik", hotspot: "Platbakkies; Lesotho", habitat: "Grassland; Shrubland", birdgroup: "LBJs", level: "2 Intermediate", 
+audio: "All birds/XC743004_Large-billedLark.mp3", spectrogram: "All birds/XC743004_Large-billedLark.png",image: "All birds/XC743004_Large-billedLark.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC743004", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red-capped Lark Flight Call", afrikaans: "Rooikoplewerik in vlug", hotspot: "Platbakkies; Zaagkuildrift", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC279922_Red-cappedLark.mp3", spectrogram: "All birds/XC279922_Red-cappedLark.png",image: "All birds/XC279922_Red-cappedLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392489", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Red-capped Lark Song", afrikaans: "Rooikoplewerik Sang", hotspot: "Platbakkies; Zaagkuildrift", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC392323_Red-cappedLark.mp3", spectrogram: "All birds/XC392323_Red-cappedLark.png",image: "All birds/XC392323_Red-cappedLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392323", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Spike-heeled Lark", afrikaans: "Vlaktelewerik", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "All birds/XC591960_Spike-heeledLark.mp3", spectrogram: "All birds/XC591960_Spike-heeledLark.png",image: "All birds/XC591960_Spike-heeledLark.jpg", photographer: "Marna Buys", credit: "© Dawie de Swardt, www.xeno-canto.org, XC591960", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Grey Tit", afrikaans: "Piet-Tjou-Tjou-grysmees", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "All birds/XC610170_GreyTit.mp3", spectrogram: "All birds/XC610170_GreyTit.png",image: "All birds/XC610170_GreyTit.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC610170", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Cinnamon-breasted Warbler", afrikaans: "Kaneelborssanger", hotspot: "Platbakkies", habitat: "Rocky", birdgroup: "Warblers", level: "2 Intermediate", 
+audio: "All birds/XC515440_Cinnamon-breastedWarbler.mp3", spectrogram: "All birds/XC515440_Cinnamon-breastedWarbler.png",image: "All birds/XC515440_Cinnamon-breastedWarbler.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC515440", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Layards Warbler", afrikaans: "Grystjeriktik", hotspot: "Platbakkies; Lesotho", habitat: "Shrubland; Fynbos", birdgroup: "Warblers", level: "3 Advanced", 
+audio: "All birds/XC600217_LayardsWarbler.mp3", spectrogram: "All birds/XC600217_LayardsWarbler.png",image: "All birds/XC600217_LayardsWarbler.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC600217", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Rufous-eared Warbler", afrikaans: "Rooi-oor Langstertjie", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "Warblers", level: "3 Advanced", 
+audio: "All birds/XC691414_Rufous-earedWarbler.mp3", spectrogram: "All birds/XC691414_Rufous-earedWarbler.png",image: "All birds/XC691414_Rufous-earedWarbler.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC691414", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 
 ];

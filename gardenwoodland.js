@@ -28,6 +28,9 @@ audio: "gardenwoodland/XC279998_GreenMalkoha.mp3", spectrogram: "gardenwoodland/
 audio: "gardenwoodland/XC280730_LivingstonesTuraco.mp3", spectrogram: "gardenwoodland/XC280730_LivingstonesTuraco.png",image: "gardenwoodland/XC280730_LivingstonesTuraco.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280730", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Karoo Scrub-Robin", afrikaans: "Slangverklikker", hotspot: "Platbakkies", habitat: "Fynbos", birdgroup: "Garden and Woodland", level: "3 Advanced", 
-audio: "gardenwoodland/XC714080_KarooScrubRobin.mp3", spectrogram: "gardenwoodland/XC714080_KarooScrubRobin.png",image: "gardenwoodland/XC714080_KarooScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC714080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "gardenwoodland/XC714080_KarooScrubRobin.mp3", spectrogram: "gardenwoodland/XC714080_KarooScrubRobin.png",image: "gardenwoodland/XC714080_KarooScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC714080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Grey Tit", afrikaans: "Piet-Tjou-Tjou-grysmees", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC610170_GreyTit.mp3", spectrogram: "gardenwoodland/XC610170_GreyTit.png",image: "gardenwoodland/XC610170_GreyTit.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC610170", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
   
 ];

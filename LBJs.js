@@ -10,7 +10,28 @@ audio: "LBJs/XC392342_RedLark.mp3", spectrogram: "LBJs/XC392342_RedLark.png",ima
 audio: "LBJs/XC758163_KarooLongbilledLark.mp3", spectrogram: "LBJs/XC758163_KarooLongbilledLark.png",image: "LBJs/XC758163_KarooLongbilledLark.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC758163", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Starks Lark", afrikaans: "Woestynlewerik", hotspot: "Platbakkies", habitat: "Stony ground", birdgroup: "LBJs", level: "3 Advanced", 
-audio: "LBJs/XC696099_StarksLark.mp3", spectrogram: "LBJs/XC696099_StarksLark.png",image: "LBJs/XC696099_StarksLark.jpg", photographer: "Marna Buys", credit: "© Ken Behrens, www.xeno-canto.org, XC696099", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "LBJs/XC696099_StarksLark.mp3", spectrogram: "LBJs/XC696099_StarksLark.png",image: "LBJs/XC696099_StarksLark.jpg", photographer: "Marna Buys", credit: "© Ken Behrens, www.xeno-canto.org, XC696099", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Karoo Chat", afrikaans: "Karoospekvreter", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "LBJs/XC392469_KarooChat.mp3", spectrogram: "LBJs/XC392469_KarooChat.png",image: "LBJs/XC392469_KarooChat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392469", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Tractrac Chat", afrikaans: "Woestynspekvreter", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "LBJs/XC392475_TractracChat.mp3", spectrogram: "LBJs/XC392475_TractracChat.png",image: "LBJs/XC392475_TractracChat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392475", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Sickle-winged Chat", afrikaans: "Vlaktespekvreter", hotspot: "Platbakkies; Lesotho", habitat: "Shrubland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "LBJs/XC636143_Sickle-wingedChat.mp3", spectrogram: "LBJs/XC636143_Sickle-wingedChat.png",image: "LBJs/XC636143_Sickle-wingedChat.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC636143", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Large-billed Lark", afrikaans: "Dikbeklewerik", hotspot: "Platbakkies; Lesotho", habitat: "Grassland; Shrubland", birdgroup: "LBJs", level: "2 Intermediate", 
+audio: "LBJs/XC743004_Large-billedLark.mp3", spectrogram: "LBJs/XC743004_Large-billedLark.png",image: "LBJs/XC743004_Large-billedLark.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC743004", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red-capped Lark Flight Call", afrikaans: "Rooikoplewerik in vlug", hotspot: "Platbakkies; Zaagkuildrift", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "LBJs/XC279922_Red-cappedLark.mp3", spectrogram: "LBJs/XC279922_Red-cappedLark.png",image: "LBJs/XC279922_Red-cappedLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392489", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Red-capped Lark Song", afrikaans: "Rooikoplewerik Sang", hotspot: "Platbakkies; Zaagkuildrift", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "LBJs/XC392323_Red-cappedLark.mp3", spectrogram: "LBJs/XC392323_Red-cappedLark.png",image: "LBJs/XC392323_Red-cappedLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392323", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Spike-heeled Lark", afrikaans: "Vlaktelewerik", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
+audio: "LBJs/XC591960_Spike-heeledLark.mp3", spectrogram: "LBJs/XC591960_Spike-heeledLark.png",image: "LBJs/XC591960_Spike-heeledLark.jpg", photographer: "Marna Buys", credit: "© Dawie de Swardt, www.xeno-canto.org, XC591960", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
   
 ];
