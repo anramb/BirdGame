@@ -223,7 +223,19 @@ audio: "All birds/XC515440_Cinnamon-breastedWarbler.mp3", spectrogram: "All bird
 audio: "All birds/XC600217_LayardsWarbler.mp3", spectrogram: "All birds/XC600217_LayardsWarbler.png",image: "All birds/XC600217_LayardsWarbler.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC600217", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Rufous-eared Warbler", afrikaans: "Rooi-oor Langstertjie", hotspot: "Platbakkies", habitat: "Shrubland", birdgroup: "Warblers", level: "3 Advanced", 
-audio: "All birds/XC691414_Rufous-earedWarbler.mp3", spectrogram: "All birds/XC691414_Rufous-earedWarbler.png",image: "All birds/XC691414_Rufous-earedWarbler.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC691414", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "All birds/XC691414_Rufous-earedWarbler.mp3", spectrogram: "All birds/XC691414_Rufous-earedWarbler.png",image: "All birds/XC691414_Rufous-earedWarbler.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC691414", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "White-throated Robin-chat contact call", afrikaans: "Witkeeljanfrederik kontak", hotspot: "Zaagkuildrift", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "All birds/XC1102351_White-throatedRobin-Chat.mp3", spectrogram: "All birds/XC1102351_White-throatedRobin-Chat.png",image: "All birds/XC1102351_White-throatedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102351", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Cape Robin-Chat", afrikaans: "Gewone Janfrederik", hotspot: "Zaagkuildrift", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "All birds/XC1067750_CapeRobin-Chat.mp3", spectrogram: "All birds/XC1067750_CapeRobin-Chat.png",image: "All birds/XC1067750_CapeRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Nature sounds by Simply Birding, www.xeno-canto.org, XC1067750", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "White-throated Robin-chat song", afrikaans: "Witkeeljanfrederik sang", hotspot: "Zaagkuildrift", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "All birds/XC1102359_White-throatedRobin-Chat.mp3", spectrogram: "All birds/XC1102359_White-throatedRobin-Chat.png",image: "All birds/XC1102359_White-throatedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102359", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "White-browed Robin-chat", afrikaans: "Heuglinjanfrederik", hotspot: "Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "All birds/XC949507_White-browedRobin-Chat.mp3", spectrogram: "All birds/XC949507_White-browedRobin-Chat.png",image: "All birds/XC949507_White-browedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Bram Piot, www.xeno-canto.org, XC949507", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 
 ];
