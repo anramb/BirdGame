@@ -80,6 +80,27 @@
             background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
         }
         
+        .playback-controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .btn-play {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            font-size: 1.2em;
+            padding: 14px 35px;
+            min-width: 160px;
+        }
+        
+        .btn-playback-stop {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            font-size: 1.2em;
+            padding: 14px 35px;
+            min-width: 120px;
+        }
+        
         .soundscape-info {
             background: #f8f9fa;
             padding: 15px;
@@ -338,6 +359,12 @@
                 <div class="spectrogram-line" id="spectrogramLine"></div>
             </div>
             
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <button id="playPauseBtn" onclick="togglePlayPause()" class="btn btn-play">⏸ Pause</button>
+                <button onclick="stopPlayback()" class="btn btn-playback-stop">⏹ Stop</button>
+            </div>
+            
             <!-- Audio Player -->
             <audio id="audioPlayer" class="audio-player" controls></audio>
             
@@ -477,6 +504,7 @@
             // Load audio and auto-play
             audio.src = currentSoundscape.audio;
             audio.play();
+            updatePlayPauseBtn();
             
             // Load spectrogram
             loadSpectrogram(currentSoundscape.spectrogram);
@@ -484,6 +512,34 @@
             // Build checklist
             buildChecklist();
         }
+        
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
+            updatePlayPauseBtn();
+        }
+        
+        function stopPlayback() {
+            audio.pause();
+            audio.currentTime = 0;
+            updatePlayPauseBtn();
+        }
+        
+        function updatePlayPauseBtn() {
+            const btn = document.getElementById('playPauseBtn');
+            if (audio.paused) {
+                btn.textContent = '▶ Play';
+            } else {
+                btn.textContent = '⏸ Pause';
+            }
+        }
+        
+        // Keep button in sync with audio player controls
+        audio.addEventListener('play', function() { updatePlayPauseBtn(); });
+        audio.addEventListener('pause', function() { updatePlayPauseBtn(); });
         
         function getDifficultyLabel() {
             if (currentLanguage === 'af') {
