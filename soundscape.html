@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundscape ID Training</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.6em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 0.95em;
+            min-width: 180px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            font-size: 1.1em;
+            padding: 12px 30px;
+        }
+        
+        .btn-stop {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        .btn-next {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+        
+        .soundscape-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .soundscape-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .soundscape-habitat {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .spectrogram-wrapper {
+            position: relative;
+            margin: 15px 0;
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 8px;
+            max-height: 180px;
+            overflow: hidden;
+        }
+        
+        .spectrogram-wrapper canvas {
+            width: 100%;
+            max-height: 164px;
+            display: block;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .spectrogram-line {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 2px;
+            bottom: 8px;
+            background-color: red;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .difficulty-info {
+            background: #e8f4fd;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #333;
+        }
+        
+        .bird-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .bird-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .bird-option:hover {
+            background: #e9ecef;
+        }
+        
+        .bird-option.selected {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+        
+        .bird-option input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .bird-option label {
+            cursor: pointer;
+            font-size: 0.95em;
+            flex: 1;
+        }
+        
+        .bird-option .bird-level {
+            font-size: 0.75em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+        
+        .level-easy { background: #d4edda; color: #155724; }
+        .level-intermediate { background: #fff3cd; color: #856404; }
+        .level-advanced { background: #f8d7da; color: #721c24; }
+        
+        .submit-area {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .results h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .score {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .score-good { color: #28a745; }
+        .score-ok { color: #ffc107; }
+        .score-poor { color: #dc3545; }
+        
+        .result-section {
+            margin: 12px 0;
+        }
+        
+        .result-section h3 {
+            margin: 0 0 8px 0;
+            font-size: 1em;
+        }
+        
+        .result-bird {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-correct { background: #d4edda; color: #155724; }
+        .result-missed { background: #fff3cd; color: #856404; }
+        .result-wrong { background: #f8d7da; color: #721c24; }
+        
+        .timestamp {
+            font-size: 0.85em;
+            color: #666;
+            font-family: monospace;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .timestamp:hover {
+            color: #667eea;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.3em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            select, .btn {
+                width: 100%;
+            }
+            
+            .bird-checklist {
+                grid-template-columns: 1fr;
+            }
+            
+            .soundscape-name {
+                font-size: 1.2em;
+            }
+            
+            .score {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Soundscape ID Training</h1>
+            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+        </div>
+        
+        <!-- Selection Controls -->
+        <div id="setupPanel">
+            <div class="controls">
+                <select id="languageSelector" onchange="changeLanguage()">
+                    <option value="en">English</option>
+                    <option value="af">Afrikaans</option>
+                </select>
+                <select id="soundscapeSelector" onchange="selectSoundscape()">
+                    <option value="">Select a soundscape...</option>
+                </select>
+                <select id="difficultySelector">
+                    <option value="easy">Easy</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+                <button onclick="startChallenge()" class="btn" id="startBtn">▶ Start</button>
+            </div>
+        </div>
+        
+        <!-- Challenge Area -->
+        <div id="challengeArea" class="hidden">
+            <div class="soundscape-info">
+                <div class="soundscape-name" id="soundscapeName"></div>
+                <div class="soundscape-habitat" id="soundscapeHabitat"></div>
+            </div>
+            
+            <!-- Spectrogram -->
+            <div class="spectrogram-wrapper" id="spectrogramWrapper" style="display: none;">
+                <canvas id="spectrogramCanvas"></canvas>
+                <div class="spectrogram-line" id="spectrogramLine"></div>
+            </div>
+            
+            <!-- Audio Player -->
+            <audio id="audioPlayer" class="audio-player" controls></audio>
+            
+            <!-- Difficulty info -->
+            <div class="difficulty-info" id="difficultyInfo"></div>
+            
+            <!-- Bird Checklist -->
+            <div id="birdChecklist" class="bird-checklist"></div>
+            
+            <!-- Submit -->
+            <div class="submit-area" id="submitArea">
+                <button onclick="submitAnswers()" class="btn btn-submit">✓ Submit Answers</button>
+            </div>
+            
+            <!-- Results -->
+            <div id="resultsPanel" class="results hidden">
+                <h2>Results</h2>
+                <div class="score" id="scoreDisplay"></div>
+                
+                <div class="result-section" id="correctSection">
+                    <h3>✅ Correct</h3>
+                    <div id="correctList"></div>
+                </div>
+                
+                <div class="result-section" id="missedSection">
+                    <h3>⚠️ Missed</h3>
+                    <div id="missedList"></div>
+                </div>
+                
+                <div class="result-section" id="wrongSection">
+                    <h3>❌ Wrong guesses</h3>
+                    <div id="wrongList"></div>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button onclick="retryChallenge()" class="btn">🔄 Try Again</button>
+                    <button onclick="nextSoundscape()" class="btn btn-next" id="nextBtn">Next Soundscape ▶</button>
+                    <button onclick="backToMenu()" class="btn btn-stop">← Back to Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="soundscapes.js"></script>
+    
+    <script>
+        let currentLanguage = 'en';
+        let currentSoundscape = null;
+        let currentSoundscapeIndex = -1;
+        let currentDifficulty = 'easy';
+        let submitted = false;
+        
+        const audio = document.getElementById('audioPlayer');
+        const canvas = document.getElementById('spectrogramCanvas');
+        const ctx = canvas.getContext('2d');
+        const spectrogramLine = document.getElementById('spectrogramLine');
+        const spectrogramWrapper = document.getElementById('spectrogramWrapper');
+        let spectrogramImage = null;
+        
+        // Populate soundscape selector
+        function populateSoundscapes() {
+            const selector = document.getElementById('soundscapeSelector');
+            selector.innerHTML = currentLanguage === 'af' 
+                ? '<option value="">Kies \'n klanklandskap...</option>'
+                : '<option value="">Select a soundscape...</option>';
+            
+            soundscapes.forEach((sc, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = sc.name + ' (' + sc.habitat + ')';
+                selector.appendChild(option);
+            });
+        }
+        
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelector').value;
+            populateSoundscapes();
+            
+            // Update difficulty labels
+            const diff = document.getElementById('difficultySelector');
+            if (currentLanguage === 'af') {
+                diff.options[0].text = 'Maklik';
+                diff.options[1].text = 'Intermediêr';
+                diff.options[2].text = 'Gevorderd';
+            } else {
+                diff.options[0].text = 'Easy';
+                diff.options[1].text = 'Intermediate';
+                diff.options[2].text = 'Advanced';
+            }
+            
+            // If challenge is active, refresh the checklist
+            if (currentSoundscape && !submitted) {
+                buildChecklist();
+            }
+        }
+        
+        function selectSoundscape() {
+            const index = document.getElementById('soundscapeSelector').value;
+            if (index === '') {
+                currentSoundscape = null;
+                currentSoundscapeIndex = -1;
+            } else {
+                currentSoundscapeIndex = parseInt(index);
+                currentSoundscape = soundscapes[currentSoundscapeIndex];
+            }
+        }
+        
+        function startChallenge() {
+            if (!currentSoundscape) {
+                alert(currentLanguage === 'af' ? 'Kies eers \'n klanklandskap' : 'Please select a soundscape first');
+                return;
+            }
+            
+            currentDifficulty = document.getElementById('difficultySelector').value;
+            submitted = false;
+            
+            // Show challenge area
+            document.getElementById('challengeArea').classList.remove('hidden');
+            document.getElementById('resultsPanel').classList.add('hidden');
+            document.getElementById('submitArea').classList.remove('hidden');
+            
+            // Set info
+            document.getElementById('soundscapeName').textContent = currentSoundscape.name;
+            document.getElementById('soundscapeHabitat').textContent = currentSoundscape.habitat;
+            
+            // Set difficulty info
+            const targetBirds = getTargetBirds();
+            const totalBirds = currentSoundscape.birds.length;
+            let infoText;
+            if (currentLanguage === 'af') {
+                infoText = `Moeilikheidsgraad: ${getDifficultyLabel()}. Identifiseer ${targetBirds.length} van ${totalBirds} voëls in hierdie opname.`;
+            } else {
+                infoText = `Difficulty: ${getDifficultyLabel()}. Identify ${targetBirds.length} of ${totalBirds} birds in this recording.`;
+            }
+            document.getElementById('difficultyInfo').textContent = infoText;
+            
+            // Load audio and auto-play
+            audio.src = currentSoundscape.audio;
+            audio.play();
+            
+            // Load spectrogram
+            loadSpectrogram(currentSoundscape.spectrogram);
+            
+            // Build checklist
+            buildChecklist();
+        }
+        
+        function getDifficultyLabel() {
+            if (currentLanguage === 'af') {
+                return { easy: 'Maklik', intermediate: 'Intermediêr', advanced: 'Gevorderd' }[currentDifficulty];
+            }
+            return { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' }[currentDifficulty];
+        }
+        
+        // Get birds the user needs to identify based on difficulty
+        function getTargetBirds() {
+            const levels = { easy: ['easy'], intermediate: ['easy', 'intermediate'], advanced: ['easy', 'intermediate', 'advanced'] };
+            const allowedLevels = levels[currentDifficulty];
+            return currentSoundscape.birds.filter(b => allowedLevels.includes(b.level));
+        }
+        
+        // Build the checkbox list of bird options
+        function buildChecklist() {
+            const checklist = document.getElementById('birdChecklist');
+            checklist.innerHTML = '';
+            
+            // Combine correct birds + decoys, filter by difficulty
+            const levels = { easy: ['easy'], intermediate: ['easy', 'intermediate'], advanced: ['easy', 'intermediate', 'advanced'] };
+            const allowedLevels = levels[currentDifficulty];
+            
+            // Get correct birds for this difficulty
+            const correctBirds = currentSoundscape.birds.filter(b => allowedLevels.includes(b.level));
+            
+            // Get decoys for this difficulty
+            const decoyBirds = currentSoundscape.decoys.filter(b => allowedLevels.includes(b.level));
+            
+            // Combine and shuffle
+            let allOptions = [
+                ...correctBirds.map(b => ({ ...b, isCorrect: true })),
+                ...decoyBirds.map(b => ({ ...b, isCorrect: false }))
+            ];
+            
+            // Shuffle
+            allOptions = allOptions.sort(() => Math.random() - 0.5);
+            
+            allOptions.forEach((bird, i) => {
+                const div = document.createElement('div');
+                div.className = 'bird-option';
+                div.onclick = function() { toggleBird(i, div); };
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = 'bird_' + i;
+                checkbox.dataset.english = bird.english;
+                checkbox.dataset.isCorrect = bird.isCorrect;
+                
+                const label = document.createElement('label');
+                label.htmlFor = 'bird_' + i;
+                const displayName = currentLanguage === 'af' ? bird.afrikaans : bird.english;
+                const altName = currentLanguage === 'af' ? bird.english : bird.afrikaans;
+                label.textContent = displayName;
+                label.title = altName;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                checklist.appendChild(div);
+            });
+        }
+        
+        function toggleBird(index, div) {
+            if (submitted) return;
+            
+            const checkbox = document.getElementById('bird_' + index);
+            checkbox.checked = !checkbox.checked;
+            div.classList.toggle('selected', checkbox.checked);
+        }
+        
+        function submitAnswers() {
+            submitted = true;
+            
+            const checkboxes = document.querySelectorAll('#birdChecklist input[type="checkbox"]');
+            const selected = [];
+            const notSelected = [];
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selected.push({ english: cb.dataset.english, isCorrect: cb.dataset.isCorrect === 'true' });
+                } else {
+                    notSelected.push({ english: cb.dataset.english, isCorrect: cb.dataset.isCorrect === 'true' });
+                }
+            });
+            
+            // Calculate results
+            const correct = selected.filter(b => b.isCorrect);
+            const wrong = selected.filter(b => !b.isCorrect);
+            const missed = notSelected.filter(b => b.isCorrect);
+            
+            const targetBirds = getTargetBirds();
+            const totalTarget = targetBirds.length;
+            const correctCount = correct.length;
+            
+            // Display score
+            const scoreEl = document.getElementById('scoreDisplay');
+            scoreEl.textContent = `${correctCount} / ${totalTarget}`;
+            
+            const percentage = totalTarget > 0 ? (correctCount / totalTarget) * 100 : 0;
+            scoreEl.className = 'score';
+            if (percentage >= 70) scoreEl.classList.add('score-good');
+            else if (percentage >= 40) scoreEl.classList.add('score-ok');
+            else scoreEl.classList.add('score-poor');
+            
+            // Correct list
+            const correctList = document.getElementById('correctList');
+            correctList.innerHTML = '';
+            if (correct.length === 0) {
+                correctList.innerHTML = '<div class="result-bird result-correct" style="opacity:0.5">None</div>';
+            }
+            correct.forEach(b => {
+                const bird = currentSoundscape.birds.find(sb => sb.english === b.english);
+                const div = createResultBird(bird, 'result-correct');
+                correctList.appendChild(div);
+            });
+            
+            // Missed list
+            const missedList = document.getElementById('missedList');
+            missedList.innerHTML = '';
+            if (missed.length === 0) {
+                missedList.innerHTML = '<div class="result-bird result-missed" style="opacity:0.5">None</div>';
+            }
+            missed.forEach(b => {
+                const bird = currentSoundscape.birds.find(sb => sb.english === b.english);
+                const div = createResultBird(bird, 'result-missed');
+                missedList.appendChild(div);
+            });
+            
+            // Wrong list
+            const wrongList = document.getElementById('wrongList');
+            wrongList.innerHTML = '';
+            if (wrong.length === 0) {
+                const label = currentLanguage === 'af' ? 'Geen' : 'None';
+                wrongList.innerHTML = `<div class="result-bird result-wrong" style="opacity:0.5">${label}</div>`;
+            }
+            wrong.forEach(b => {
+                const decoy = currentSoundscape.decoys.find(d => d.english === b.english);
+                const div = document.createElement('div');
+                div.className = 'result-bird result-wrong';
+                const name = currentLanguage === 'af' ? (decoy ? decoy.afrikaans : b.english) : b.english;
+                const altName = currentLanguage === 'af' ? b.english : (decoy ? decoy.afrikaans : '');
+                div.innerHTML = `<span>${name} <small style="color:#999">(${altName})</small></span>`;
+                wrongList.appendChild(div);
+            });
+            
+            // Show results, hide submit
+            document.getElementById('resultsPanel').classList.remove('hidden');
+            document.getElementById('submitArea').classList.add('hidden');
+            
+            // Show/hide next button
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentSoundscapeIndex < soundscapes.length - 1) {
+                nextBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.add('hidden');
+            }
+            
+            // Disable checkboxes
+            checkboxes.forEach(cb => { cb.disabled = true; });
+            
+            // Highlight correct/wrong in checklist
+            const birdOptions = document.querySelectorAll('.bird-option');
+            birdOptions.forEach(opt => {
+                const cb = opt.querySelector('input[type="checkbox"]');
+                const isCorrect = cb.dataset.isCorrect === 'true';
+                const isChecked = cb.checked;
+                
+                if (isCorrect && isChecked) {
+                    opt.style.background = '#d4edda';
+                    opt.style.borderColor = '#28a745';
+                } else if (isCorrect && !isChecked) {
+                    opt.style.background = '#fff3cd';
+                    opt.style.borderColor = '#ffc107';
+                } else if (!isCorrect && isChecked) {
+                    opt.style.background = '#f8d7da';
+                    opt.style.borderColor = '#dc3545';
+                }
+            });
+        }
+        
+        function createResultBird(bird, className) {
+            const div = document.createElement('div');
+            div.className = 'result-bird ' + className;
+            
+            const name = currentLanguage === 'af' ? bird.afrikaans : bird.english;
+            const altName = currentLanguage === 'af' ? bird.english : bird.afrikaans;
+            
+            div.innerHTML = `
+                <span>${name} <small style="color:#999">(${altName})</small></span>
+                <span class="timestamp" onclick="seekTo('${bird.timestamp}')" title="Click to hear">🔊 ${bird.timestamp}</span>
+            `;
+            return div;
+        }
+        
+        function seekTo(timestamp) {
+            const parts = timestamp.split(':');
+            let seconds = 0;
+            if (parts.length === 2) {
+                seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            } else if (parts.length === 3) {
+                seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+            }
+            
+            audio.currentTime = seconds;
+            if (audio.paused) {
+                audio.play();
+            }
+        }
+        
+        function retryChallenge() {
+            startChallenge();
+        }
+        
+        function nextSoundscape() {
+            if (currentSoundscapeIndex < soundscapes.length - 1) {
+                currentSoundscapeIndex++;
+                currentSoundscape = soundscapes[currentSoundscapeIndex];
+                document.getElementById('soundscapeSelector').value = currentSoundscapeIndex;
+                startChallenge();
+            }
+        }
+        
+        function backToMenu() {
+            audio.pause();
+            audio.currentTime = 0;
+            document.getElementById('challengeArea').classList.add('hidden');
+        }
+        
+        // Spectrogram
+        function loadSpectrogram(imageSrc) {
+            if (!imageSrc) {
+                spectrogramWrapper.style.display = 'none';
+                return;
+            }
+            
+            spectrogramImage = new Image();
+            spectrogramImage.onload = function() {
+                const wrapperWidth = spectrogramWrapper.clientWidth - 16;
+                const maxHeight = 160;
+                const aspectRatio = spectrogramImage.height / spectrogramImage.width;
+                let drawWidth = wrapperWidth;
+                let drawHeight = wrapperWidth * aspectRatio;
+                
+                if (drawHeight > maxHeight) {
+                    drawHeight = maxHeight;
+                    drawWidth = maxHeight / aspectRatio;
+                }
+                
+                canvas.width = drawWidth;
+                canvas.height = drawHeight;
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(spectrogramImage, 0, 0, canvas.width, canvas.height);
+                
+                spectrogramWrapper.style.display = 'block';
+                
+                if (!audio.paused && audio.duration) {
+                    spectrogramLine.style.display = 'block';
+                }
+            };
+            spectrogramImage.onerror = function() {
+                spectrogramWrapper.style.display = 'none';
+            };
+            spectrogramImage.src = imageSrc;
+        }
+        
+        function updateLinePosition() {
+            if (!audio.duration || !spectrogramImage) return;
+            if (spectrogramWrapper.style.display === 'none') return;
+            
+            const progress = audio.currentTime / audio.duration;
+            const canvasRect = canvas.getBoundingClientRect();
+            const wrapperRect = spectrogramWrapper.getBoundingClientRect();
+            const offset = canvasRect.left - wrapperRect.left;
+            const position = offset + (progress * canvasRect.width);
+            
+            spectrogramLine.style.left = position + 'px';
+            spectrogramLine.style.display = 'block';
+        }
+        
+        audio.addEventListener('timeupdate', updateLinePosition);
+        
+        audio.addEventListener('play', function() {
+            if (spectrogramImage && spectrogramWrapper.style.display !== 'none') {
+                spectrogramLine.style.display = 'block';
+                updateLinePosition();
+            }
+        });
+        
+        audio.addEventListener('ended', function() {
+            spectrogramLine.style.display = 'none';
+        });
+        
+        canvas.addEventListener('click', function(e) {
+            if (!audio.duration) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const progress = x / rect.width;
+            audio.currentTime = progress * audio.duration;
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateSoundscapes();
+        });
+    </script>
+</body>
+</html>
