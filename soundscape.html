@@ -839,7 +839,7 @@
         // Greyscale color map: black → dark grey → light grey → white
         function magnitudeToColor(value) {
             const v = Math.max(0, Math.min(1, value));
-            const grey = Math.floor(v * 255);
+            const grey = Math.floor((1 - v) * 255); // ← omgeruil
             return [grey, grey, grey];
         }
         
