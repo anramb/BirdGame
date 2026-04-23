@@ -103,34 +103,53 @@
             text-decoration: underline;
         }
         
-        .spectrogram-wrapper {
-            position: relative;
+        .spectrogram-outer {
             margin: 15px 0;
-            background: #f8f9fa;
+            background: #1a1a2e;
             border-radius: 10px;
             padding: 8px;
-            max-height: 180px;
-            overflow: hidden;
         }
         
-        .spectrogram-wrapper canvas {
-            width: 100%;
-            max-height: 164px;
-            display: block;
+        .spectrogram-scroll {
+            position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 220px;
             border-radius: 8px;
             cursor: pointer;
         }
         
+        .spectrogram-scroll canvas {
+            display: block;
+            height: 200px;
+        }
+        
         .spectrogram-line {
             position: absolute;
-            top: 8px;
-            left: 8px;
+            top: 0;
+            left: 0;
             width: 2px;
-            bottom: 8px;
+            height: 100%;
             background-color: red;
             pointer-events: none;
             z-index: 10;
             display: none;
+            box-shadow: 0 0 4px rgba(255,0,0,0.6);
+        }
+        
+        .spectrogram-time-axis {
+            height: 18px;
+            position: relative;
+            color: #aaa;
+            font-size: 10px;
+            font-family: monospace;
+        }
+        
+        .spectrogram-loading {
+            color: #aaa;
+            text-align: center;
+            padding: 80px 0;
+            font-size: 0.95em;
         }
         
         audio {
@@ -198,9 +217,12 @@
                 <div class="bird-credit" id="birdCredit"></div>
             </div>
             
-            <div class="spectrogram-wrapper" id="spectrogramWrapper" style="display: none;">
-                <canvas id="spectrogramCanvas"></canvas>
-                <div class="spectrogram-line" id="spectrogramLine"></div>
+            <div class="spectrogram-outer" id="spectrogramOuter" style="display: none;">
+                <div class="spectrogram-scroll" id="spectrogramScroll">
+                    <canvas id="spectrogramCanvas"></canvas>
+                    <div class="spectrogram-line" id="spectrogramLine"></div>
+                </div>
+                <div class="spectrogram-time-axis" id="timeAxis"></div>
             </div>
             
             <audio id="audioPlayer" controls></audio>
@@ -208,7 +230,7 @@
     </div>
     
     <script src="allbirds.js"></script>
-    <script src="interactive-spectrogram.js"></script>
+    <script src="spectrogram-generator.js"></script>
     
     <script>
         let currentBird = null;
@@ -281,8 +303,8 @@
             `;
             document.getElementById('birdCredit').innerHTML = creditHTML;
             
-            // Load spectrogram
-            loadSpectrogram(currentBird.spectrogram);
+            // Generate scrollable spectrogram from audio
+            generateSpectrogramForBird(currentBird.audio);
             
             // Load audio and auto-play
             audio.src = currentBird.audio;
@@ -292,96 +314,52 @@
         }
         
         // Spectrogram
-        let spectrogramImage = null;
+        let spectrogramReady = false;
+        let totalCanvasWidth = 0;
         const canvas = document.getElementById('spectrogramCanvas');
-        const ctx = canvas.getContext('2d');
         const spectrogramLine = document.getElementById('spectrogramLine');
-        const spectrogramWrapper = document.getElementById('spectrogramWrapper');
+        const spectrogramOuter = document.getElementById('spectrogramOuter');
+        const spectrogramScroll = document.getElementById('spectrogramScroll');
+        const timeAxis = document.getElementById('timeAxis');
         
-        function loadSpectrogram(imageSrc) {
-            if (!imageSrc) {
-                spectrogramWrapper.style.display = 'none';
-                return;
-            }
+        async function generateSpectrogramForBird(audioSrc) {
+            spectrogramReady = false;
+            totalCanvasWidth = 0;
             
-            spectrogramImage = new Image();
-            spectrogramImage.onload = function() {
-                // Set canvas size - limit height to 160px
-                const wrapperWidth = spectrogramWrapper.clientWidth - 16;
-                const maxHeight = 160;
-                const aspectRatio = spectrogramImage.height / spectrogramImage.width;
-                let drawWidth = wrapperWidth;
-                let drawHeight = wrapperWidth * aspectRatio;
-                
-                if (drawHeight > maxHeight) {
-                    drawHeight = maxHeight;
-                    drawWidth = maxHeight / aspectRatio;
-                }
-                
-                canvas.width = drawWidth;
-                canvas.height = drawHeight;
-                
-                // Draw spectrogram
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(spectrogramImage, 0, 0, canvas.width, canvas.height);
-                
-                spectrogramWrapper.style.display = 'block';
-                
-                // Show red line if audio is already playing
-                if (!audio.paused && audio.duration) {
-                    spectrogramLine.style.display = 'block';
-                }
-            };
-            spectrogramImage.onerror = function() {
-                spectrogramWrapper.style.display = 'none';
-            };
-            spectrogramImage.src = imageSrc;
+            const result = await generateScrollableSpectrogram(audioSrc, {
+                canvas: canvas,
+                scrollContainer: spectrogramScroll,
+                line: spectrogramLine,
+                timeAxis: timeAxis,
+                outerContainer: spectrogramOuter,
+                pxPerSec: 75,
+                canvasHeight: 200,
+                audioElement: audio
+            });
+            
+            spectrogramReady = result.ready;
+            totalCanvasWidth = result.totalWidth;
         }
         
-        // Update red line position
-        function updateLinePosition() {
-            if (!audio.duration || !spectrogramImage) return;
-            if (spectrogramWrapper.style.display === 'none') return;
-            
-            const progress = audio.currentTime / audio.duration;
-            const canvasRect = canvas.getBoundingClientRect();
-            const wrapperRect = spectrogramWrapper.getBoundingClientRect();
-            const offset = canvasRect.left - wrapperRect.left;
-            const position = offset + (progress * canvasRect.width);
-            
-            spectrogramLine.style.left = position + 'px';
-            spectrogramLine.style.display = 'block';
-        }
+        audio.addEventListener('timeupdate', function() {
+            updateSpectrogramLine(audio, spectrogramLine, spectrogramScroll, totalCanvasWidth, spectrogramReady);
+        });
         
-        audio.addEventListener('timeupdate', updateLinePosition);
-        
-        // Show red line when playing
         audio.addEventListener('play', function() {
-            if (spectrogramImage && spectrogramWrapper.style.display !== 'none') {
+            if (spectrogramReady) {
                 spectrogramLine.style.display = 'block';
-                updateLinePosition();
+                updateSpectrogramLine(audio, spectrogramLine, spectrogramScroll, totalCanvasWidth, spectrogramReady);
             }
         });
         
-        // Keep line visible on pause
-        audio.addEventListener('pause', function() {
-            // line stays visible
-        });
-        
-        // Hide line when ended
         audio.addEventListener('ended', function() {
             spectrogramLine.style.display = 'none';
         });
         
-        // Click on spectrogram to seek
-        canvas.addEventListener('click', function(e) {
-            if (!audio.duration) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const progress = x / rect.width;
-            audio.currentTime = progress * audio.duration;
-        });
+        setupSpectrogramClick(spectrogramScroll, canvas, audio,
+            function() { return totalCanvasWidth; },
+            function() { return spectrogramReady; }
+        );
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
