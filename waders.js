@@ -44,7 +44,10 @@ const waders = [
 { english:"Common Greenshank",  afrikaans:"Groenpootruiter", hotspot:"Marievale Bird Sanctuary", habitat:"Wetland", birdgroup:"Waders", level: "2 Intermediate",
   audio:"waders/XC670128_CommonGreenshank.mp3", spectrogram: "waders/XC670128_CommonGreenshank.png", image: "waders/XC670128_CommonGreenshank.jpg", photographer: "Marna Buys", credit:"© Tim Cockroft, www.xeno-canto.org, XC670128", licenseLink:"https://creativecommons.org/licenses/by-nc-sa/4.0/", changes:"Original recording"},
 
-{english: "Lesser Moorhen", afrikaans: "Kleinwaterhoender", hotspot: "KZN; Limpopo; Mpumalanga", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced", audio: "waders/XC791485_LesserMoorhen.mp3", spectrogram: "waders/XC791485_LesserMoorhen.png", image: "waders/XC791485_LesserMoorhen.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC791485", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+{english: "Lesser Moorhen", afrikaans: "Kleinwaterhoender", hotspot: "KZN; Limpopo; Mpumalanga", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced", audio: "waders/XC791485_LesserMoorhen.mp3", spectrogram: "waders/XC791485_LesserMoorhen.png", image: "waders/XC791485_LesserMoorhen.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC791485", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Spotted Crake", afrikaans: "Gevlekte Riethaan", hotspot: "KZN; Mpumalanga; Limpopo; Gauteng; Eastern Cape; Mpumalanga; Limpopo", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate", 
+ audio: "waders/XC991330_SpottedCrake.mp3", spectrogram: "waders/XC991330_SpottedCrake.png", image: "waders/XC991330_SpottedCrake.jpg", photographer: "Marna Buys", credit: "© Bodo Sonnenburg, www.xeno-canto.org, XC991330", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
 
 
 ];
