@@ -12,7 +12,7 @@ audio: "groundbirds/XC392686_Grey-wingedFrancolin.mp3", spectrogram: "groundbird
 {english: "Double-banded Courser", afrikaans: "Dubbelbanddrawwertjie", hotspot: "Platbakkies", habitat: "Stony ground", birdgroup: "Groundbirds", level: "3 Advanced", 
 audio: "groundbirds/XC625033_Double-bandedCourser.mp3", spectrogram: "groundbirds/XC625033_Double-bandedCourser.png",image: "groundbirds/XC625033_Double-bandedCourser.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC625033", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Burchells Courser", afrikaans: "Bloukopdrawwertjie", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "3 Advanced", 
+{english: "Burchell's Courser", afrikaans: "Bloukopdrawwertjie", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "3 Advanced", 
 audio: "groundbirds/XC597244_BurchellsCourser.mp3", spectrogram: "groundbirds/XC597244_BurchellsCourser.png",image: "groundbirds/XC597244_BurchellsCourser.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC597244", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Namaqua Sandgrouse", afrikaans: "Kelkiewyn", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "1 Beginner", 

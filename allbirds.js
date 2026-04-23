@@ -108,6 +108,9 @@ const allbirds = [
 {english: "Moorhen Common", afrikaans: "Waterhoender Groot", hotspot: "KZN; Mpumalanga; Limpopo; Gauteng; Eastern Cape; Mpumalanga; Limpopo", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate", 
  audio: "All birds/XC280320_CommonMoorhen.mp3", spectrogram: "All birds/XC280320_CommonMoorhen.png", image: "All birds/XC280320_CommonMoorhen.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280320", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
+{english: "Moorhen Lesser", afrikaans: "Waterhoender Klein", hotspot: "KZN; Limpopo; Mpumalanga", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced", 
+audio: "All birds/XC791485_LesserMoorhen.mp3", spectrogram: "All birds/XC791485_LesserMoorhen.png", image: "All birds/XC791485_LesserMoorhen.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC791485", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
 {english: "Rail African", afrikaans: "Riethaan Groot", hotspot: "KZN; Mpumalanga; Limpopo; Gauteng; Eastern Cape; Mpumalanga; Limpopo", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced", 
  audio: "All birds/XC347035_AfricanRail.mp3", spectrogram: "All birds/XC347035_AfricanRail.png", image: "All birds/XC347035_AfricanRail.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC347035", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
@@ -244,7 +247,29 @@ audio: "All birds/XC1067750_CapeRobin-Chat.mp3", spectrogram: "All birds/XC10677
 audio: "All birds/XC1102359_White-throatedRobin-Chat.mp3", spectrogram: "All birds/XC1102359_White-throatedRobin-Chat.png",image: "All birds/XC1102359_White-throatedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102359", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Robin-chat White-browed", afrikaans: "Janfrederik Heuglin", hotspot: "Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
-audio: "All birds/XC949507_White-browedRobin-Chat.mp3", spectrogram: "All birds/XC949507_White-browedRobin-Chat.png",image: "All birds/XC949507_White-browedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Bram Piot, www.xeno-canto.org, XC949507", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "All birds/XC949507_White-browedRobin-Chat.mp3", spectrogram: "All birds/XC949507_White-browedRobin-Chat.png",image: "All birds/XC949507_White-browedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Bram Piot, www.xeno-canto.org, XC949507", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{ english: "Duck African Black", afrikaans: "Eend Swart", hotspot: "Marievale Bird Sanctuary; Zaagkuildrift", habitat: "Wetland", birdgroup: "Waterbirds", level: "1 Beginner",
+ audio: "All birds/XC615647_AfricanBlackDuck.mp3", spectrogram: "All birds/XC615647_AfricanBlackDuck.png", image: "All birds/XC615647_AfricanBlackDuck.jpg", photographer: "Marna Buys", credit: "© Nature sounds by Simply Birding, www.xeno-canto.org, XC615647", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Bittern Little", afrikaans: "Rietreier Klein", hotspot: "Marievale Bird Sanctuary", habitat: "Wetland", birdgroup: "Waterbirds", level: "3 Advanced",
+ audio: "All birds/XC599094_LittleBittern.mp3", spectrogram: "All birds/XC599094_LittleBittern.png", image: "All birds/XC599094_LittleBittern.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC599094; Background birds: Lesser Swamp Warbler", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Bittern Dwarf", afrikaans: "Rietreier Dwerg", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Waterbirds", level: "3 Advanced",
+ audio: "All birds/XC827385_DwarfBittern.mp3", spectrogram: "All birds/XC827385_DwarfBittern.png", image: "All birds/XC827385_DwarfBittern.jpg", photographer: "Marna Buys", credit: "© Ehren Eksteen, www.xeno-canto.org, XC827385; Background birds: Cape Turtle (RIng-necked) Dove, Woodland Kingfisher", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Squacco Heron", afrikaans: "Ralreier", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Waterbirds", level: "3 Advanced",
+ audio: "All birds/XC299963_SquaccoHeron.mp3", spectrogram: "All birds/XC299963_SquaccoHeron.png", image: "All birds/XC299963_SquaccoHeron.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC299963", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Warbler Olive-tree", afrikaans: "Sanger Olyfboom", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+ audio: "All birds/XC819380_Olive-treeWarbler.mp3", spectrogram: "All birds/XC819380_Olive-treeWarbler.png", image: "All birds/XC819380_Olive-treeWarbler.jpg", photographer: "Marna Buys", credit: "© Rick Nuttall, www.xeno-canto.org, XC819380", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Wren-Warbler Barred", afrikaans: "Sanger Gebande", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "2 Intermediate", 
+ audio: "All birds/XC708257_BarredWren-Warbler.mp3", spectrogram: "All birds/XC708257_BarredWren-Warbler.png", image: "All birds/XC708257_BarredWren-Warbler.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC708257", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Warbler Marsh alarm call", afrikaans: "Rietsanger Europese alarm call", hotspot: "Zaagkuildrift", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+audio: "All birds/XC632299_MarshWarbler.mp3", spectrogram: "All birds/XC632299_MarshWarbler.png", image: "All birds/XC632299_MarshWarbler.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC632299; Alarm call", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
 
 
 ];

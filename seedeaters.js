@@ -20,6 +20,7 @@ audio: "seedeaters/XC674311_BrimstoneCanary.mp3", spectrogram: "seedeaters/XC674
 
 {english: "Cape Siskin", afrikaans: "Kaapse Pietjiekanarie", hotspot: "Western Cape", habitat: "Fynbos", birdgroup: "Seedeaters", level: "3 Advanced", 
 audio: "seedeaters/XC523735_CapeSiskin.mp3", spectrogram: "seedeaters/XC523735_CapeSiskin.png", image: "seedeaters/XC523735_CapeSiskin.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC523735", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
 {english: "Drakensberg Siskin", afrikaans: "Drakensberg Pietjiekanarie", hotspot: "KZN; Free State; Lesotho", habitat: "Grassland", birdgroup: "Seedeaters", level: "3 Advanced", 
 audio: "seedeaters/XC505930_DrakensbergSiskin.mp3", spectrogram: "seedeaters/XC505930_DrakensbergSiskin.png", image: "seedeaters/XC505930_DrakensbergSiskin.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC505930", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
