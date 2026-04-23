@@ -35,6 +35,44 @@ const soundscapes = [
     { english: "Green-backed Camaroptera", afrikaans: "Groenrugkwêkwêvoël", level: "intermediate" },
     { english: "Yellow-breasted Apalis", afrikaans: "Geelborskleinjantjie", level: "intermediate" }
   ]
+},
+
+
+{
+  id: "mahai_royal_national_park",
+  name: "Mahai, Royal Natal National Park",
+  habitat: "Riverine bush",
+  region: "KZN",
+  audio: "Soundscape/260107_0514MahaiRoyalNatalNationalPark.mp3",
+  spectrogram: "Soundscape/260107_0514MahaiRoyalNatalNationalPark.png",
+  
+  // Birds that ARE in this recording
+  birds: [
+    { english: "Red-eyed Dove", afrikaans: "Grootringduif", level: "easy", timestamp: "00:04" },
+    { english: "Lemon Dove", afrikaans: "Kaneelduifie", level: "advanced", timestamp: "01:13" },
+    { english: "Cape White-eye", afrikaans: "Kaapse glasogie", level: "intermediate", timestamp: "00:47" },
+    { english: "Common (Dark-capped) Bulbul", afrikaans: "Swartoogtiptol", level: "easy", timestamp: "00:09" },
+    { english: "Cape Batis", afrikaans: "Kaapse bosbontrokkie", level: "intermediate", timestamp: "00:15" },
+    { english: "Klaas's Cuckoo", afrikaans: "Meitjie", level: "easy", timestamp: "01:04" },
+    { english: "Southern Boubou", afrikaans: "Suidelike waterfiskaal", level: "intermediate", timestamp: "01:08" },
+  ],
+
+  // Decoy birds - plausible for this habitat but NOT in this recording
+  decoys: [
+    { english: "Red-chested Cuckoo", afrikaans: "Piet-my-vrou", level: "easy" },
+    { english: "Laughing dove", afrikaans: "Rooiborsduifie", level: "easy" },
+    { english: "Black Cuckoo", afrikaans: "Swartkoekoek", level: "easy" },
+    { english: "Brown-hooded kingfisher", afrikaans: "Bruinkopvisvanger", level: "easy" },
+    { english: "Forest Canary", afrikaans: "Gestreepte kanarie", level: "intermediate" },
+    { english: "Olive pigeon", afrikaans: "Geelbekbosduif", level: "intermediate" },
+    { english: "Streaky-headed seedeater", afrikaans: "Streepkopkanarie", level: "intermediate" },
+    { english: "Buff-spotted flufftail", afrikaans: "Gevlekte vleikuiken", level: "advanced" },
+    { english: "Red-chested flufftail", afrikaans: "Rooiborsvleikuiken", level: "advanced" }
+
+  ]
 }
+
+
+
 
 ];
