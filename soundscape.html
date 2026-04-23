@@ -120,34 +120,53 @@
             font-style: italic;
         }
         
-        .spectrogram-wrapper {
-            position: relative;
+        .spectrogram-outer {
             margin: 15px 0;
             background: #1a1a2e;
             border-radius: 10px;
             padding: 8px;
-            max-height: 180px;
-            overflow: hidden;
         }
         
-        .spectrogram-wrapper canvas {
-            width: 100%;
-            max-height: 164px;
-            display: block;
+        .spectrogram-scroll {
+            position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 220px;
             border-radius: 8px;
             cursor: pointer;
         }
         
+        .spectrogram-scroll canvas {
+            display: block;
+            height: 200px;
+        }
+        
         .spectrogram-line {
             position: absolute;
-            top: 8px;
-            left: 8px;
+            top: 0;
+            left: 0;
             width: 2px;
-            bottom: 8px;
+            height: 100%;
             background-color: red;
             pointer-events: none;
             z-index: 10;
             display: none;
+            box-shadow: 0 0 4px rgba(255,0,0,0.6);
+        }
+        
+        .spectrogram-time-axis {
+            height: 18px;
+            position: relative;
+            color: #aaa;
+            font-size: 10px;
+            font-family: monospace;
+        }
+        
+        .spectrogram-loading {
+            color: #aaa;
+            text-align: center;
+            padding: 80px 0;
+            font-size: 0.95em;
         }
         
         .audio-player {
@@ -353,10 +372,13 @@
                 <div class="soundscape-habitat" id="soundscapeHabitat"></div>
             </div>
             
-            <!-- Spectrogram -->
-            <div class="spectrogram-wrapper" id="spectrogramWrapper" style="display: none;">
-                <canvas id="spectrogramCanvas"></canvas>
-                <div class="spectrogram-line" id="spectrogramLine"></div>
+            <!-- Scrollable Spectrogram -->
+            <div class="spectrogram-outer" id="spectrogramOuter" style="display: none;">
+                <div class="spectrogram-scroll" id="spectrogramScroll">
+                    <canvas id="spectrogramCanvas"></canvas>
+                    <div class="spectrogram-line" id="spectrogramLine"></div>
+                </div>
+                <div class="spectrogram-time-axis" id="timeAxis"></div>
             </div>
             
             <!-- Playback Controls -->
@@ -421,8 +443,12 @@
         const canvas = document.getElementById('spectrogramCanvas');
         const ctx = canvas.getContext('2d');
         const spectrogramLine = document.getElementById('spectrogramLine');
-        const spectrogramWrapper = document.getElementById('spectrogramWrapper');
-        let spectrogramImage = null;
+        const spectrogramOuter = document.getElementById('spectrogramOuter');
+        const spectrogramScroll = document.getElementById('spectrogramScroll');
+        const timeAxis = document.getElementById('timeAxis');
+        let spectrogramReady = false;
+        const PX_PER_SEC = 75; // pixels per second of audio
+        let totalCanvasWidth = 0;
         
         // Populate soundscape selector
         function populateSoundscapes() {
@@ -506,8 +532,8 @@
             audio.play();
             updatePlayPauseBtn();
             
-            // Load spectrogram
-            loadSpectrogram(currentSoundscape.spectrogram);
+            // Generate spectrogram from audio
+            generateSpectrogram(currentSoundscape.audio);
             
             // Build checklist
             buildChecklist();
@@ -769,62 +795,235 @@
             document.getElementById('challengeArea').classList.add('hidden');
         }
         
-        // Spectrogram
-        function loadSpectrogram(imageSrc) {
-            if (!imageSrc) {
-                spectrogramWrapper.style.display = 'none';
-                return;
+        // ===== SCROLLABLE SPECTROGRAM FROM MP3 (Web Audio API) =====
+        
+        // Simple FFT implementation (radix-2 Cooley-Tukey)
+        function fft(re, im) {
+            const n = re.length;
+            if (n <= 1) return;
+            
+            // Bit-reversal permutation
+            for (let i = 1, j = 0; i < n; i++) {
+                let bit = n >> 1;
+                for (; j & bit; bit >>= 1) { j ^= bit; }
+                j ^= bit;
+                if (i < j) {
+                    [re[i], re[j]] = [re[j], re[i]];
+                    [im[i], im[j]] = [im[j], im[i]];
+                }
             }
             
-            spectrogramImage = new Image();
-            spectrogramImage.onload = function() {
-                const wrapperWidth = spectrogramWrapper.clientWidth - 16;
-                const maxHeight = 160;
-                const aspectRatio = spectrogramImage.height / spectrogramImage.width;
-                let drawWidth = wrapperWidth;
-                let drawHeight = wrapperWidth * aspectRatio;
+            for (let len = 2; len <= n; len <<= 1) {
+                const halfLen = len >> 1;
+                const angle = -2 * Math.PI / len;
+                const wRe = Math.cos(angle);
+                const wIm = Math.sin(angle);
                 
-                if (drawHeight > maxHeight) {
-                    drawHeight = maxHeight;
-                    drawWidth = maxHeight / aspectRatio;
+                for (let i = 0; i < n; i += len) {
+                    let curRe = 1, curIm = 0;
+                    for (let j = 0; j < halfLen; j++) {
+                        const tRe = curRe * re[i + j + halfLen] - curIm * im[i + j + halfLen];
+                        const tIm = curRe * im[i + j + halfLen] + curIm * re[i + j + halfLen];
+                        re[i + j + halfLen] = re[i + j] - tRe;
+                        im[i + j + halfLen] = im[i + j] - tIm;
+                        re[i + j] += tRe;
+                        im[i + j] += tIm;
+                        const newCurRe = curRe * wRe - curIm * wIm;
+                        curIm = curRe * wIm + curIm * wRe;
+                        curRe = newCurRe;
+                    }
+                }
+            }
+        }
+        
+        // Greyscale color map: black → dark grey → light grey → white
+        function magnitudeToColor(value) {
+            const v = Math.max(0, Math.min(1, value));
+            const grey = Math.floor(v * 255);
+            return [grey, grey, grey];
+        }
+        
+        function loadAudioBuffer(audioSrc) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', audioSrc, true);
+                xhr.responseType = 'arraybuffer';
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) { // status 0 = file:// protocol
+                        resolve(xhr.response);
+                    } else {
+                        reject(new Error('HTTP error: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('XHR failed for: ' + audioSrc));
+                };
+                xhr.send();
+            });
+        }
+        
+        async function generateSpectrogram(audioSrc) {
+            spectrogramReady = false;
+            spectrogramLine.style.display = 'none';
+            spectrogramOuter.style.display = 'block';
+            
+            // Show loading
+            spectrogramScroll.innerHTML = '<div class="spectrogram-loading">Generating spectrogram...</div>';
+            spectrogramScroll.appendChild(spectrogramLine);
+            
+            try {
+                // Load audio data via XHR (works better with file:// protocol)
+                const arrayBuffer = await loadAudioBuffer(audioSrc);
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                audioCtx.close();
+                
+                // Get mono samples
+                const samples = audioBuffer.getChannelData(0);
+                const sampleRate = audioBuffer.sampleRate;
+                const duration = audioBuffer.duration;
+                
+                // FFT parameters
+                const fftSize = 2048;
+                const hopSize = Math.floor(sampleRate / PX_PER_SEC); // one column per pixel
+                const numColumns = Math.floor((samples.length - fftSize) / hopSize) + 1;
+                const freqBins = fftSize / 2;
+                
+                // Only show up to ~10kHz (most bird sounds)
+                const maxFreqHz = 10000;
+                const maxBin = Math.min(freqBins, Math.floor(maxFreqHz / (sampleRate / fftSize)));
+                
+                const canvasHeight = 200;
+                totalCanvasWidth = numColumns;
+                
+                // Recreate canvas
+                spectrogramScroll.innerHTML = '';
+                spectrogramScroll.appendChild(canvas);
+                spectrogramScroll.appendChild(spectrogramLine);
+                
+                canvas.width = totalCanvasWidth;
+                canvas.height = canvasHeight;
+                canvas.style.width = totalCanvasWidth + 'px';
+                canvas.style.height = canvasHeight + 'px';
+                
+                const imageData = ctx.createImageData(totalCanvasWidth, canvasHeight);
+                const pixels = imageData.data;
+                
+                // Hann window
+                const hannWindow = new Float32Array(fftSize);
+                for (let i = 0; i < fftSize; i++) {
+                    hannWindow[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1)));
                 }
                 
-                canvas.width = drawWidth;
-                canvas.height = drawHeight;
+                // Process each column
+                const re = new Float64Array(fftSize);
+                const im = new Float64Array(fftSize);
                 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(spectrogramImage, 0, 0, canvas.width, canvas.height);
+                // First pass: compute all magnitudes to find max for normalization
+                const allMags = new Float32Array(numColumns * maxBin);
+                let globalMax = 0;
                 
-                spectrogramWrapper.style.display = 'block';
+                for (let col = 0; col < numColumns; col++) {
+                    const offset = col * hopSize;
+                    
+                    // Apply window and load samples
+                    for (let i = 0; i < fftSize; i++) {
+                        re[i] = (offset + i < samples.length) ? samples[offset + i] * hannWindow[i] : 0;
+                        im[i] = 0;
+                    }
+                    
+                    fft(re, im);
+                    
+                    for (let bin = 0; bin < maxBin; bin++) {
+                        const mag = Math.sqrt(re[bin] * re[bin] + im[bin] * im[bin]);
+                        const logMag = Math.log10(1 + mag * 100);
+                        allMags[col * maxBin + bin] = logMag;
+                        if (logMag > globalMax) globalMax = logMag;
+                    }
+                }
                 
-                if (!audio.paused && audio.duration) {
+                // Second pass: draw pixels
+                for (let col = 0; col < numColumns; col++) {
+                    for (let bin = 0; bin < maxBin; bin++) {
+                        const normalized = globalMax > 0 ? allMags[col * maxBin + bin] / globalMax : 0;
+                        // Boost contrast
+                        const boosted = Math.pow(normalized, 0.6);
+                        const [r, g, b] = magnitudeToColor(boosted);
+                        
+                        // Map bin to y (low freq at bottom, high at top)
+                        const y = canvasHeight - 1 - Math.floor((bin / maxBin) * canvasHeight);
+                        const idx = (y * totalCanvasWidth + col) * 4;
+                        pixels[idx] = r;
+                        pixels[idx + 1] = g;
+                        pixels[idx + 2] = b;
+                        pixels[idx + 3] = 255;
+                    }
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+                
+                // Draw time axis
+                buildTimeAxis(duration);
+                
+                spectrogramReady = true;
+                
+                // Show line if already playing
+                if (!audio.paused) {
                     spectrogramLine.style.display = 'block';
+                    updateLinePosition();
                 }
-            };
-            spectrogramImage.onerror = function() {
-                spectrogramWrapper.style.display = 'none';
-            };
-            spectrogramImage.src = imageSrc;
+                
+            } catch (err) {
+                console.error('Spectrogram generation failed:', err);
+                spectrogramScroll.innerHTML = '<div class="spectrogram-loading" style="color:#ff6b6b;">Spectrogram could not load. Try using a local HTTP server.<br><small>' + err.message + '</small></div>';
+                spectrogramScroll.appendChild(spectrogramLine);
+            }
+        }
+        
+        function buildTimeAxis(duration) {
+            timeAxis.innerHTML = '';
+            timeAxis.style.width = totalCanvasWidth + 'px';
+            
+            // Add time markers every 5 seconds
+            const interval = 5;
+            for (let t = 0; t <= duration; t += interval) {
+                const x = (t / duration) * totalCanvasWidth;
+                const marker = document.createElement('span');
+                marker.style.position = 'absolute';
+                marker.style.left = x + 'px';
+                marker.style.top = '2px';
+                const mins = Math.floor(t / 60);
+                const secs = Math.floor(t % 60);
+                marker.textContent = mins + ':' + String(secs).padStart(2, '0');
+                timeAxis.appendChild(marker);
+            }
         }
         
         function updateLinePosition() {
-            if (!audio.duration || !spectrogramImage) return;
-            if (spectrogramWrapper.style.display === 'none') return;
+            if (!audio.duration || !spectrogramReady) return;
             
             const progress = audio.currentTime / audio.duration;
-            const canvasRect = canvas.getBoundingClientRect();
-            const wrapperRect = spectrogramWrapper.getBoundingClientRect();
-            const offset = canvasRect.left - wrapperRect.left;
-            const position = offset + (progress * canvasRect.width);
+            const xPos = progress * totalCanvasWidth;
             
-            spectrogramLine.style.left = position + 'px';
+            spectrogramLine.style.left = xPos + 'px';
             spectrogramLine.style.display = 'block';
+            
+            // Auto-scroll to keep line visible
+            const scrollContainer = spectrogramScroll;
+            const containerWidth = scrollContainer.clientWidth;
+            const scrollLeft = scrollContainer.scrollLeft;
+            
+            // Keep line roughly in the center-left of the view
+            const targetScroll = xPos - containerWidth * 0.3;
+            if (xPos < scrollLeft || xPos > scrollLeft + containerWidth - 20) {
+                scrollContainer.scrollLeft = Math.max(0, targetScroll);
+            }
         }
         
         audio.addEventListener('timeupdate', updateLinePosition);
         
         audio.addEventListener('play', function() {
-            if (spectrogramImage && spectrogramWrapper.style.display !== 'none') {
+            if (spectrogramReady) {
                 spectrogramLine.style.display = 'block';
                 updateLinePosition();
             }
@@ -834,12 +1033,13 @@
             spectrogramLine.style.display = 'none';
         });
         
-        canvas.addEventListener('click', function(e) {
-            if (!audio.duration) return;
+        // Click on spectrogram to seek
+        spectrogramScroll.addEventListener('click', function(e) {
+            if (!audio.duration || !spectrogramReady) return;
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
-            const progress = x / rect.width;
-            audio.currentTime = progress * audio.duration;
+            const progress = x / totalCanvasWidth;
+            audio.currentTime = Math.max(0, Math.min(audio.duration, progress * audio.duration));
         });
         
         // Initialize
