@@ -16,5 +16,8 @@ audio: "groundbirds/XC625033_Double-bandedCourser.mp3", spectrogram: "groundbird
 audio: "groundbirds/XC597244_BurchellsCourser.mp3", spectrogram: "groundbirds/XC597244_BurchellsCourser.png",image: "groundbirds/XC597244_BurchellsCourser.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC597244", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Namaqua Sandgrouse", afrikaans: "Kelkiewyn", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "Groundbirds", level: "1 Beginner", 
-audio: "groundbirds/XC392675_NamaquaSandgrouse", spectrogram: "groundbirds/XC392675_NamaquaSandgrouse",image: "groundbirds/XC392675_NamaquaSandgrouse", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392675", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+audio: "groundbirds/XC392675_NamaquaSandgrouse", spectrogram: "groundbirds/XC392675_NamaquaSandgrouse",image: "groundbirds/XC392675_NamaquaSandgrouse", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392675", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Red-billed Spurfowl", afrikaans: "Rooibekfisant", hotspot: "Caprivi/Chobe; Northern Cape/Kalahari", habitat: "Savanna", birdgroup: "groundbirds", level: "2 Intermediate", audio: "groundbirds/XC351225_Red-billedSpurfowl.mp3", spectrogram: "groundbirds/XC351225_Red-billedSpurfowl.png",image: "groundbirds/XC351225_Red-billedSpurfowl.jpg", photographer: "Marna Buys", credit: "© Derek Solomon, www.xeno-canto.org, XC351225", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+
 ];

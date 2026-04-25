@@ -50,4 +50,7 @@ audio: "seedeaters/XC696636_Cinnamon-breastedBunting.mp3", spectrogram: "seedeat
 
 {english: "Lark-like Bunting", afrikaans: "Vaalstreepkoppie", hotspot: "Free State; Northern Cape; Northwest; Western Cape", habitat: "Grassland", birdgroup: "Seedeaters", level: "2 Intermediate", audio: "seedeaters/XC392486_Lark-likeBunting.mp3", spectrogram: "seedeaters/XC392486_Lark-likeBunting.png",credit: "© Peter Boesman, www.xeno-canto.org, XC392486", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
+{english: "Brown Firefinch", afrikaans: "Bruinvuurvinkie", hotspot: "Caprivi/Chobe", habitat: "Woodland; Thickets; Woodland", birdgroup: "Seedeaters", level: "3 Advanced", audio: "seedeaters/XC552100_BrownFirefinch.mp3", spectrogram: "seedeaters/XC552100_BrownFirefinch.png",image: "seedeaters/XC552100_BrownFirefinch.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC552100", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+
+
 ];

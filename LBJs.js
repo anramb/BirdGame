@@ -31,7 +31,13 @@ audio: "LBJs/XC279922_Red-cappedLark.mp3", spectrogram: "LBJs/XC279922_Red-cappe
 audio: "LBJs/XC392323_Red-cappedLark.mp3", spectrogram: "LBJs/XC392323_Red-cappedLark.png",image: "LBJs/XC392323_Red-cappedLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392323", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Spike-heeled Lark", afrikaans: "Vlaktelewerik", hotspot: "Platbakkies", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", 
-audio: "LBJs/XC591960_Spike-heeledLark.mp3", spectrogram: "LBJs/XC591960_Spike-heeledLark.png",image: "LBJs/XC591960_Spike-heeledLark.jpg", photographer: "Marna Buys", credit: "© Dawie de Swardt, www.xeno-canto.org, XC591960", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+audio: "LBJs/XC591960_Spike-heeledLark.mp3", spectrogram: "LBJs/XC591960_Spike-heeledLark.png",image: "LBJs/XC591960_Spike-heeledLark.jpg", photographer: "Marna Buys", credit: "© Dawie de Swardt, www.xeno-canto.org, XC591960", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Dusky Lark", afrikaans: "Donkerlewerik", hotspot: "Kruger NP Pafuri; Caprivi/Chobe", habitat: "Woodland", birdgroup: "LBJs", level: "3 Advanced", audio: "LBJs/XC509077_DuskyLark.mp3", spectrogram: "LBJs/XC509077_DuskyLark.png",image: "LBJs/XC509077_DuskyLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC509077", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Melodious Lark", afrikaans: "Spotlewerik", hotspot: "Wider Gauteng 100km/Nylsvley; Highveld; Free State", habitat: "Grassland", birdgroup: "LBJs", level: "3 Advanced", audio: "LBJs/XC598635_MelodiousLark.mp3", spectrogram: "LBJs/XC598635_MelodiousLark.png",image: "LBJs/XC598635_MelodiousLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC598635", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Monotonous Lark", afrikaans: "Bosveldlewerik", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park", habitat: "Savanna", birdgroup: "LBJs", level: "3 Advanced", audio: "LBJs/XC280457_MonotonousLark.mp3", spectrogram: "LBJs/XC280457_MonotonousLark.png",image: "LBJs/XC280457_MonotonousLark.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280457", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
 
   
 ];
