@@ -47,6 +47,42 @@ audio: "gardenwoodland/XC949507_White-browedRobin-Chat.mp3", spectrogram: "garde
 
 {english: "Yellow-breasted Apalis", afrikaans: "Geelborskleinjantjie", hotspot: "Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", audio: "gardenwoodland/XC878065_Yellow-breastedApalis.mp3", spectrogram: "gardenwoodland/XC878065_Yellow-breastedApalis.png",image: "gardenwoodland/XC878065_Yellow-breastedApalis.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC878065", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Bar-throated Apalis", afrikaans: "Bandkeelkleinjantjie", hotspot: "Roodeplaat Nature Reserve", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "gardenwoodland/XC1102549_Bar-throatedApalis.mp3", spectrogram: "gardenwoodland/XC1102549_Bar-throatedApalis.png",image: "gardenwoodland/XC1102549_Bar-throatedApalis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102549", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+{english: "Bar-throated Apalis", afrikaans: "Bandkeelkleinjantjie", hotspot: "Roodeplaat Nature Reserve", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "gardenwoodland/XC1102549_Bar-throatedApalis.mp3", spectrogram: "gardenwoodland/XC1102549_Bar-throatedApalis.png",image: "gardenwoodland/XC1102549_Bar-throatedApalis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102549", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Brown Scrub Robin", afrikaans: "Bruinwipstert", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Garden", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC279972_BrownScrubRobin.mp3", spectrogram: "gardenwoodland/XC279972_BrownScrubRobin.png",image: "gardenwoodland/XC279972_BrownScrubRobin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279972", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Bearded Scrub Robin", afrikaans: "Baardwipstert", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger NP Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC948017_BeardedScrubRobin.mp3", spectrogram: "gardenwoodland/XC948017_BeardedScrubRobin.png",image: "gardenwoodland/XC948017_BeardedScrubRobin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC948017", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Kalahari Scrub Robin", afrikaans: "Kalahariwipstert", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC695669_KalahariScrubRobin.mp3", spectrogram: "gardenwoodland/XC695669_KalahariScrubRobin.png",image: "gardenwoodland/XC695669_KalahariScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC695669", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "White-browed Scrub Robin", afrikaans: "Gestreepte wipstert", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC834106_White-browedScrubRobin.mp3", spectrogram: "gardenwoodland/XC834106_White-browedScrubRobin.png",image: "gardenwoodland/XC834106_White-browedScrubRobin.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC834106", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Arnot's Chat", afrikaans: "Bontpiek", hotspot: "Kruger NP Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC398145_ArnotsChat.mp3", spectrogram: "gardenwoodland/XC398145_ArnotsChat.png",image: "gardenwoodland/XC398145_ArnotsChat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC398145", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Common Sqaure-tailed Drongo", afrikaans: "Kleinbyvanger", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC652469_CommonSquare-tailedDrongo.mp3", spectrogram: "gardenwoodland/XC652469_CommonSquare-tailedDrongo.png",image: "gardenwoodland/XC652469_CommonSquare-tailedDrongo.jpg", photographer: "Marna Buys", credit: "© Niall Perrins, www.xeno-canto.org, XC652469", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red-capped Robin-Chat song & immitation", afrikaans: "Nataljanfrederik sing & mimiek", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger NP Pafuri", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC280179_Red-cappedRobin-Chat.mp3", spectrogram: "gardenwoodland/XC280179_Red-cappedRobin-Chat.png",image: "gardenwoodland/XC280179_Red-cappedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280179", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Red-capped Robin-Chat contact call", afrikaans: "Nataljanfrederik kontak", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger NP Pafuri", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC349556_Red-cappedRobin-Chat.mp3", spectrogram: "gardenwoodland/XC349556_Red-cappedRobin-Chat.png",image: "gardenwoodland/XC349556_Red-cappedRobin-Chat.jpg", photographer: "Marna Buys", credit: "© Lisa Boocock, www.xeno-canto.org, XC349556", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Noise reduction applied"},
+
+{english: "Eastern Nicator", afrikaans: "Geelvleknikator", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger NP Pafuri", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "gardenwoodland/XC398160_EasternNicator.mp3", spectrogram: "gardenwoodland/XC398160_EasternNicator.png",image: "gardenwoodland/XC398160_EasternNicator.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC398160", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Olive Bushshrike", afrikaans: "Olyfboslaksman", hotspot: "General", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC779397_OliveBushshrike.mp3", spectrogram: "gardenwoodland/XC779397_OliveBushshrike.png",image: "gardenwoodland/XC779397_OliveBushshrike.jpg", photographer: "Marna Buys", credit: "© Rick Nuttall, www.xeno-canto.org, XC779397", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Coppery-tailed Coucal", afrikaans: "Grootvleiloerie", hotspot: "Caprivi/Chobe", habitat: "Wetland", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC854393_Coppery-tailedCoucal.mp3", spectrogram: "gardenwoodland/XC854393_Coppery-tailedCoucal.png",image: "gardenwoodland/XC854393_Coppery-tailedCoucal.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC854393", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Senegal Coucal", afrikaans: "Senegalvleiloerie", hotspot: "Caprivi/Chobe; Kruger NP Pafuri", habitat: "Grassland; Scrub", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC819110_SenegalCoucal.mp3", spectrogram: "gardenwoodland/XC819110_SenegalCoucal.png",image: "gardenwoodland/XC819110_SenegalCoucal.jpg", photographer: "Marna Buys", credit: "© Rick Nuttall, www.xeno-canto.org, XC819110", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
+
   
 ];
