@@ -368,7 +368,8 @@ audio: "All birds/XC446697_ChoristerRobin-Chat.mp3", spectrogram: "All birds/XC4
 {english: "Blackcap Bush", afrikaans: "Tiptol Rooibek", hotspot: "Drakensberg & Sani Pass", habitat: "Forest", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC459480_BushBlackcap.mp3", spectrogram: "All birds/XC459480_BushBlackcap.png",image: "All birds/XC459480_BushBlackcap.jpg", photographer: "Marna Buys", credit: "© Rafael Nussbaumer, www.xeno-canto.org, XC459480", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Chat Buff-streaked", afrikaans: "Wagter Bergklip", hotspot: "Drakensberg & Sani Pass", habitat: "Grassland; Rocky area", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "All birds/XC517512_Buff-streakedChat.mp3", spectrogram: "All birds/XC517512_Buff-streakedChat.png",image: "All birds/XC517512_Buff-streakedChat.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC517512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+{english: "Chat Buff-streaked", afrikaans: "Wagter Bergklip", hotspot: "Drakensberg & Sani Pass", habitat: "Grassland; Rocky area", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "All birds/XC517512_Buff-streakedChat.mp3", spectrogram: "All birds/XC517512_Buff-streakedChat.png",image: "All birds/XC517512_Buff-streakedChat.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC517512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
 
 
 ];
