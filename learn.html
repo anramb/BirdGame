@@ -193,7 +193,7 @@
             <select id="filterType">
                 <option value="all">All Birds</option>
                 <option value="group">By Group</option>
-                <option value="hotspot">By Hotspot</option>
+                <option value="hotspot">By Hotspot Specials</option>
             </select>
             <select id="filterValue" style="display: none;">
                 <option value="">Select...</option>
@@ -250,11 +250,11 @@
             if (currentLanguage === 'af') {
                 filterType.options[0].text = 'Alle Voëls';
                 filterType.options[1].text = 'Per Groep';
-                filterType.options[2].text = 'Per Hotspot';
+                filterType.options[2].text = 'Per Hotspot Specials';
             } else {
                 filterType.options[0].text = 'All Birds';
                 filterType.options[1].text = 'By Group';
-                filterType.options[2].text = 'By Hotspot';
+                filterType.options[2].text = 'By Hotspot Specials';
             }
         }
         
@@ -451,5 +451,7 @@
             }
         });
     </script>
+    
+    <div style="text-align: center; padding: 15px 0 10px; color: #999; font-size: 0.75em;">Created by Marna Buys with Windsurf</div>
 </body>
 </html>

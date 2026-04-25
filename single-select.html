@@ -226,8 +226,14 @@
             </div>
             
             <audio id="audioPlayer" controls></audio>
+            
+            <div style="margin-top: 15px; text-align: center;">
+                <button id="nextBirdBtn" onclick="nextBird()" class="btn">Next Bird ▶</button>
+            </div>
         </div>
     </div>
+    
+    <div style="text-align: center; padding: 15px 0 10px; color: #999; font-size: 0.75em;">Created by Marna Buys with Windsurf</div>
     
     <script src="allbirds.js"></script>
     <script src="spectrogram-generator.js"></script>
@@ -283,8 +289,19 @@
             }
             
             currentBird = allbirds[index];
+            currentBirdIndex = parseInt(index);
             displayBird();
         });
+        
+        let currentBirdIndex = -1;
+        
+        function nextBird() {
+            if (!allbirds || allbirds.length === 0) return;
+            currentBirdIndex = (currentBirdIndex + 1) % allbirds.length;
+            currentBird = allbirds[currentBirdIndex];
+            document.getElementById('birdSelector').value = currentBirdIndex;
+            displayBird();
+        }
         
         // Display bird
         function displayBird() {
