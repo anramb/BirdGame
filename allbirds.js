@@ -281,7 +281,7 @@ audio: "All birds/XC632299_MarshWarbler.mp3", spectrogram: "All birds/XC632299_M
 
 {english: "Apalis Bar-throated", afrikaans: "Kleinjantjie Bandkeel", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "All birds/XC1102549_Bar-throatedApalis.mp3", spectrogram: "All birds/XC1102549_Bar-throatedApalis.png",image: "All birds/XC1102549_Bar-throatedApalis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102549", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Scrub Robin Brown", afrikaans: Wipstert Bruin", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Garden", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Scrub Robin Brown", afrikaans: "Wipstert Bruin", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Garden", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC279972_BrownScrubRobin.mp3", spectrogram: "All birds/XC279972_BrownScrubRobin.png",image: "All birds/XC279972_BrownScrubRobin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279972", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Scrub Robin Bearded", afrikaans: "Wipstert Baard", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger NP Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
@@ -318,7 +318,7 @@ audio: "All birds/XC854393_Coppery-tailedCoucal.mp3", spectrogram: "All birds/XC
 audio: "All birds/XC819110_SenegalCoucal.mp3", spectrogram: "All birds/XC819110_SenegalCoucal.png",image: "All birds/XC819110_SenegalCoucal.jpg", photographer: "Marna Buys", credit: "© Rick Nuttall, www.xeno-canto.org, XC819110", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Bradfield's Hornbill", afrikaans: "Bradfieldneushoringvoël", hotspot: "Caprivi/Chobe", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
-audio: "All birds/XC346862_BradfieldsHornbill.mp3", spectrogram: "All birds/XC346862_BradfieldsHornbill.mp3",image: "All birds/XC346862_BradfieldsHornbill.mp3", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC346862", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+audio: "All birds/XC346862_BradfieldsHornbill.mp3", spectrogram: "All birds/XC346862_BradfieldsHornbill.png",image: "All birds/XC346862_BradfieldsHornbill.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC346862", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Boubou Swamp", afrikaans: "Waterfiskaal Moeras", hotspot: "Caprivi/Chobe", habitat: "Forest; Woodland; Mangrove", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC346835_SwampBoubou.mp3", spectrogram: "All birds/XC346835_SwampBoubou.png",image: "All birds/XC346835_SwampBoubou.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC346835", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
