@@ -2,222 +2,470 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bird Sound ID</title>
-
+<title>Bird Sound ID - Game Mode</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  font-family: Arial;
-  max-width: 600px;
-  margin:auto;
-  padding:10px;
-  padding-bottom: 50px;
-  font-size:14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 50px;
+    min-height: 100vh;
 }
 
-h2 { margin-bottom:5px; }
-
-.controls, .filters {
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:6px;
-  margin-bottom:8px;
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-button {
-  padding:10px;
-  font-size:14px;
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+h1 {
+    color: #333;
+    margin: 0;
+    font-size: 1.8em;
+}
+
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    width: 100%;
+    transition: transform 0.2s;
+}
+
+.btn-start:hover {
+    transform: translateY(-2px);
+}
+
+.btn-review {
+    background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.btn-review:hover {
+    transform: translateY(-2px);
+}
+
+.btn-next {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.btn-next:hover {
+    transform: translateY(-2px);
+}
+
+.subtitle {
+    font-size: 0.95em;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    margin-bottom: 15px;
+}
+
+.filter-label {
+    font-weight: bold;
+    font-size: 0.85em;
+    color: #555;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 select {
-  padding:6px;
-  font-size:14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 2px solid #667eea;
+    font-size: 0.95em;
+    background: white;
+    color: #333;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-#mainBtn {
-  width:100%;
-  background:#007bff;
-  color:white;
-  font-weight:bold;
+select:focus {
+    outline: none;
+    border-color: #764ba2;
 }
 
 #options {
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:6px;
-  margin-top:10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
 }
 
-img {
-  width:100%;
-  margin-top:8px;
-  border:1px solid #ccc;
+#options button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+    transition: transform 0.2s, opacity 0.2s;
 }
 
+#options button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
 
 /* BIRD IMAGE WITH COPYRIGHT */
 #birdImage {
-  width: 100%;
-  height: 180px;        /* kleiner vir beter display */
-  object-fit: contain;  /* belangrik: wys hele prent */
-  background: #ffffff;  /* net vir netjiese spasie */
-  margin-top: 8px;
-  border: 1px solid #ccc;
-  position: relative;
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    background: #ffffff;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    position: relative;
 }
 
 .bird-photo-container {
-  position: relative;
-  width: 100%;
-  margin-top: 8px;
+    position: relative;
+    width: 100%;
+    margin-top: 10px;
 }
 
 .copyright-overlay {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 3px 6px;
-  font-size: 10px;
-  border-radius: 3px;
-  font-family: Arial, sans-serif;
-  z-index: 10;
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    font-family: Arial, sans-serif;
+    z-index: 10;
 }
 
 #info {
-  margin-top:8px;
-  padding-top:8px;
-  border-top:1px solid #ddd;
-  font-size:13px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+    font-size: 0.9em;
+    color: #444;
 }
 
 .bottomButtons {
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:6px;
-  margin-top:10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
 }
 
-#reviewBtn {
-  background:#ffc107;
+.correct { color: #28a745; font-weight: bold; }
+.wrong { color: #dc3545; font-weight: bold; }
+
+/* Spectrogram styles */
+.spectrogram-outer {
+    margin: 15px 0;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 8px;
 }
 
-.correct { color: green; font-weight:bold; }
-.wrong { color: red; font-weight:bold; }
-
-.back-link {
-  display: inline-block;
-  margin-bottom: 10px;
-  color: #007bff;
-  text-decoration: none;
-  font-size: 14px;
+.spectrogram-scroll {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 220px;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
-.back-link:hover {
-  text-decoration: underline;
+.spectrogram-scroll canvas {
+    display: block;
+    height: 200px;
 }
 
+.spectrogram-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background-color: red;
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+    box-shadow: 0 0 4px rgba(255,0,0,0.6);
+}
+
+.spectrogram-time-axis {
+    height: 18px;
+    position: relative;
+    color: #aaa;
+    font-size: 10px;
+    font-family: monospace;
+}
+
+.spectrogram-loading {
+    color: #aaa;
+    text-align: center;
+    padding: 80px 0;
+    font-size: 0.95em;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 15px 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 1.4em;
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+    
+    #options {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .bottomButtons {
+        grid-template-columns: 1fr 1fr;
+    }
+}
 </style>
 </head>
 
 <body>
-
-<a href="start.html" class="back-link">← Back to Menu</a>
-
-<h2>Bird Sound ID</h2>
-
-<div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-<!-- LANGUAGE -->
-<select id="lang">
-  <option value="en">English</option>
-  <option value="af">Afrikaans</option>
-</select>
-</div>
-
-<p style="font-size:13px; color:#666;">
-Improve your bird sound identification skills using real recordings and spectrograms.
-</p>
-
-<!-- CATEGORY -->
-<div class="filters">
-<p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select group of birds</p>
-<select id="category" onchange="changeCategory()">
-  <option value="allbirds">All birds</option>
-  <option value="cisticolas">Cisticolas</option>
-  <option value="gardenwoodland">Garden and Woodland</option>  
-  <option value="groundbirds">Groundbirds</option>  
-  <option value="LBJs">LBJs</option>  
-  <option value="other">Other</option>  
-  <option value="raptors">Raptors</option>
-  <option value="seedeaters">Seedeaters</option>  
-  <option value="waders">Waders</option>
-  <option value="warblers">Warblers</option>  
-  <option value="waterbirds">Waterbirds</option>
-
-</select>
-</div>
-
-<!-- FILTERS -->
-<div class="filters">
-<p style="margin:0 0 5px 0; font-weight:bold; font-size:12px;">Select hotspot or habitat</p>
-<select id="filterType" onchange="updateFilterOptions()">
-  <option value="none">All</option>
-  <option value="habitat">Habitat</option>
-  <option value="hotspot">Hotspot</option>
-</select>
-
-<select id="filterValue"></select>
-
-<select id="levelFilter">
-  <option value="">All Levels</option>
-  <option value="1">Level 1</option>
-  <option value="2">Level 2</option>
-  <option value="3">Level 3</option>
-</select>
-
-<button id="mainBtn" onclick="startOrPlay()">Start / Play / Pause</button>
-
-</div>
-
-<hr>
-
-<div id="gameArea" style="display:none;">
-
-<img id="spectrogram">
-
-<div class="bird-photo-container">
-  <img id="birdImage" style="display:none;">
-  <div class="copyright-overlay" id="copyrightOverlay" style="display:none;"></div>
-</div>
-
-<div id="options"></div>
-
-<div id="info"></div>
-
-<div class="bottomButtons">
-<button id="reviewBtn" onclick="reviewMode()">Review</button>
-<button onclick="nextBird()">Next</button>
-</div>
-
-</div>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Game Mode</h1>
+            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+        </div>
+        
+        <p class="subtitle">Improve your bird sound identification skills using real recordings and spectrograms.</p>
+        
+        <div style="display:flex; justify-content:flex-end; margin-bottom:15px;">
+            <select id="lang" style="width: auto;">
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+            </select>
+        </div>
+        
+        <!-- CATEGORY -->
+        <div class="filter-section">
+            <span class="filter-label">Select group of birds</span>
+            <select id="category" onchange="changeCategory()">
+                <option value="allbirds">All birds</option>
+                <option value="cisticolas">Cisticolas</option>
+                <option value="gardenwoodland">Garden and Woodland</option>
+                <option value="groundbirds">Groundbirds</option>
+                <option value="LBJs">LBJs</option>
+                <option value="other">Other</option>
+                <option value="raptors">Raptors</option>
+                <option value="seedeaters">Seedeaters</option>
+                <option value="waders">Waders</option>
+                <option value="warblers">Warblers</option>
+                <option value="waterbirds">Waterbirds</option>
+            </select>
+        </div>
+        
+        <!-- FILTERS -->
+        <div class="filter-section">
+            <span class="filter-label">Select hotspot or habitat</span>
+            <div class="filter-row">
+                <select id="filterType" onchange="updateFilterOptions()">
+                    <option value="none">All</option>
+                    <option value="habitat">Habitat</option>
+                    <option value="hotspot">Hotspot</option>
+                </select>
+                <select id="filterValue"></select>
+            </div>
+            <div class="filter-row">
+                <select id="levelFilter">
+                    <option value="">All Levels</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                </select>
+            </div>
+            <button id="mainBtn" class="btn-start" onclick="startOrPlay()">Start / Play / Pause</button>
+        </div>
+        
+        <hr>
+        
+        <div id="gameArea" style="display:none;">
+            
+            <!-- Scrollable spectrogram -->
+            <div class="spectrogram-outer" id="spectrogramOuter" style="display: none;">
+                <div class="spectrogram-scroll" id="spectrogramScroll">
+                    <canvas id="spectrogramCanvas"></canvas>
+                    <div class="spectrogram-line" id="spectrogramLine"></div>
+                </div>
+                <div class="spectrogram-time-axis" id="timeAxis"></div>
+            </div>
+            
+            <!-- Fallback static spectrogram (hidden by default when scrollable is used) -->
+            <img id="spectrogram" style="width:100%; border-radius:8px; border:1px solid #ddd;">
+            
+            <div class="bird-photo-container">
+                <img id="birdImage" style="display:none;">
+                <div class="copyright-overlay" id="copyrightOverlay" style="display:none;"></div>
+            </div>
+            
+            <div id="options"></div>
+            
+            <div id="info"></div>
+            
+            <div class="bottomButtons">
+                <button id="reviewBtn" class="btn-review" onclick="reviewMode()">Review</button>
+                <button class="btn-next" onclick="nextBird()">Next</button>
+            </div>
+        </div>
+    </div>
 
 <script src="allbirds.js"></script>
 <script src="cisticolas.js"></script>
-<script src="gardenwoodland.js"></script>  
-<script src="groundbirds.js"></script>  
-<script src="LBJs.js"></script>  
-<script src="other.js"></script>  
-<script src="raptors.js"></script>  
-<script src="seedeaters.js"></script>  
+<script src="gardenwoodland.js"></script>
+<script src="groundbirds.js"></script>
+<script src="LBJs.js"></script>
+<script src="other.js"></script>
+<script src="raptors.js"></script>
+<script src="seedeaters.js"></script>
 <script src="waders.js"></script>
-<script src="warblers.js"></script>  
+<script src="warblers.js"></script>
 <script src="waterbirds.js"></script>
 
-
+<script src="spectrogram-generator.js"></script>
 <script src="interactive-spectrogram.js"></script>
 <script src="app.js"></script>
+
+<script>
+// Scrollable spectrogram for game mode
+let gameSpectrogramReady = false;
+let gameTotalCanvasWidth = 0;
+const gameCanvas = document.getElementById('spectrogramCanvas');
+const gameSpectrogramLine = document.getElementById('spectrogramLine');
+const gameSpectrogramOuter = document.getElementById('spectrogramOuter');
+const gameSpectrogramScroll = document.getElementById('spectrogramScroll');
+const gameTimeAxis = document.getElementById('timeAxis');
+
+async function generateGameSpectrogram(audioSrc) {
+    gameSpectrogramReady = false;
+    gameTotalCanvasWidth = 0;
+    
+    const result = await generateScrollableSpectrogram(audioSrc, {
+        canvas: gameCanvas,
+        scrollContainer: gameSpectrogramScroll,
+        line: gameSpectrogramLine,
+        timeAxis: gameTimeAxis,
+        outerContainer: gameSpectrogramOuter,
+        pxPerSec: 75,
+        canvasHeight: 200,
+        audioElement: audio
+    });
+    
+    gameSpectrogramReady = result.ready;
+    gameTotalCanvasWidth = result.totalWidth;
+    
+    // Hide static spectrogram if scrollable one works
+    if (result.ready) {
+        document.getElementById('spectrogram').style.display = 'none';
+    }
+}
+
+// Hook into app.js audio events
+audio.addEventListener('timeupdate', function() {
+    updateSpectrogramLine(audio, gameSpectrogramLine, gameSpectrogramScroll, gameTotalCanvasWidth, gameSpectrogramReady);
+});
+
+audio.addEventListener('play', function() {
+    if (gameSpectrogramReady) {
+        gameSpectrogramLine.style.display = 'block';
+        updateSpectrogramLine(audio, gameSpectrogramLine, gameSpectrogramScroll, gameTotalCanvasWidth, gameSpectrogramReady);
+    }
+});
+
+audio.addEventListener('ended', function() {
+    gameSpectrogramLine.style.display = 'none';
+});
+
+setupSpectrogramClick(gameSpectrogramScroll, gameCanvas, audio,
+    function() { return gameTotalCanvasWidth; },
+    function() { return gameSpectrogramReady; }
+);
+
+// Override nextBird to also generate spectrogram
+const originalNextBird = nextBird;
+nextBird = function() {
+    originalNextBird();
+    if (currentBird && currentBird.audio) {
+        generateGameSpectrogram(currentBird.audio);
+    }
+};
+</script>
 
 <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #999; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
 </body>
