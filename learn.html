@@ -195,6 +195,7 @@
                 <option value="all">All Birds</option>
                 <option value="group">By Group</option>
                 <option value="hotspot">By Hotspot Specials</option>
+                <option value="habitat">By Habitat</option>
             </select>
             <select id="filterValue" style="display: none;">
                 <option value="">Select...</option>
@@ -252,10 +253,12 @@
                 filterType.options[0].text = 'Alle Voëls';
                 filterType.options[1].text = 'Per Groep';
                 filterType.options[2].text = 'Per Hotspot Specials';
+                filterType.options[3].text = 'Per Habitat';
             } else {
                 filterType.options[0].text = 'All Birds';
                 filterType.options[1].text = 'By Group';
                 filterType.options[2].text = 'By Hotspot Specials';
+                filterType.options[3].text = 'By Habitat';
             }
         }
         
@@ -309,6 +312,24 @@
                     option.textContent = spot;
                     filterValue.appendChild(option);
                 });
+            } else if (type === 'habitat') {
+                const habitats = new Set();
+                if (typeof allbirds !== 'undefined') {
+                    allbirds.forEach(bird => {
+                        if (bird.habitat) {
+                            bird.habitat.split(';').forEach(h => {
+                                const trimmed = h.trim();
+                                if (trimmed) habitats.add(trimmed);
+                            });
+                        }
+                    });
+                }
+                Array.from(habitats).sort().forEach(hab => {
+                    const option = document.createElement('option');
+                    option.value = hab;
+                    option.textContent = hab;
+                    filterValue.appendChild(option);
+                });
             }
         });
         
@@ -345,6 +366,12 @@
                 if (filterValue && typeof allbirds !== 'undefined') {
                     playlist = allbirds.filter(bird => 
                         bird.hotspot && bird.hotspot.includes(filterValue)
+                    );
+                }
+            } else if (filterType === 'habitat') {
+                if (filterValue && typeof allbirds !== 'undefined') {
+                    playlist = allbirds.filter(bird => 
+                        bird.habitat && bird.habitat.split(';').some(h => h.trim() === filterValue)
                     );
                 }
             }
