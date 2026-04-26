@@ -110,7 +110,54 @@ audio: "gardenwoodland/XC819110_SenegalCoucal.mp3", spectrogram: "gardenwoodland
 
 {english: "Bush Blackcap", afrikaans: "Rooibektiptol", hotspot: "Drakensberg & Sani Pass", habitat: "Forest", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "gardenwoodlandXC459480_BushBlackcap.mp3", spectrogram: "gardenwoodlandXC459480_BushBlackcap.png",image: "gardenwoodlandXC459480_BushBlackcap.jpg", photographer: "Marna Buys", credit: "© Rafael Nussbaumer, www.xeno-canto.org, XC459480", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Buff-streaked Chat", afrikaans: "Bergklipwagter", hotspot: "Drakensberg & Sani Pass", habitat: "Grassland; Rocky area", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "gardenwoodland/XC517512_Buff-streakedChat.mp3", spectrogram: "gardenwoodland/XC517512_Buff-streakedChat.png",image: "gardenwoodland/XC517512_Buff-streakedChat.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC517512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+{english: "Buff-streaked Chat", afrikaans: "Bergklipwagter", hotspot: "Drakensberg & Sani Pass", habitat: "Grassland; Rocky area", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "gardenwoodland/XC517512_Buff-streakedChat.mp3", spectrogram: "gardenwoodland/XC517512_Buff-streakedChat.png",image: "gardenwoodland/XC517512_Buff-streakedChat.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC517512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Brown-hooded Kingfisher", afrikaans: "Bruinkopvisvanger", hotspot: "General", habitat: "Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC1103069_Brown-hoodedKingfisher.mp3", spectrogram: "gardenwoodland/XC1103069_Brown-hoodedKingfisher.png",image: "gardenwoodland/XC1103069_Brown-hoodedKingfisher.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103069", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Grey-headed Kingfisher", afrikaans: "Gryskopvisvanger", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC758769_Grey-headedKingfisher.mp3", spectrogram: "gardenwoodland/XC758769_Grey-headedKingfisher.png",image: "gardenwoodland/XC758769_Grey-headedKingfisher.jpg", photographer: "Marna Buys", credit: "© Nature sounds by Simply Birding, www.xeno-canto.org, XC758769", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Striped Kingfisher", afrikaans: "Gestreepte Visvanger", hotspot: "General", habitat: "Woodland; Savanna", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC266879_StripedKingfisher.mp3", spectrogram: "gardenwoodland/XC266879_StripedKingfisher.png",image: "gardenwoodland/XC266879_StripedKingfisher.jpg", photographer: "Marna Buys", credit: "© Andrew Spencer, www.xeno-canto.org, XC266879", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Woodland Kingfisher 2 birds interacting", afrikaans: "Bosveldvisvanger 2 voëls interaksie", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "gardenwoodland/XC268610_WoodlandKingfisher.mp3", spectrogram: "gardenwoodland/XC268610_WoodlandKingfisher.png",image: "gardenwoodland/XC268610_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Andrew Spencer, www.xeno-canto.org, XC268610", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Woodland Kingfisher", afrikaans: "Bosveldvisvanger", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC280342_WoodlandKingfisher.mp3", spectrogram: "gardenwoodland/XC280342_WoodlandKingfisher.png",image: "gardenwoodland/XC280342_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280342, background birds: black-headed oriole, emerald-spotted wood-dove", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Woodland Kingfisher alarm call", afrikaans: "Bosveldvisvanger waarskuwingsroep", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC213653_WoodlandKingfisher.mp3", spectrogram: "gardenwoodland/XC213653_WoodlandKingfisher.png",image: "gardenwoodland/XC213653_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Tom Wulf www.xeno-canto.org, XC213653", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Red-faced Mousebird", afrikaans: "Rooiwangmuisvoël", hotspot: "General", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC1071005_Red-facedMousebird.mp3", spectrogram: "gardenwoodland/XC1071005_Red-facedMousebird.png",image: "gardenwoodland/XC1071005_Red-facedMousebird.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC1071005", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Speckled Mousebird", afrikaans: "Gevlekte Muisvoël", hotspot: "General", habitat: "Savanna; Gardens", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+audio: "gardenwoodland/XC1103077_SpeckledMousebird.mp3", spectrogram: "gardenwoodland/XC1103077_SpeckledMousebird.png",image: "gardenwoodland/XC1103077_SpeckledMousebird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103077", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Black-Collared Barbet", afrikaans: "Rooikophoutkapper", hotspot: "General", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC366605_Black-collaredBarbet.mp3", spectrogram: "gardenwoodland/XC366605_Black-collaredBarbet.png",image: "gardenwoodland/XC366605_Black-collaredBarbet.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC366605", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Crested Barbet", afrikaans: "Kuifkophoutkapper", hotspot: "General", habitat: "Woodland; Garden; Grassland; Savanna", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC963012_CrestedBarbet.mp3", spectrogram: "gardenwoodland/XC963012_CrestedBarbet.png",image: "gardenwoodland/XC963012_CrestedBarbet.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC963012", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Yellow-fronted Tinkerbird Variation of Call", afrikaans: "Geelblestinker Variasie van roep", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC1103079_Yellow-frontedTinkerbird.mp3", spectrogram: "gardenwoodland/XC1103079_Yellow-frontedTinkerbird.png",image: "gardenwoodland/XC1103079_Yellow-frontedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103079", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Yellow-fronted Tinkerbird", afrikaans: "Geelblestinker", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC1103080_Yellow-frontedTinkerbird.mp3", spectrogram: "gardenwoodland/XC1103080_Yellow-frontedTinkerbird.png",image: "gardenwoodland/XC1103080_Yellow-frontedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Yellow-rumped Tinkerbird", afrikaans: "Swartblestinker", hotspot: "Isimangaliso; Mpumalanga; Kruger National Park", habitat: "Forest; Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC356232_Yellow-rumpedTinkerbird.mp3", spectrogram: "gardenwoodland/XC356232_Yellow-rumpedTinkerbird.png",image: "gardenwoodland/XC356232_Yellow-rumpedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Gerard Gorman, www.xeno-canto.org, XC356232", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Golden-tailed Woodpecker", afrikaans: "Goudstertspeg", hotspot: "General", habitat: "Savanna; Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC346653_Golden-tailedWoodpecker.mp3", spectrogram: "gardenwoodland/XC346653_Golden-tailedWoodpecker.png",image: "gardenwoodland/XC346653_Golden-tailedWoodpecker.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC346653", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Cardinal Woodpecker Alarm Call", afrikaans: "Kardinaalspeg Waarskuwingsroep", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC424181_CardinalWoodpecker.mp3", spectrogram: "gardenwoodland/XC424181_CardinalWoodpecker.png",image: "gardenwoodland/XC424181_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC424181", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Cardinal Woodpecker", afrikaans: "Kardinaalspeg", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+audio: "gardenwoodland/XC280247_CardinalWoodpecker.mp3", spectrogram: "gardenwoodland/XC280247_CardinalWoodpecker.png",image: "gardenwoodland/XC280247_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280247, background birds: cape robin-chat", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
 
   
 ];

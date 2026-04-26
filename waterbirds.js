@@ -19,6 +19,18 @@ const waterbirds = [
  audio: "waterbirds/XC280512_Black-crownedNightHeron.mp3", spectrogram: "waterbirds/XC280512_Black-crownedNightHeron.png", image: "waterbirds/XC280512_Black-crownedNightHeron.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Squacco Heron", afrikaans: "Ralreier", hotspot: "Zaagkuildrift", habitat: "Wetland", birdgroup: "Waterbirds", level: "3 Advanced",
- audio: "waterbirds/XC299963_SquaccoHeron.mp3", spectrogram: "waterbirds/XC299963_SquaccoHeron.png", image: "waterbirds/XC299963_SquaccoHeron.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC299963", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+ audio: "waterbirds/XC299963_SquaccoHeron.mp3", spectrogram: "waterbirds/XC299963_SquaccoHeron.png", image: "waterbirds/XC299963_SquaccoHeron.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC299963", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Giant Kingfisher", afrikaans: "Reusevisvanger", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "2 Intermediate", 
+audio: "waterbirds/XC890726_GiantKingfisher.mp3", spectrogram: "waterbirds/XC890726_GiantKingfisher.png",image: "waterbirds/XC890726_GiantKingfisher.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC890726", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Pied Kingfisher", afrikaans: "Bontvisvanger", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "3 Advanced", 
+audio: "waterbirds/XC956316_PiedKingfisher.mp3", spectrogram: "waterbirds/XC956316_PiedKingfisher.png",image: "waterbirds/XC956316_PiedKingfisher.jpg", photographer: "Marna Buys", credit: "© Magnus Wadstein www.xeno-canto.org, XC956316", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+
+{english: "Malachite Kingfisher", afrikaans: "Kuifkopvisvanger", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "3 Advanced", 
+audio: "waterbirds/XC18422_MalachiteKingfisher.mp3", spectrogram: "waterbirds/XC18422_MalachiteKingfisher.png",image: "waterbirds/XC18422_MalachiteKingfisher.jpg", photographer: "Marna Buys", credit: "© Frank Bruneliere Grandeur Nature Safaris www.xeno-canto.org, XC18422", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/2.5/", changes: "Original recording"},
+
+{english: "Half-collared Kingfisher", afrikaans: "Blouvisvanger", hotspot: "General", habitat: "Rivers", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+audio: "gardenwoodland/XC645323_Half-collaredKingfisher.mp3", spectrogram: "gardenwoodland/XC645323_Half-collaredKingfisher.png",image: "gardenwoodland/XC645323_Half-collaredKingfisher.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC645323", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 ];
