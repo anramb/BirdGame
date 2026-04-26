@@ -89,7 +89,7 @@ const allbirds = [
 {english: "Weaver Dark-backed", afrikaans: "Bosmusikant", hotspot: "General", habitat: "Forest; Woodland", birdgroup: "Seedeaters", level: "2 Intermediate", 
  audio: "All birds/XC923579_Dark-backedWeaver.mp3", spectrogram: "All birds/XC923579_Dark-backedWeaver.png", image: "All birds/XC923579_Dark-backedWeaver.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC923579", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Seedeater Streaky-headed", afrikaans: "Kanarie Streepkop", hotspot: "General", habitat: "Woodland; Scrub; Fynbos", birdgroup: "Seedeaters", level: "2 Intermediate", 
+{english: "Seedeater Streaky-headed", afrikaans: "Kanarie Streepkop", hotspot: "General", habitat: "Woodland; Scrub; Fynbos; Garden", birdgroup: "Seedeaters", level: "2 Intermediate", 
  audio: "All birds/XC683134_Streaky-headedSeedeater.mp3", spectrogram: "All birds/XC683134_Streaky-headedSeedeater.png", image: "All birds/XC683134_Streaky-headedSeedeater.jpg", photographer: "Marna Buys", credit: "© Lynette Rudman, www.xeno-canto.org, XC683134", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Crake Striped", afrikaans: "Riethaan Gestreepte", hotspot: "Wider Gauteng 100km/Nylsvley", habitat: "Marsh; Flooded Grassland", birdgroup: "Waders", level: "2 Intermediate", 
@@ -371,63 +371,63 @@ audio: "All birds/XC459480_BushBlackcap.mp3", spectrogram: "All birds/XC459480_B
 {english: "Chat Buff-streaked", afrikaans: "Wagter Bergklip", hotspot: "Drakensberg & Sani Pass", habitat: "Grassland; Rocky area", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC517512_Buff-streakedChat.mp3", spectrogram: "All birds/XC517512_Buff-streakedChat.png",image: "All birds/XC517512_Buff-streakedChat.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC517512", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Brown-hooded Kingfisher", afrikaans: "Bruinkopvisvanger", hotspot: "General", habitat: "Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Kingfisher Brown-hooded", afrikaans: "Visvanger Bruinkop", hotspot: "General", habitat: "Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC1103069_Brown-hoodedKingfisher.mp3", spectrogram: "All Birds/XC1103069_Brown-hoodedKingfisher.png",image: "All Birds/XC1103069_Brown-hoodedKingfisher.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103069", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Grey-headed Kingfisher", afrikaans: "Gryskopvisvanger", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Kingfisher Grey-headed", afrikaans: "Visvanger Gryskop", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "All Birds/XC758769_Grey-headedKingfisher.mp3", spectrogram: "All Birds/XC758769_Grey-headedKingfisher.png",image: "All Birds/XC758769_Grey-headedKingfisher.jpg", photographer: "Marna Buys", credit: "© Nature sounds by Simply Birding, www.xeno-canto.org, XC758769", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Striped Kingfisher", afrikaans: "Gestreepte Visvanger", hotspot: "General", habitat: "Woodland; Savanna", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Kingfisher Striped", afrikaans: "Visvanger Gestreepte", hotspot: "General", habitat: "Woodland; Savanna", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "All Birds/XC266879_StripedKingfisher.mp3", spectrogram: "All Birds/XC266879_StripedKingfisher.png",image: "All Birds/XC266879_StripedKingfisher.jpg", photographer: "Marna Buys", credit: "© Andrew Spencer, www.xeno-canto.org, XC266879", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Woodland Kingfisher 2 birds interacting", afrikaans: "Bosveldvisvanger 2 voëls interaksie", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "All Birds/XC268610_WoodlandKingfisher.mp3", spectrogram: "All Birds/XC268610_WoodlandKingfisher.png",image: "All Birds/XC268610_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Andrew Spencer, www.xeno-canto.org, XC268610", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
+{english: "Kingfisher Woodland 2 birds interacting", afrikaans: "Visvanger Bosveld 2 voëls interaksie", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "All Birds/XC268610_WoodlandKingfisher.mp3", spectrogram: "All Birds/XC268610_WoodlandKingfisher.png",image: "All Birds/XC268610_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Andrew Spencer, www.xeno-canto.org, XC268610", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Woodland Kingfisher", afrikaans: "Bosveldvisvanger", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Kingfisher Woodland", afrikaans: "Visvanger Bosveld", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC280342_WoodlandKingfisher.mp3", spectrogram: "All Birds/XC280342_WoodlandKingfisher.png",image: "All Birds/XC280342_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280342, background birds: black-headed oriole, emerald-spotted wood-dove", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Woodland Kingfisher alarm call", afrikaans: "Bosveldvisvanger waarskuwingsroep", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Kingfisher Woodland alarm call", afrikaans: "Visvanger Bosveld waarskuwingsroep", hotspot: "General", habitat: "Woodland; Forest", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC213653_WoodlandKingfisher.mp3", spectrogram: "All Birds/XC213653_WoodlandKingfisher.png",image: "All Birds/XC213653_WoodlandKingfisher.jpg", photographer: "Marna Buys", credit: "© Tom Wulf www.xeno-canto.org, XC213653", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Red-faced Mousebird", afrikaans: "Rooiwangmuisvoël", hotspot: "General", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Mousebird Red-faced", afrikaans: "Muisvoël Rooiwang", hotspot: "General", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC1071005_Red-facedMousebird.mp3", spectrogram: "All Birds/XC1071005_Red-facedMousebird.png",image: "All Birds/XC1071005_Red-facedMousebird.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC1071005", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Speckled Mousebird", afrikaans: "Gevlekte Muisvoël", hotspot: "General", habitat: "Savanna; Gardens", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Mousebird Speckled", afrikaans: "Muisvoël Gevlekte", hotspot: "General", habitat: "Savanna; Gardens", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "All Birds/XC1103077_SpeckledMousebird.mp3", spectrogram: "All Birds/XC1103077_SpeckledMousebird.png",image: "All Birds/XC1103077_SpeckledMousebird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103077", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Black-Collared Barbet", afrikaans: "Rooikophoutkapper", hotspot: "General", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Barbet Black-Collared", afrikaans: "Houtkapper Rooikop", hotspot: "General", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC366605_Black-collaredBarbet.mp3", spectrogram: "All Birds/XC366605_Black-collaredBarbet.png",image: "All Birds/XC366605_Black-collaredBarbet.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC366605", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Crested Barbet", afrikaans: "Kuifkophoutkapper", hotspot: "General", habitat: "Woodland; Garden; Grassland; Savanna", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Barbet Crested", afrikaans: "Houtkapper Kuifkop", hotspot: "General", habitat: "Woodland; Garden; Grassland; Savanna", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC963012_CrestedBarbet.mp3", spectrogram: "All Birds/XC963012_CrestedBarbet.png",image: "All Birds/XC963012_CrestedBarbet.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC963012", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Yellow-fronted Tinkerbird Variation of Call", afrikaans: "Geelblestinker Variasie van roep", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Tinkerbird Yellow-fronted Variation of Call", afrikaans: "Tinker Geelbles Variasie van roep", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC1103079_Yellow-frontedTinkerbird.mp3", spectrogram: "All Birds/XC1103079_Yellow-frontedTinkerbird.png",image: "All Birds/XC1103079_Yellow-frontedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103079", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Yellow-fronted Tinkerbird", afrikaans: "Geelblestinker", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Tinkerbird Yellow-fronted", afrikaans: "Tinker Geelbles", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC1103080_Yellow-frontedTinkerbird.mp3", spectrogram: "All Birds/XC1103080_Yellow-frontedTinkerbird.png",image: "All Birds/XC1103080_Yellow-frontedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Yellow-rumped Tinkerbird", afrikaans: "Swartblestinker", hotspot: "Isimangaliso; Mpumalanga; Kruger National Park", habitat: "Forest; Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Tinkerbird Yellow-rumped", afrikaans: "Tinker Swartbles", hotspot: "Isimangaliso; Mpumalanga; Kruger National Park", habitat: "Forest; Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC356232_Yellow-rumpedTinkerbird.mp3", spectrogram: "All Birds/XC356232_Yellow-rumpedTinkerbird.png",image: "All Birds/XC356232_Yellow-rumpedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Gerard Gorman, www.xeno-canto.org, XC356232", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Golden-tailed Woodpecker", afrikaans: "Goudstertspeg", hotspot: "General", habitat: "Savanna; Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Woodpecker Golden-tailed", afrikaans: "Speg Goudstert", hotspot: "General", habitat: "Savanna; Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC346653_Golden-tailedWoodpecker.mp3", spectrogram: "All Birds/XC346653_Golden-tailedWoodpecker.png",image: "All Birds/XC346653_Golden-tailedWoodpecker.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC346653", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Cardinal Woodpecker Alarm Call", afrikaans: "Kardinaalspeg Waarskuwingsroep", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Woodpecker Cardinal Alarm Call", afrikaans: "Speg Kardinaal Waarskuwingsroep", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC424181_CardinalWoodpecker.mp3", spectrogram: "All Birds/XC424181_CardinalWoodpecker.png",image: "All Birds/XC424181_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC424181", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Cardinal Woodpecker", afrikaans: "Kardinaalspeg", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
+{english: "Woodpecker Cardinal", afrikaans: "Speg Kardinaal", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All Birds/XC280247_CardinalWoodpecker.mp3", spectrogram: "All Birds/XC280247_CardinalWoodpecker.png",image: "All Birds/XC280247_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280247, background birds: cape robin-chat", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Giant Kingfisher", afrikaans: "Reusevisvanger", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "2 Intermediate", 
+{english: "Kingfisher Giant", afrikaans: "Visvanger Reuse", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "2 Intermediate", 
 audio: "All Birds/XC890726_GiantKingfisher.mp3", spectrogram: "All Birds/XC890726_GiantKingfisher.png",image: "All Birds/XC890726_GiantKingfisher.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC890726", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Pied Kingfisher", afrikaans: "Bontvisvanger", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "3 Advanced", 
+{english: "Kingfisher Pied", afrikaans: "Visvanger Bont", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "3 Advanced", 
 audio: "All Birds/XC956316_PiedKingfisher.mp3", spectrogram: "All Birds/XC956316_PiedKingfisher.png",image: "All Birds/XC956316_PiedKingfisher.jpg", photographer: "Marna Buys", credit: "© Magnus Wadstein www.xeno-canto.org, XC956316", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Malachite Kingfisher", afrikaans: "Kuifkopvisvanger", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "3 Advanced", 
+{english: "Kingfisher Malachite", afrikaans: "Visvanger Kuifkop", hotspot: "General", habitat: "Rivers; Coastline; Lakes; Wetland", birdgroup: "Wetland", level: "3 Advanced", 
 audio: "All Birds/XC18422_MalachiteKingfisher.mp3", spectrogram: "All Birds/XC18422_MalachiteKingfisher.png",image: "All Birds/XC18422_MalachiteKingfisher.jpg", photographer: "Marna Buys", credit: "© Frank Bruneliere Grandeur Nature Safaris www.xeno-canto.org, XC18422", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/2.5/", changes: "Original recording"},
 
-{english: "Half-collared Kingfisher", afrikaans: "Blouvisvanger", hotspot: "General", habitat: "Rivers", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Kingfisher Half-collared", afrikaans: "Visvanger Blou", hotspot: "General", habitat: "Rivers", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All Birds/XC645323_Half-collaredKingfisher.mp3", spectrogram: "All Birds/XC645323_Half-collaredKingfisher.png",image: "All Birds/XC645323_Half-collaredKingfisher.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC645323", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
 
