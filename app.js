@@ -144,18 +144,10 @@ function nextBird() {
     playAudio(currentBird.audio);
   }
 
-  // Use interactive spectrogram if available, otherwise fallback to regular
-  if (currentBird?.spectrogram && typeof initInteractiveSpectrogram === 'function') {
-    initInteractiveSpectrogram(currentBird.audio, currentBird.spectrogram);
-  } else {
-    // Fallback to regular spectrogram
-    const spec = document.getElementById("spectrogram");
-    if (currentBird?.spectrogram) {
-      spec.src = currentBird.spectrogram;
-      spec.style.display = "block";
-    } else {
-      spec.style.display = "none";
-    }
+  // Hide static spectrogram image - dynamic spectrogram is generated from audio
+  const spec = document.getElementById("spectrogram");
+  if (spec) {
+    spec.style.display = "none";
   }
 
   const img = document.getElementById("birdImage");
