@@ -21,7 +21,7 @@ const allbirds = [
 {english: "Goshawk Gabar", afrikaans: "Sperwer Witkruis", hotspot: "General", habitat: "Savanna", birdgroup: "Raptors", level: "2 Intermediate", 
  audio: "All birds/XC1100393_GabarGoshawk.mp3", spectrogram: "All birds/XC1100393_GabarGoshawk.png", image: "All birds/XC1100393_GabarGoshawk.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1100393", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Bushshrike Gorgeous", afrikaans: "Konkoit", hotspot: "Isimangaliso; Kruger NP Pafuri; Magoebas/Soutpans-/Waterberg", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Bushshrike Gorgeous", afrikaans: "Konkoit", hotspot: "Isimangaliso; Kruger National Park - Pafuri; Magoebas/Soutpans-/Waterberg", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
  audio: "All birds/XC1100369_GorgeousBushshrike.mp3", spectrogram: "All birds/XC1100369_GorgeousBushshrike.png", image: "All birds/XC1100369_GorgeousBushshrike.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1100369", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Flycatcher Blue-mantled Crested", afrikaans: "Vlieëvanger Bloukuif", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Garden Route", habitat: "Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
@@ -30,10 +30,10 @@ const allbirds = [
 {english: "Batis Woodwards", afrikaans: "Bosbontrokkie Woodward", hotspot: "Isimangaliso", habitat: "Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
  audio: "All birds/XC1100685_WoodwardsBatis.mp3", spectrogram: "All birds/XC1100685_WoodwardsBatis.png", image: "All birds/XC1100685_WoodwardsBatis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1100685", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Roller Broad-billed", afrikaans: "Troupant Geelbek", hotspot: "Isimangaliso; Kruger NP Pafuri", habitat: "Grassland; Woodland; Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Roller Broad-billed", afrikaans: "Troupant Geelbek", hotspot: "Isimangaliso; Kruger National Park - Pafuri", habitat: "Grassland; Woodland; Forest", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
  audio: "All birds/XC398047_Broad-billedRoller.mp3", spectrogram: "All birds/XC398047_Broad-billedRoller.png", image: "All birds/XC398047_Broad-billedRoller.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC398047", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Roller Racket-tailed", afrikaans: "Troupant Knopstert", hotspot: "Kruger NP Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Roller Racket-tailed", afrikaans: "Troupant Knopstert", hotspot: "Kruger National Park - Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
  audio: "All birds/XC854403_Racket-tailedRoller.mp3", spectrogram: "All birds/XC854403_Racket-tailedRoller.png", image: "All birds/XC854403_Racket-tailedRoller.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC854403", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Roller Lilac-breasted", afrikaans: "Troupant Gewone", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
@@ -95,7 +95,7 @@ const allbirds = [
 {english: "Crake Striped", afrikaans: "Riethaan Gestreepte", hotspot: "Wider Gauteng 100km/Nylsvley", habitat: "Marsh; Grassland", birdgroup: "Waders", level: "2 Intermediate", 
  audio: "All birds/XC1079092_StripedCrake.mp3", spectrogram: "All birds/XC1079092_StripedCrake.png", image: "All birds/XC1079092_StripedCrake.jpg", photographer: "Marna Buys", credit: "© Niall Perrins, www.xeno-canto.org, XC1079092", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Gallinule Allen's", afrikaans: "Koningriethaan Klein", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger NP Pafuri", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate", 
+{english: "Gallinule Allen's", afrikaans: "Koningriethaan Klein", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park - Pafuri", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate", 
  audio: "All birds/XC1081358_AllensGallinule.mp3", spectrogram: "All birds/XC1081358_AllensGallinule.png", image: "All birds/XC1081358_AllensGallinule.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC1081358", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Swamphen African", afrikaans: "Koningriethaan Groot", hotspot: "General", habitat: "Wetland", birdgroup: "Waders", level: "2 Intermediate", 
@@ -107,7 +107,7 @@ const allbirds = [
 {english: "Moorhen Common", afrikaans: "Waterhoender Groot", hotspot: "General", habitat: "Marsh; Wetland", birdgroup: "Waders", level: "2 Intermediate", 
  audio: "All birds/XC280320_CommonMoorhen.mp3", spectrogram: "All birds/XC280320_CommonMoorhen.png", image: "All birds/XC280320_CommonMoorhen.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280320", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Moorhen Lesser", afrikaans: "Waterhoender Klein", hotspot: "Caprivi/Chobe; Wider Gauteng 100km/Nylsvley; Kruger NP Pafuri", habitat: "Wetland; Grassland", birdgroup: "Waders", level: "3 Advanced", 
+{english: "Moorhen Lesser", afrikaans: "Waterhoender Klein", hotspot: "Caprivi/Chobe; Wider Gauteng 100km/Nylsvley; Kruger National Park - Pafuri", habitat: "Wetland; Grassland", birdgroup: "Waders", level: "3 Advanced", 
 audio: "All birds/XC791485_LesserMoorhen.mp3", spectrogram: "All birds/XC791485_LesserMoorhen.png", image: "All birds/XC791485_LesserMoorhen.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC791485", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Rail African", afrikaans: "Riethaan Groot", hotspot: "General", habitat: "Wetland", birdgroup: "Waders", level: "3 Advanced", 
@@ -260,13 +260,13 @@ audio: "All birds/XC949507_White-browedRobin-Chat.mp3", spectrogram: "All birds/
 {english: "Squacco Heron", afrikaans: "Ralreier", hotspot: "General", habitat: "Marsh; Wetland", birdgroup: "All Birds", level: "3 Advanced",
  audio: "All birds/XC299963_SquaccoHeron.mp3", spectrogram: "All birds/XC299963_SquaccoHeron.png", image: "All birds/XC299963_SquaccoHeron.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC299963", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Warbler Olive-tree", afrikaans: "Sanger Olyfboom", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger NP Pafuri", habitat: "Woodland", birdgroup: "Warblers", level: "3 Advanced", 
+{english: "Warbler Olive-tree", afrikaans: "Sanger Olyfboom", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park - Pafuri", habitat: "Woodland", birdgroup: "Warblers", level: "3 Advanced", 
  audio: "All birds/XC819380_Olive-treeWarbler.mp3", spectrogram: "All birds/XC819380_Olive-treeWarbler.png", image: "All birds/XC819380_Olive-treeWarbler.jpg", photographer: "Marna Buys", credit: "© Rick Nuttall, www.xeno-canto.org, XC819380", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Wren-Warbler Barred", afrikaans: "Sanger Gebande", hotspot: "General", habitat: "Woodland", birdgroup: "Warblers", level: "2 Intermediate", 
  audio: "All birds/XC708257_BarredWren-Warbler.mp3", spectrogram: "All birds/XC708257_BarredWren-Warbler.png", image: "All birds/XC708257_BarredWren-Warbler.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC708257", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Warbler Marsh alarm call", afrikaans: "Rietsanger Europese alarm call", hotspot: "Wider Gauteng 100km/Nylsvley; Magoebas/Soutpans-/Waterberg; Kruger NP Pafuri; Mpumalanga", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
+{english: "Warbler Marsh alarm call", afrikaans: "Rietsanger Europese alarm call", hotspot: "Wider Gauteng 100km/Nylsvley; Magoebas/Soutpans-/Waterberg; Kruger National Park - Pafuri; Mpumalanga", habitat: "Bushveld", birdgroup: "Warblers", level: "3 Advanced", 
 audio: "All birds/XC632299_MarshWarbler.mp3", spectrogram: "All birds/XC632299_MarshWarbler.png", image: "All birds/XC632299_MarshWarbler.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC632299; Alarm call", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Cisticola Red-faced", afrikaans: "Tinktinkie Rooiwang", hotspot: "Kruger National Park; Isimangaliso; Mpumalanga; Magoebas/Soutpans-/Waterberg", habitat: "Thick vegetation", birdgroup: "Cisticola", level: "2 Intermediate", audio: "All birds/XC280093_Red-facedCisticola.mp3", spectrogram: "All birds/XC280093_Red-facedCisticola.png",image: "All birds/XC280093_Red-facedCisticola.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280093", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
@@ -293,7 +293,7 @@ audio: "All birds/XC695669_KalahariScrubRobin.mp3", spectrogram: "All birds/XC69
 {english: "Scrub Robin White-browed", afrikaans: "Wipstert Gestreepte", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "All birds/XC834106_White-browedScrubRobin.mp3", spectrogram: "All birds/XC834106_White-browedScrubRobin.png",image: "All birds/XC834106_White-browedScrubRobin.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC834106", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Chat Arnot's", afrikaans: "Piek Bont", hotspot: "Kruger NP Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Chat Arnot's", afrikaans: "Piek Bont", hotspot: "Kruger National Park - Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC398145_ArnotsChat.mp3", spectrogram: "All birds/XC398145_ArnotsChat.png",image: "All birds/XC398145_ArnotsChat.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC398145", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Drongo Common Sqaure-tailed", afrikaans: "Byvanger Klein", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
@@ -314,7 +314,7 @@ audio: "All birds/XC779397_OliveBushshrike.mp3", spectrogram: "All birds/XC77939
 {english: "Coucal Coppery-tailed", afrikaans: "Vleiloerie Groot", hotspot: "Caprivi/Chobe", habitat: "Wetland", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All birds/XC854393_Coppery-tailedCoucal.mp3", spectrogram: "All birds/XC854393_Coppery-tailedCoucal.png",image: "All birds/XC854393_Coppery-tailedCoucal.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC854393", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Coucal Senegal", afrikaans: "Vleiloerie Senegal", hotspot: "Caprivi/Chobe; Kruger NP Pafuri", habitat: "Grassland; Scrub", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Coucal Senegal", afrikaans: "Vleiloerie Senegal", hotspot: "Caprivi/Chobe; Kruger National Park - Pafuri", habitat: "Grassland; Scrub", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "All birds/XC819110_SenegalCoucal.mp3", spectrogram: "All birds/XC819110_SenegalCoucal.png",image: "All birds/XC819110_SenegalCoucal.jpg", photographer: "Marna Buys", credit: "© Rick Nuttall, www.xeno-canto.org, XC819110", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Hornbill Bradfield's", afrikaans: "Neushoringvoël Bradfield", hotspot: "Caprivi/Chobe", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
@@ -340,9 +340,9 @@ audio: "All birds/XC1004439_SchalowsTuraco.mp3", spectrogram: "All birds/XC10044
 
 {english: "Greenbul Pale-throated", afrikaans: "Willie Geelkeel", hotspot: "Caprivi/Chobe", habitat: "Forest; Woodland; Scrub", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "All birds/XC1084021_Yellow-throatedLeaflove.mp3", spectrogram: "All birds/XC1084021_Yellow-throatedLeaflove.png",image: "All birds/XC1084021_Yellow-throatedLeaflove.jpg", photographer: "Marna Buys", credit: "© Bram Piot, www.xeno-canto.org, XC1084021", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Boubou Tropical", afrikaans: "Waterfiskaal Tropiese", hotspot: "Caprivi/Chobe; Kruger NP Pafuri", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "All birds/XC878241_TropicalBoubou.mp3", spectrogram: "All birds/XC878241_TropicalBoubou.png",image: "All birds/XC878241_TropicalBoubou.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC878241", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+{english: "Boubou Tropical", afrikaans: "Waterfiskaal Tropiese", hotspot: "Caprivi/Chobe; Kruger National Park - Pafuri", habitat: "Forest; Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "All birds/XC878241_TropicalBoubou.mp3", spectrogram: "All birds/XC878241_TropicalBoubou.png",image: "All birds/XC878241_TropicalBoubou.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC878241", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Palm Thrush Collared", afrikaans: "Môrelyster Palm", hotspot: "Caprivi/Chobe; Kruger NP Pafuri", habitat: "Palm Savanna", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Palm Thrush Collared", afrikaans: "Môrelyster Palm", hotspot: "Caprivi/Chobe; Kruger National Park - Pafuri", habitat: "Palm Savanna", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC365252_CollaredPalmThrush.mp3", spectrogram: "All birds/XC365252_CollaredPalmThrush.png",image: "All birds/XC365252_CollaredPalmThrush.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC365252", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Spurfowl Red-billed", afrikaans: "Fisant Rooibek", hotspot: "Caprivi/Chobe; Northern Cape/Kalahari", habitat: "Savanna", birdgroup: "groundbirds", level: "2 Intermediate", 
