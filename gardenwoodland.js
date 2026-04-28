@@ -157,7 +157,11 @@ audio: "gardenwoodland/XC346653_Golden-tailedWoodpecker.mp3", spectrogram: "gard
 audio: "gardenwoodland/XC424181_CardinalWoodpecker.mp3", spectrogram: "gardenwoodland/XC424181_CardinalWoodpecker.png",image: "gardenwoodland/XC424181_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC424181", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Cardinal Woodpecker", afrikaans: "Kardinaalspeg", hotspot: "General", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
-audio: "gardenwoodland/XC280247_CardinalWoodpecker.mp3", spectrogram: "gardenwoodland/XC280247_CardinalWoodpecker.png",image: "gardenwoodland/XC280247_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280247, background birds: cape robin-chat", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"}
+audio: "gardenwoodland/XC280247_CardinalWoodpecker.mp3", spectrogram: "gardenwoodland/XC280247_CardinalWoodpecker.png",image: "gardenwoodland/XC280247_CardinalWoodpecker.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC280247, background birds: cape robin-chat", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "Green Wood Hoopoe", afrikaans: "Rooibekkakelaaar", hotspot: "General North; General East; General South", habitat: "Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "gardenwoodland/XC879939_GreenWoodHoopoe.mp3", spectrogram: "gardenwoodland/XC879939_GreenWoodHoopoe.png",image: "gardenwoodland/XC879939_GreenWoodHoopoe.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC879939", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+
+{english: "African Hoopoe", afrikaans: "Hoep-Hoep", hotspot: "General East; General Central; General North; General South; General West", habitat: "Woodland; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "gardenwoodland/XC1038410_AfricanHoopoe.mp3", spectrogram: "gardenwoodland/XC1038410_AfricanHoopoe.png",image: "gardenwoodland/XC1038410_AfricanHoopoe.jpg", photographer: "Marna Buys", credit: "© Bobby Wilcox, www.xeno-canto.org, XC1038410", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"}
 
   
 ];
