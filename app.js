@@ -167,7 +167,7 @@ function nextBird() {
 function createOptions() {
   if (!currentBird) return;
 
-  const options = [currentBird.english];
+  let options = [currentBird.english];
   const pool = filtered.filter(b => b.english !== currentBird.english);
 
   while (options.length < 4 && pool.length > 0) {
@@ -179,7 +179,7 @@ function createOptions() {
     pool.splice(randomIndex, 1);
   }
 
-  shuffle(options);
+  options = shuffle(options);
 
   const lang = document.getElementById("lang").value;
   const optionsDiv = document.getElementById("options");
