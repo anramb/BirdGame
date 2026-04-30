@@ -185,7 +185,7 @@ audio: "All birds/XC597244_BurchellsCourser.mp3", spectrogram: "All birds/XC5972
 {english: "Sandgrouse Namaqua", afrikaans: "Kelkiewyn", hotspot: "Karoo; Northern Cape/Kalahari", habitat: "Savanna", birdgroup: "Groundbirds", level: "1 Beginner", 
 audio: "All birds/XC392675_NamaquaSandgrouse", spectrogram: "All birds/XC392675_NamaquaSandgrouse",image: "All birds/XC392675_NamaquaSandgrouse", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392675", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Scrub-Robin Karoo", afrikaans: "Slangverklikker", hotspot: "General", habitat: "Fynbos; Scrub", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Scrub-robin Karoo", afrikaans: "Slangverklikker", hotspot: "General", habitat: "Fynbos; Scrub", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC714080_KarooScrubRobin.mp3", spectrogram: "All birds/XC714080_KarooScrubRobin.png",image: "All birds/XC714080_KarooScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tim Cockrcroft, www.xeno-canto.org, XC714080", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
 {english: "Lark Red", afrikaans: "Lewerik Rooi", hotspot: "Northern Cape/Kalahari", habitat: "Sand dunes", birdgroup: "LBJs", level: "3 Advanced", 
@@ -257,7 +257,7 @@ audio: "All birds/XC949507_White-browedRobin-Chat.mp3", spectrogram: "All birds/
 {english: "Bittern Dwarf", afrikaans: "Rietreier Dwerg", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park", habitat: "Wetland", birdgroup: "All Birds", level: "3 Advanced",
  audio: "All birds/XC827385_DwarfBittern.mp3", spectrogram: "All birds/XC827385_DwarfBittern.png", image: "All birds/XC827385_DwarfBittern.jpg", photographer: "Marna Buys", credit: "© Ehren Eksteen, www.xeno-canto.org, XC827385; Background birds: Cape Turtle (RIng-necked) Dove, Woodland Kingfisher", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Squacco Heron", afrikaans: "Ralreier", hotspot: "General", habitat: "Marsh; Wetland", birdgroup: "All Birds", level: "3 Advanced",
+{english: "Heron Squacco", afrikaans: "Reier Ral", hotspot: "General", habitat: "Marsh; Wetland", birdgroup: "All Birds", level: "3 Advanced",
  audio: "All birds/XC299963_SquaccoHeron.mp3", spectrogram: "All birds/XC299963_SquaccoHeron.png", image: "All birds/XC299963_SquaccoHeron.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC299963", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Warbler Olive-tree", afrikaans: "Sanger Olyfboom", hotspot: "Wider Gauteng 100km/Nylsvley; Kruger National Park - Pafuri", habitat: "Woodland", birdgroup: "All birds", level: "3 Advanced", 
@@ -281,16 +281,16 @@ audio: "All birds/XC632299_MarshWarbler.mp3", spectrogram: "All birds/XC632299_M
 
 {english: "Apalis Bar-throated", afrikaans: "Kleinjantjie Bandkeel", hotspot: "General North; General East; General South; General West", habitat: "Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", audio: "All birds/XC1102549_Bar-throatedApalis.mp3", spectrogram: "All birds/XC1102549_Bar-throatedApalis.png",image: "All birds/XC1102549_Bar-throatedApalis.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1102549, background birds: cape robin-chat, southern boubou, chestnut-vented warbler", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Scrub-Robin Brown", afrikaans: "Wipstert Bruin", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Garden", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Scrub-robin Brown", afrikaans: "Wipstert Bruin", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga", habitat: "Forest; Garden", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC279972_BrownScrubRobin.mp3", spectrogram: "All birds/XC279972_BrownScrubRobin.png",image: "All birds/XC279972_BrownScrubRobin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC279972", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Scrub-Robin Bearded", afrikaans: "Wipstert Baard", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Scrub-robin Bearded", afrikaans: "Wipstert Baard", hotspot: "Isimangaliso; Magoebas/Soutpans-/Waterberg; Mpumalanga; Kruger National Park", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC948017_BeardedScrubRobin.mp3", spectrogram: "All birds/XC948017_BeardedScrubRobin.png",image: "All birds/XC948017_BeardedScrubRobin.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC948017", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
-{english: "Scrub-Robin Kalahari", afrikaans: "Wipstert Kalahari", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
+{english: "Scrub-robin Kalahari", afrikaans: "Wipstert Kalahari", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
 audio: "All birds/XC695669_KalahariScrubRobin.mp3", spectrogram: "All birds/XC695669_KalahariScrubRobin.png",image: "All birds/XC695669_KalahariScrubRobin.jpg", photographer: "Marna Buys", credit: "© Tony Archer, www.xeno-canto.org, XC695669", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
 
-{english: "Scrub-Robin White-browed", afrikaans: "Wipstert Gestreepte", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
+{english: "Scrub-robin White-browed", afrikaans: "Wipstert Gestreepte", hotspot: "General", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "2 Intermediate", 
 audio: "All birds/XC834106_White-browedScrubRobin.mp3", spectrogram: "All birds/XC834106_White-browedScrubRobin.png",image: "All birds/XC834106_White-browedScrubRobin.jpg", photographer: "Marna Buys", credit: "© Marc Anderson, www.xeno-canto.org, XC834106", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Chat Arnot's", afrikaans: "Piek Bont", hotspot: "Kruger National Park - Pafuri", habitat: "Woodland", birdgroup: "Garden and Woodland", level: "3 Advanced", 
@@ -398,7 +398,7 @@ audio: "All birds/XC1103077_SpeckledMousebird.mp3", spectrogram: "All birds/XC11
 audio: "All birds/XC366605_Black-collaredBarbet.mp3", spectrogram: "All birds/XC366605_Black-collaredBarbet.png",image: "All birds/XC366605_Black-collaredBarbet.jpg", photographer: "Marna Buys", credit: "© Frank Lambert, www.xeno-canto.org, XC366605", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Barbet Crested", afrikaans: "Houtkapper Kuifkop", hotspot: "General East; General Central; General North", habitat: "Woodland; Garden; Grassland; Savanna", birdgroup: "Garden and Woodland", level: "1 Beginner", 
-audio: "All birds/XC963012_CrestedBarbet.mp3", spectrogram: "All birds/XC963012_CrestedBarbet.png",image: "All birds/XC963012_CrestedBarbet.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC963012", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
+audio: "All birds/XC963012_CrestedBarbet.mp3", spectrogram: "All birds/XC963012_CrestedBarbet.png",image: "All birds/XC963012_CrestedBarbet.jpg", photographer: "Marna Buys", credit: "© Dries Van de Loock, www.xeno-canto.org, XC963012, background birds: white-bellied sunbird", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording"},
 
 {english: "Tinkerbird Yellow-fronted Variation of Call", afrikaans: "Tinker Geelbles Variasie van roep", hotspot: "General North", habitat: "Savanna; Woodland; Forest; Garden", birdgroup: "Garden and Woodland", level: "1 Beginner", 
 audio: "All birds/XC1103079_Yellow-frontedTinkerbird.mp3", spectrogram: "All birds/XC1103079_Yellow-frontedTinkerbird.png",image: "All birds/XC1103079_Yellow-frontedTinkerbird.jpg", photographer: "Marna Buys", credit: "© Marna Buys, www.xeno-canto.org, XC1103079", licenseLink: "https://creativecommons.org/licenses/by-nc-sa/4.0/", changes: "Original recording"},
