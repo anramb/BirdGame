@@ -1,17 +1,22 @@
 // Clean version - no infinite loops, no memory leaks
-let allData = {
-  cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
-  gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
-  groundbirds: typeof groundbirds !== 'undefined' ? groundbirds : [],
-  LBJs: typeof LBJs !== 'undefined' ? LBJs : [],
-  other: typeof other !== 'undefined' ? other : [],
-  raptors: typeof raptors !== 'undefined' ? raptors : [],
-  seedeaters: typeof seedeaters !== 'undefined' ? seedeaters : [],
-  waders: typeof waders !== 'undefined' ? waders : [],
-  warblers: typeof warblers !== 'undefined' ? warblers : [],
-  waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : [],
-  allbirds: typeof allbirds !== 'undefined' ? allbirds : []
+// All data derived from allbirds.js using birdgroup field
+const birdgroupMap = {
+  cisticolas: "Cisticolas",
+  gardenwoodland: "Garden and Woodland",
+  groundbirds: "Groundbirds",
+  LBJs: "LBJs",
+  other: "Other",
+  raptors: "Raptors",
+  seedeaters: "Seedeaters",
+  waders: "Waders",
+  warblers: "Warblers",
+  waterbirds: "Waterbirds"
 };
+
+let allData = { allbirds: typeof allbirds !== 'undefined' ? allbirds : [] };
+Object.entries(birdgroupMap).forEach(([key, group]) => {
+  allData[key] = allData.allbirds.filter(bird => bird && bird.birdgroup === group);
+});
 
 let birds = [];
 let filtered = [];
@@ -82,7 +87,7 @@ function updateFilterOptions() {
     return;
   }
 
-  const values = getUnique(type);
+  const values = getUnique(type).sort((a, b) => a.localeCompare(b));
   values.forEach(v => {
     sel.innerHTML += `<option value="${v}">${v}</option>`;
   });

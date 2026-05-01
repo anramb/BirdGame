@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird Sound ID - Single Bird Mode</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 50px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        /* Bird name dropdown - adjust font-size here if names are too big/small */
+        .bird-selector {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 0.75em;
+            background: white;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .bird-display {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .bird-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .bird-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .bird-details {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .media-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .audio-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .spectrogram-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spectrogram-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .media-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Single Bird Mode</h1>
+            <div class="controls">
+                <select id="birdSelector" class="bird-selector">
+                    <option value="">Select a bird...</option>
+                </select>
+                <select id="lang" class="bird-selector">
+                    <option value="en">English</option>
+                    <option value="af">Afrikaans</option>
+                </select>
+                <button onclick="goBack()" class="btn back-btn">← Back</button>
+            </div>
+        </div>
+        
+        <div class="bird-display" id="birdDisplay" style="display: none;">
+            <div class="bird-info">
+                <div class="bird-name" id="birdName"></div>
+                <div class="bird-details" id="birdDetails"></div>
+            </div>
+            
+            <div class="media-container">
+                <div class="audio-controls">
+                    <h3>Audio Player</h3>
+                    <audio id="audioPlayer" controls style="width: 100%; margin-top: 10px;"></audio>
+                    <div style="margin-top: 15px;">
+                        <button onclick="playAudio()" class="btn">▶ Play</button>
+                        <button onclick="pauseAudio()" class="btn">⏸ Pause</button>
+                        <button onclick="stopAudio()" class="btn">⏹ Stop</button>
+                        <button onclick="replayAudio()" class="btn">🔄 Replay</button>
+                    </div>
+                </div>
+                
+                <div class="spectrogram-container">
+                    <h3>Spectrogram</h3>
+                    <img id="spectrogramImage" alt="Spectrogram" style="display: none;">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="allbirds.js"></script>
+    
+    <script>
+        let allBirds = [];
+        let currentLanguage = 'en';
+        let currentBird = null;
+        let audio = new Audio();
+        
+        // Load all birds from allbirds.js
+        function loadAllBirds() {
+            allBirds = typeof allbirds !== 'undefined' ? [...allbirds] : [];
+            populateBirdSelector();
+        }
+        
+        function populateBirdSelector() {
+            const selector = document.getElementById('birdSelector');
+            selector.innerHTML = '<option value="">Select a bird...</option>';
+            
+            allBirds.sort((a, b) => {
+                const nameA = currentLanguage === 'af' ? a.afrikaans : a.english;
+                const nameB = currentLanguage === 'af' ? b.afrikaans : b.english;
+                return nameA.localeCompare(nameB);
+            });
+            
+            allBirds.forEach(bird => {
+                const name = currentLanguage === 'af' ? bird.afrikaans : bird.english;
+                const option = document.createElement('option');
+                option.value = bird.english;
+                option.textContent = name;
+                selector.appendChild(option);
+            });
+        }
+        
+        function selectBird(birdName) {
+            currentBird = allBirds.find(bird => bird.english === birdName);
+            if (!currentBird) return;
+            
+            displayBird();
+        }
+        
+        function displayBird() {
+            if (!currentBird) return;
+            
+            const name = currentLanguage === 'af' ? currentBird.afrikaans : currentBird.english;
+            const details = currentLanguage === 'af' ? 
+                `Hotspot: ${currentBird.hotspot}<br>Habitat: ${currentBird.habitat}<br>Level: ${currentBird.level}` :
+                `Hotspot: ${currentBird.hotspot}<br>Habitat: ${currentBird.habitat}<br>Level: ${currentBird.level}`;
+            
+            document.getElementById('birdName').textContent = name;
+            document.getElementById('birdDetails').innerHTML = details;
+            
+            // Load audio
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.src = currentBird.audio;
+            
+            // Load spectrogram
+            const spectrogramImage = document.getElementById('spectrogramImage');
+            spectrogramImage.src = currentBird.spectrogram;
+            spectrogramImage.style.display = 'block';
+            
+            // Show bird display
+            document.getElementById('birdDisplay').style.display = 'block';
+        }
+        
+        function playAudio() {
+            if (currentBird) {
+                audio.src = currentBird.audio;
+                audio.play();
+            }
+        }
+        
+        function pauseAudio() {
+            audio.pause();
+        }
+        
+        function stopAudio() {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+        
+        function replayAudio() {
+            stopAudio();
+            setTimeout(playAudio, 100);
+        }
+        
+        function changeLanguage() {
+            currentLanguage = document.getElementById('lang').value;
+            populateBirdSelector();
+            if (currentBird) {
+                displayBird();
+            }
+        }
+        
+        function goBack() {
+            window.location.href = 'entry-screen.html';
+        }
+        
+        // Double-click to exit
+        document.addEventListener('dblclick', function() {
+            if (confirm('Are you sure you want to exit to entry screen?')) {
+                window.location.href = 'entry-screen.html';
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllBirds();
+            
+            document.getElementById('birdSelector').addEventListener('change', function() {
+                selectBird(this.value);
+            });
+            
+            document.getElementById('lang').addEventListener('change', changeLanguage);
+        });
+    </script>
+    
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
+</body>
+</html>

@@ -229,16 +229,6 @@
     </div>
     
     <script src="allbirds.js"></script>
-    <script src="cisticolas.js"></script>
-    <script src="gardenwoodland.js"></script>
-    <script src="groundbirds.js"></script>
-    <script src="LBJs.js"></script>
-    <script src="other.js"></script>
-    <script src="raptors.js"></script>
-    <script src="seedeaters.js"></script>
-    <script src="waders.js"></script>
-    <script src="warblers.js"></script>
-    <script src="waterbirds.js"></script>
     <script src="interactive-spectrogram.js"></script>
     
     <script>
@@ -280,18 +270,23 @@
             }
         }
         
-        const allData = {
-            cisticolas: typeof cisticolas !== 'undefined' ? cisticolas : [],
-            gardenwoodland: typeof gardenwoodland !== 'undefined' ? gardenwoodland : [],
-            groundbirds: typeof groundbirds !== 'undefined' ? groundbirds : [],
-            LBJs: typeof LBJs !== 'undefined' ? LBJs : [],
-            other: typeof other !== 'undefined' ? other : [],
-            raptors: typeof raptors !== 'undefined' ? raptors : [],
-            seedeaters: typeof seedeaters !== 'undefined' ? seedeaters : [],
-            waders: typeof waders !== 'undefined' ? waders : [],
-            warblers: typeof warblers !== 'undefined' ? warblers : [],
-            waterbirds: typeof waterbirds !== 'undefined' ? waterbirds : []
+        const birdgroupMap = {
+            cisticolas: "Cisticolas",
+            gardenwoodland: "Garden and Woodland",
+            groundbirds: "Groundbirds",
+            LBJs: "LBJs",
+            other: "Other",
+            raptors: "Raptors",
+            seedeaters: "Seedeaters",
+            waders: "Waders",
+            warblers: "Warblers",
+            waterbirds: "Waterbirds"
         };
+        const allData = {};
+        const allBirdsArr = typeof allbirds !== 'undefined' ? allbirds : [];
+        Object.entries(birdgroupMap).forEach(([key, group]) => {
+            allData[key] = allBirdsArr.filter(bird => bird && bird.birdgroup === group);
+        });
         
         // Helper: get all birds from allbirds
         function getAllBirds() {
