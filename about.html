@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Bird Sound ID</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 50px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0;
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        
+        p, li {
+            color: #444;
+            line-height: 1.7;
+            font-size: 0.95em;
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 6px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .mode-highlight {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        .mode-highlight strong {
+            color: #667eea;
+        }
+        
+        .tip {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        
+        .tip strong {
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            h2 {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>About Bird Sound ID</h1>
+            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+        </div>
+        
+        <p>Bird Sound ID is a tool to help you learn and identify southern African bird calls. It includes several modes, each designed for a different stage of the learning process.</p>
+        
+        <h2>Modes</h2>
+        
+        <div class="mode-highlight">
+            <strong>Single Bird Select</strong>
+            <p>Browse and listen to individual birds one at a time. Use this mode to familiarise yourself with a specific bird's call. You can filter by <strong>species group</strong> (e.g. Cisticola, Kingfisher, Lark) to quickly find related birds, or scroll through the full list. Each bird shows a dynamic spectrogram, audio player, and a photo (if available).</p>
+        </div>
+        
+        <div class="mode-highlight">
+            <strong>Learning Mode</strong>
+            <p>Play through a filtered playlist of birds. You can filter by <strong>bird group</strong> (e.g. Cisticolas, Raptors, Seedeaters), <strong>hotspot</strong> (birding location), <strong>habitat</strong>, and <strong>difficulty level</strong> (Beginner, Intermediate, Advanced). The playlist plays each bird in sequence, showing the name, spectrogram, and audio. Great for systematic study before a birding trip.</p>
+        </div>
+        
+        <div class="mode-highlight">
+            <strong>Game Mode</strong>
+            <p>Test your knowledge. A bird call plays and you must choose the correct answer from four options (A, B, C, D). Answers are randomised, so you cannot simply memorise positions. You can filter by group, hotspot, or level. At the end of a round, birds you answered incorrectly are listed so you can focus on them.</p>
+        </div>
+        
+        <div class="mode-highlight">
+            <strong>Soundscape ID Training</strong>
+            <p>Listen to real-life field recordings containing multiple bird species. Try to identify each bird you hear in the soundscape. This mode simulates the actual birding experience where many birds call simultaneously.</p>
+        </div>
+        
+        <h2>Filters Explained</h2>
+        
+        <h3>Species (Single Bird Select)</h3>
+        <p>The species filter groups birds by the first word of their English name (e.g. all Cisticola species, all Kingfisher species). This makes it easy to compare similar-sounding birds within a family.</p>
+        
+        <h3>Bird Group</h3>
+        <p>Birds are organised into broad groups such as Cisticolas, Garden and Woodland, Groundbirds, LBJs (Little Brown Jobs), Raptors, Seedeaters, Waders, and more.</p>
+        
+        <h3>Hotspot</h3>
+        <p>Filter by birding location to study the birds you are likely to encounter at a specific site, for example Kruger National Park, Isimangaliso, Drakensberg & Sani Pass, Caprivi/Chobe, etc.</p>
+        
+        <h3>Habitat</h3>
+        <p>Filter by habitat type (Forest, Woodland, Grassland, Savanna, Wetland, Fynbos, etc.) to focus on birds typical of a specific environment.</p>
+        
+        <h3>Level</h3>
+        <ul>
+            <li><strong>1 Beginner</strong> &ndash; Common, distinctive calls that are easy to recognise.</li>
+            <li><strong>2 Intermediate</strong> &ndash; Calls that require some experience to identify.</li>
+            <li><strong>3 Advanced</strong> &ndash; Subtle, uncommon, or easily confused calls for experienced birders.</li>
+        </ul>
+        
+        <h2>Spectrograms</h2>
+        <p>Each bird displays a scrollable spectrogram &ndash; a visual representation of the sound. Time runs along the horizontal axis and frequency (pitch) along the vertical axis. Brighter colours indicate louder sounds. The red line tracks your playback position. You can click anywhere on the spectrogram to jump to that point in the recording.</p>
+        
+        <h2>Language</h2>
+        <p>You can switch between <strong>English</strong> and <strong>Afrikaans</strong> bird names using the language selector on each page.</p>
+        
+        <h2>Tips for Learning Bird Calls</h2>
+        <div class="tip">
+            <strong>Tip:</strong> Start with Beginner level in Learning Mode or Game Mode. Once you are confident with those birds, move to Intermediate, then Advanced.
+        </div>
+        <div class="tip">
+            <strong>Tip:</strong> Use the species filter in Single Bird Select to compare similar species side by side (e.g. all Cisticolas, all Robin-chats).
+        </div>
+        <div class="tip">
+            <strong>Tip:</strong> Before a birding trip, filter by the hotspot you plan to visit so you know which birds to expect.
+        </div>
+        <div class="tip">
+            <strong>Tip:</strong> Pay attention to the spectrogram shape &ndash; over time you will learn to recognise certain patterns even before you identify the sound.
+        </div>
+        
+        <h2>Credits</h2>
+        <p>All bird recordings are sourced from <a href="https://www.xeno-canto.org" target="_blank" style="color: #667eea;">xeno-canto.org</a> and are used under Creative Commons licences. Individual credits are shown with each bird entry. Photos credited to their respective photographers.</p>
+        <p>Created by Marna Buys.</p>
+    </div>
+    
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
+</body>
+</html>
