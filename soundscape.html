@@ -435,7 +435,7 @@
     <script src="spectrogram-generator.js"></script>
     
     <script>
-        let currentLanguage = 'en';
+        let currentLanguage = localStorage.getItem('birdAppLanguage') || 'en';
         let currentSoundscape = null;
         let currentSoundscapeIndex = -1;
         let currentDifficulty = 'easy';
@@ -450,6 +450,9 @@
         let spectrogramReady = false;
         const PX_PER_SEC = 75; // pixels per second of audio
         let totalCanvasWidth = 0;
+        
+        // Set language on load
+        document.getElementById('languageSelector').value = currentLanguage;
         
         // Populate soundscape selector
         function populateSoundscapes() {
@@ -468,6 +471,7 @@
         
         function changeLanguage() {
             currentLanguage = document.getElementById('languageSelector').value;
+            localStorage.setItem('birdAppLanguage', currentLanguage);
             populateSoundscapes();
             
             // Update difficulty labels

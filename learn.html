@@ -275,6 +275,11 @@
             
             <audio id="audioPlayer" class="audio-player" controls></audio>
             
+            <div id="learnBirdPhotoContainer" style="display: none; text-align: center; margin-top: 15px;">
+                <img id="learnBirdPhoto" alt="Bird photo" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
+                <div id="learnBirdPhotoCredit" style="font-size: 0.75em; color: #888; margin-top: 4px;"></div>
+            </div>
+            
             <div class="progress-info" id="progressInfo"></div>
         </div>
     </div>
@@ -287,12 +292,16 @@
         let currentIndex = 0;
         let isPlaying = false;
         let isPaused = false;
-        let currentLanguage = 'en';
+        let currentLanguage = localStorage.getItem('birdAppLanguage') || 'en';
         let audio = document.getElementById('audioPlayer');
+        
+        // Set language on load
+        document.getElementById('languageSelector').value = currentLanguage;
         
         // Change language
         function changeLanguage() {
             currentLanguage = document.getElementById('languageSelector').value;
+            localStorage.setItem('birdAppLanguage', currentLanguage);
             updateFilterLabels();
         }
         
@@ -653,6 +662,19 @@
             
             document.getElementById('progressInfo').textContent = 
                 `Bird ${currentIndex + 1} of ${playlist.length}`;
+            
+            // Display bird photo if available
+            const photoContainer = document.getElementById('learnBirdPhotoContainer');
+            const photoImg = document.getElementById('learnBirdPhoto');
+            const photoCredit = document.getElementById('learnBirdPhotoCredit');
+            if (bird.image) {
+                photoImg.src = bird.image;
+                photoCredit.textContent = bird.photographer ? '© ' + bird.photographer : '';
+                photoContainer.style.display = 'block';
+                photoImg.onerror = () => { photoContainer.style.display = 'none'; };
+            } else {
+                photoContainer.style.display = 'none';
+            }
             
             // Load audio
             audio.src = bird.audio;

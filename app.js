@@ -108,12 +108,16 @@ function startGame() {
   wrongAnswers = [];
 
   const type = document.getElementById("filterType").value;
-  const val = document.getElementById("filterValue").value;
+  const filterValueEl = document.getElementById("filterValue");
+  const selectedValues = Array.from(filterValueEl.selectedOptions).map(o => o.value);
   const lvl = document.getElementById("levelFilter").value;
 
   filtered = birds.filter(bird => {
     if (!bird) return false;
-    const match1 = type === "none" || !val || (bird[type] || "").toLowerCase().includes(val.toLowerCase());
+    let match1 = true;
+    if (type !== "none" && selectedValues.length > 0) {
+      match1 = selectedValues.some(val => (bird[type] || "").toLowerCase().includes(val.toLowerCase()));
+    }
     const match2 = !lvl || (bird.level || "").startsWith(lvl);
     return match1 && match2;
   });
@@ -265,6 +269,17 @@ function reviewMode() {
   nextBird();
 }
 
+
+// Initialize language from localStorage
+(function() {
+  const savedLang = localStorage.getItem('birdAppLanguage');
+  if (savedLang) {
+    document.getElementById('lang').value = savedLang;
+  }
+  document.getElementById('lang').addEventListener('change', function() {
+    localStorage.setItem('birdAppLanguage', this.value);
+  });
+})();
 
 // Initialize
 loadCategory();

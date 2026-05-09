@@ -260,6 +260,7 @@
             <audio id="audioPlayer" controls></audio>
             
             <div style="margin-top: 15px; text-align: center;">
+                <button id="prevBirdBtn" onclick="prevBird()" class="btn">◀ Previous</button>
                 <button id="nextBirdBtn" onclick="nextBird()" class="btn">Next Bird ▶</button>
             </div>
             
@@ -279,14 +280,14 @@
     
     <script>
         let currentBird = null;
-        let currentLanguage = 'en';
+        let currentLanguage = localStorage.getItem('birdAppLanguage') || 'en';
         let currentSpeciesFilter = '';
         let filteredBirds = [];
         let audio = document.getElementById('audioPlayer');
         
-        // Get species (first word) from English name
-        function getSpecies(englishName) {
-            return englishName.split(' ')[0];
+        // Get species (first word) from name
+        function getSpecies(name) {
+            return name.split(' ')[0];
         }
         
         // Populate species filter dropdown
@@ -294,7 +295,8 @@
             const filter = document.getElementById('speciesFilter');
             if (typeof allbirds === 'undefined' || !Array.isArray(allbirds)) return;
             
-            const species = [...new Set(allbirds.map(b => getSpecies(b.english)))].sort();
+            const nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            const species = [...new Set(allbirds.map(b => getSpecies(b[nameKey])))].sort();
             const allLabel = currentLanguage === 'af' ? 'Alle Spesies' : 'All Species';
             filter.innerHTML = `<option value="">${allLabel}</option>`;
             species.forEach(s => {
@@ -306,6 +308,8 @@
             // Restore previous selection if still valid
             if (currentSpeciesFilter && species.includes(currentSpeciesFilter)) {
                 filter.value = currentSpeciesFilter;
+            } else {
+                currentSpeciesFilter = '';
             }
         }
         
@@ -320,6 +324,8 @@
         // Change language
         function changeLanguage() {
             currentLanguage = document.getElementById('languageSelector').value;
+            localStorage.setItem('birdAppLanguage', currentLanguage);
+            currentSpeciesFilter = '';
             populateSpeciesFilter();
             populateBirdSelector();
             if (currentBird) {
@@ -336,18 +342,18 @@
                 return;
             }
             
+            const nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            
             // Filter by species if selected
             if (currentSpeciesFilter) {
-                filteredBirds = allbirds.filter(b => getSpecies(b.english) === currentSpeciesFilter);
+                filteredBirds = allbirds.filter(b => getSpecies(b[nameKey]) === currentSpeciesFilter);
             } else {
                 filteredBirds = [...allbirds];
             }
             
             // Sort by selected language
             filteredBirds.sort((a, b) => {
-                const nameA = currentLanguage === 'af' ? a.afrikaans : a.english;
-                const nameB = currentLanguage === 'af' ? b.afrikaans : b.english;
-                return nameA.localeCompare(nameB);
+                return a[nameKey].localeCompare(b[nameKey]);
             });
             
             // Clear and repopulate
@@ -357,7 +363,7 @@
             filteredBirds.forEach((bird, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                option.textContent = currentLanguage === 'af' ? bird.afrikaans : bird.english;
+                option.textContent = bird[nameKey];
                 selector.appendChild(option);
             });
         }
@@ -376,6 +382,14 @@
         });
         
         let currentBirdIndex = -1;
+        
+        function prevBird() {
+            if (!filteredBirds || filteredBirds.length === 0) return;
+            currentBirdIndex = (currentBirdIndex - 1 + filteredBirds.length) % filteredBirds.length;
+            currentBird = filteredBirds[currentBirdIndex];
+            document.getElementById('birdSelector').value = currentBirdIndex;
+            displayBird();
+        }
         
         function nextBird() {
             if (!filteredBirds || filteredBirds.length === 0) return;
@@ -479,6 +493,8 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Set language from localStorage
+            document.getElementById('languageSelector').value = currentLanguage;
             populateSpeciesFilter();
             populateBirdSelector();
             if (typeof allbirds !== 'undefined') {
