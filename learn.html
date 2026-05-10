@@ -236,6 +236,7 @@
             </select>
             <select id="filterType">
                 <option value="all">All Birds</option>
+                <option value="bird">By Bird</option>
                 <option value="group">By Group</option>
                 <option value="hotspot">By Hotspot</option>
                 <option value="habitat">By Habitat</option>
@@ -243,12 +244,29 @@
             <select id="filterValue" style="display: none;">
                 <option value="">Select...</option>
             </select>
+            <div id="birdMultiSelect" class="multi-select-container" style="display: none;">
+                <div class="multi-select-header" onclick="toggleBirdList()">
+                    <span id="birdSelectText">Select Birds...</span>
+                    <span>▼</span>
+                </div>
+                <div id="birdListWrapper" class="multi-select-list" style="display: none; max-height: 300px; padding-top: 0;">
+                    <input type="text" id="birdSearchInput" placeholder="Search..." style="width:100%; padding:8px 10px; border:none; border-bottom:1px solid #eee; font-size:0.85em; box-sizing:border-box; position:sticky; top:0; background:white;" oninput="filterBirdList()">
+                    <div id="birdList"></div>
+                </div>
+            </div>
             <div id="hotspotMultiSelect" class="multi-select-container" style="display: none;">
                 <div class="multi-select-header" onclick="toggleHotspotList()">
                     <span id="hotspotSelectText">Select Hotspots...</span>
                     <span>▼</span>
                 </div>
                 <div id="hotspotList" class="multi-select-list" style="display: none;"></div>
+            </div>
+            <div id="habitatMultiSelect" class="multi-select-container" style="display: none;">
+                <div class="multi-select-header" onclick="toggleHabitatList()">
+                    <span id="habitatSelectText">Select Habitats...</span>
+                    <span>▼</span>
+                </div>
+                <div id="habitatList" class="multi-select-list" style="display: none;"></div>
             </div>
             <select id="subFilterHabitat" style="display: none;">
                 <option value="">All Habitats</option>
@@ -311,18 +329,20 @@
             const levelFilter = document.getElementById('levelFilter');
             if (currentLanguage === 'af') {
                 filterType.options[0].text = 'Alle Voëls';
-                filterType.options[1].text = 'Per Groep';
-                filterType.options[2].text = 'Per Hotspot';
-                filterType.options[3].text = 'Per Habitat';
+                filterType.options[1].text = 'Per Voël';
+                filterType.options[2].text = 'Per Groep';
+                filterType.options[3].text = 'Per Hotspot';
+                filterType.options[4].text = 'Per Habitat';
                 levelFilter.options[0].text = 'Alle Vlakke';
                 levelFilter.options[1].text = 'Beginner';
                 levelFilter.options[2].text = 'Intermediêr';
                 levelFilter.options[3].text = 'Gevorderd';
             } else {
                 filterType.options[0].text = 'All Birds';
-                filterType.options[1].text = 'By Group';
-                filterType.options[2].text = 'By Hotspot';
-                filterType.options[3].text = 'By Habitat';
+                filterType.options[1].text = 'By Bird';
+                filterType.options[2].text = 'By Group';
+                filterType.options[3].text = 'By Hotspot';
+                filterType.options[4].text = 'By Habitat';
                 levelFilter.options[0].text = 'All Levels';
                 levelFilter.options[1].text = 'Beginner';
                 levelFilter.options[2].text = 'Intermediate';
@@ -367,27 +387,71 @@
             return Array.from(values).sort();
         }
         
-        // Toggle hotspot checkbox list
+        // === BIRD MULTI-SELECT ===
+        function toggleBirdList() {
+            const wrapper = document.getElementById('birdListWrapper');
+            wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
+            if (wrapper.style.display === 'block') {
+                document.getElementById('birdSearchInput').focus();
+            }
+        }
+        
+        function getSelectedBirds() {
+            const checkboxes = document.querySelectorAll('#birdList input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+        
+        function populateBirdMultiSelect() {
+            const container = document.getElementById('birdList');
+            const birds = getAllBirds();
+            const nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            const sorted = [...birds].sort((a, b) => a[nameKey].localeCompare(b[nameKey]));
+            container.innerHTML = '';
+            sorted.forEach(bird => {
+                const label = document.createElement('label');
+                label.dataset.search = bird[nameKey].toLowerCase();
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = bird.english;
+                cb.addEventListener('change', onBirdSelectionChange);
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + bird[nameKey]));
+                container.appendChild(label);
+            });
+            document.getElementById('birdSelectText').textContent = 
+                currentLanguage === 'af' ? 'Kies Voëls...' : 'Select Birds...';
+        }
+        
+        function filterBirdList() {
+            const query = document.getElementById('birdSearchInput').value.toLowerCase();
+            const labels = document.querySelectorAll('#birdList label');
+            labels.forEach(label => {
+                label.style.display = label.dataset.search.includes(query) ? 'block' : 'none';
+            });
+        }
+        
+        function onBirdSelectionChange() {
+            const selected = getSelectedBirds();
+            if (selected.length === 0) {
+                document.getElementById('birdSelectText').textContent = 
+                    currentLanguage === 'af' ? 'Kies Voëls...' : 'Select Birds...';
+            } else {
+                document.getElementById('birdSelectText').textContent = 
+                    selected.length + (currentLanguage === 'af' ? ' voël(s) gekies' : ' bird(s) selected');
+            }
+        }
+        
+        // === HOTSPOT MULTI-SELECT ===
         function toggleHotspotList() {
             const list = document.getElementById('hotspotList');
             list.style.display = list.style.display === 'none' ? 'block' : 'none';
         }
         
-        // Close hotspot list when clicking outside
-        document.addEventListener('click', function(e) {
-            const container = document.getElementById('hotspotMultiSelect');
-            if (container && !container.contains(e.target)) {
-                document.getElementById('hotspotList').style.display = 'none';
-            }
-        });
-        
-        // Get selected hotspots from checkboxes
         function getSelectedHotspots() {
             const checkboxes = document.querySelectorAll('#hotspotList input[type="checkbox"]:checked');
             return Array.from(checkboxes).map(cb => cb.value);
         }
         
-        // Populate hotspot multi-select with checkboxes
         function populateHotspotMultiSelect(birdsArray) {
             const container = document.getElementById('hotspotList');
             const hotspots = getUniqueValues(birdsArray, 'hotspot');
@@ -406,7 +470,6 @@
                 currentLanguage === 'af' ? 'Kies Hotspots...' : 'Select Hotspots...';
         }
         
-        // When hotspot checkboxes change
         function onHotspotSelectionChange() {
             const selected = getSelectedHotspots();
             if (selected.length === 0) {
@@ -418,6 +481,62 @@
             }
             updateSubFilterHabitat();
         }
+        
+        // === HABITAT MULTI-SELECT ===
+        function toggleHabitatList() {
+            const list = document.getElementById('habitatList');
+            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function getSelectedHabitats() {
+            const checkboxes = document.querySelectorAll('#habitatList input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+        
+        function populateHabitatMultiSelect(birdsArray) {
+            const container = document.getElementById('habitatList');
+            const habitats = getUniqueValues(birdsArray || getAllBirds(), 'habitat');
+            container.innerHTML = '';
+            habitats.forEach(hab => {
+                const label = document.createElement('label');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = hab;
+                cb.addEventListener('change', onHabitatSelectionChange);
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + hab));
+                container.appendChild(label);
+            });
+            document.getElementById('habitatSelectText').textContent = 
+                currentLanguage === 'af' ? 'Kies Habitats...' : 'Select Habitats...';
+        }
+        
+        function onHabitatSelectionChange() {
+            const selected = getSelectedHabitats();
+            if (selected.length === 0) {
+                document.getElementById('habitatSelectText').textContent = 
+                    currentLanguage === 'af' ? 'Kies Habitats...' : 'Select Habitats...';
+            } else {
+                document.getElementById('habitatSelectText').textContent = 
+                    selected.length + (currentLanguage === 'af' ? ' habitat(s) gekies' : ' habitat(s) selected');
+            }
+        }
+        
+        // Close multi-select lists when clicking outside
+        document.addEventListener('click', function(e) {
+            const hotspotContainer = document.getElementById('hotspotMultiSelect');
+            if (hotspotContainer && !hotspotContainer.contains(e.target)) {
+                document.getElementById('hotspotList').style.display = 'none';
+            }
+            const birdContainer = document.getElementById('birdMultiSelect');
+            if (birdContainer && !birdContainer.contains(e.target)) {
+                document.getElementById('birdListWrapper').style.display = 'none';
+            }
+            const habitatContainer = document.getElementById('habitatMultiSelect');
+            if (habitatContainer && !habitatContainer.contains(e.target)) {
+                document.getElementById('habitatList').style.display = 'none';
+            }
+        });
         
         // Update habitat sub-filter based on current context
         function updateSubFilterHabitat() {
@@ -459,17 +578,26 @@
             const filterValue = document.getElementById('filterValue');
             const subFilterHabitat = document.getElementById('subFilterHabitat');
             const hotspotMultiSelect = document.getElementById('hotspotMultiSelect');
+            const birdMultiSelect = document.getElementById('birdMultiSelect');
+            const habitatMultiSelect = document.getElementById('habitatMultiSelect');
             const type = this.value;
             
             // Hide all sub-filters by default
             filterValue.style.display = 'none';
             subFilterHabitat.style.display = 'none';
             hotspotMultiSelect.style.display = 'none';
+            birdMultiSelect.style.display = 'none';
+            habitatMultiSelect.style.display = 'none';
             document.getElementById('hotspotList').style.display = 'none';
+            document.getElementById('birdListWrapper').style.display = 'none';
+            document.getElementById('habitatList').style.display = 'none';
             
             if (type === 'all') return;
             
-            if (type === 'group') {
+            if (type === 'bird') {
+                birdMultiSelect.style.display = 'block';
+                populateBirdMultiSelect();
+            } else if (type === 'group') {
                 filterValue.style.display = 'block';
                 filterValue.innerHTML = '<option value="">' + (currentLanguage === 'af' ? 'Kies...' : 'Select...') + '</option>';
                 Object.keys(allData).forEach(group => {
@@ -485,14 +613,8 @@
                 subFilterHabitat.style.display = 'block';
                 subFilterHabitat.innerHTML = '<option value="">' + (currentLanguage === 'af' ? 'Alle Habitats' : 'All Habitats') + '</option>';
             } else if (type === 'habitat') {
-                filterValue.style.display = 'block';
-                filterValue.innerHTML = '<option value="">' + (currentLanguage === 'af' ? 'Kies...' : 'Select...') + '</option>';
-                getUniqueValues(getAllBirds(), 'habitat').forEach(hab => {
-                    const option = document.createElement('option');
-                    option.value = hab;
-                    option.textContent = hab;
-                    filterValue.appendChild(option);
-                });
+                habitatMultiSelect.style.display = 'block';
+                populateHabitatMultiSelect(getAllBirds());
             }
         });
         
@@ -546,9 +668,17 @@
             playlist = [];
             
             const selectedHotspots = getSelectedHotspots();
+            const selectedBirds = getSelectedBirds();
+            const selectedHabitats = getSelectedHabitats();
             
             if (filterType === 'all') {
                 playlist = [...getAllBirds()];
+            } else if (filterType === 'bird') {
+                if (selectedBirds.length > 0) {
+                    playlist = getAllBirds().filter(bird =>
+                        selectedBirds.includes(bird.english)
+                    );
+                }
             } else if (filterType === 'group') {
                 if (filterValue && allData[filterValue]) {
                     playlist = [...allData[filterValue]];
@@ -581,9 +711,11 @@
                     );
                 }
             } else if (filterType === 'habitat') {
-                if (filterValue) {
+                if (selectedHabitats.length > 0) {
                     playlist = getAllBirds().filter(bird => 
-                        bird.habitat && bird.habitat.split(';').some(h => h.trim() === filterValue)
+                        bird.habitat && selectedHabitats.some(hab =>
+                            bird.habitat.split(';').some(h => h.trim() === hab)
+                        )
                     );
                 }
             }
@@ -596,7 +728,7 @@
             }
             
             if (playlist.length === 0) {
-                alert('No birds found for this selection');
+                alert(currentLanguage === 'af' ? 'Geen voëls gevind vir hierdie keuse' : 'No birds found for this selection');
                 return;
             }
             
