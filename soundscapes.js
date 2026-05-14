@@ -70,7 +70,44 @@ const soundscapes = [
     { english: "Red-chested flufftail", afrikaans: "Rooiborsvleikuiken", level: "advanced" }
 
   ]
+},
+
+
+
+
+{
+  id: "St_Lucia_area1",
+  name: "St Lucia; KZN",
+  habitat: "Forest",
+  region: "KZN, credit: Peter Boesman, XC279789 Xeno-Canto, https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  audio: "Soundscape/XC279789_SombreGreenbul.mp3",
+  spectrogram: "Soundscape/XC279789_SombreGreenbul.png",
+  
+  // Birds that ARE in this recording
+  birds: [
+    { english: "Sombre Greenbul", afrikaans: "Gewone Willie", level: "easy", timestamp: "00:02" },
+    { english: "Livingstone Turaco", afrikaans: "Mosambiekloerie", level: "easy", timestamp: "00:08" },
+    { english: "Gorgeous Bushshrike", afrikaans: "Konkoit", level: "intermediate", timestamp: "00:04" },
+    { english: "Fish Eagle", afrikaans: "Visarend", level: "easy", timestamp: "00:16" },
+    { english: "Rudd's Apalis", afrikaans: "Ruddse Kleinjantjie", level: "advanced", timestamp: "00:38" },
+    { english: "Red-capped robin-chat", afrikaans: "Nataljanfrederik", level: "advanced", timestamp: "00:29" },
+  ],
+
+  // Decoy birds - plausible for this habitat but NOT in this recording
+  decoys: [
+    { english: "Red-chested Cuckoo", afrikaans: "Piet-my-vrou", level: "easy" },
+    { english: "Terrestrial brownbul", afrikaans: "Boskruiper", level: "intermediate" },
+    { english: "Knysna Turaco", afrikaans: "Knysnaloerie", level: "easy" },
+    { english: "Purple-crested Turaco", afrikaans: "Bloukuifloerie", level: "easy" },
+    { english: "Bar-throated Apalis", afrikaans: "Bandkeelkleinjantjie", level: "intermediate" },
+    { english: "Yellow-breasted Apalis", afrikaans: "Geelborskleinjantjie", level: "Advanced" },
+
+
+  ]
 }
+
+
+
 
 
 
