@@ -6,7 +6,7 @@ self.addEventListener('install', function(event) {
     caches.open(CACHE_NAME).then(function(cache) {
       return cache.addAll([
         './start.html',
-        './icon-192.svg'
+        './app-icon.png'
       ]);
     })
   );
