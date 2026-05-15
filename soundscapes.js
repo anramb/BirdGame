@@ -7,6 +7,9 @@ const soundscapes = [
   region: "Limpopo",
   audio: "Soundscape/251120_0717MahonieLoopPundaKNP.mp3",
   spectrogram: "Soundscape/251120_0717MahonieLoopPundaKNP.png",
+  credit: "© Marna Buys, original field recording",
+  licenseLink: "",
+  changes: "Original recording",
   
   // Birds that ARE in this recording
   birds: [
@@ -45,6 +48,9 @@ const soundscapes = [
   region: "KZN",
   audio: "Soundscape/260107_0514MahaiRoyalNatalNationalPark.mp3",
   spectrogram: "Soundscape/260107_0514MahaiRoyalNatalNationalPark.png",
+  credit: "© Marna Buys, original field recording",
+  licenseLink: "",
+  changes: "Original recording",
   
   // Birds that ARE in this recording
   birds: [
@@ -79,9 +85,12 @@ const soundscapes = [
   id: "St_Lucia_area1",
   name: "St Lucia; KZN",
   habitat: "Forest",
-  region: "KZN, credit: Peter Boesman, XC279789 Xeno-Canto, https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  region: "KZN",
   audio: "Soundscape/XC279789_SombreGreenbul.mp3",
   spectrogram: "Soundscape/XC279789_SombreGreenbul.png",
+  credit: "© Peter Boesman, www.xeno-canto.org, XC279789",
+  licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  changes: "Original recording",
   
   // Birds that ARE in this recording
   birds: [

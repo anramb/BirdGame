@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-192.svg">
     <title>Soundscape ID Training</title>
     <style>
         body {
@@ -306,6 +310,25 @@
             margin-top: 20px;
         }
         
+        .credit-info {
+            background: #f0f0f0;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .credit-info a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .credit-info a:hover {
+            text-decoration: underline;
+        }
+        
         .hidden { display: none !important; }
         
         @media (max-width: 768px) {
@@ -371,6 +394,7 @@
             <div class="soundscape-info">
                 <div class="soundscape-name" id="soundscapeName"></div>
                 <div class="soundscape-habitat" id="soundscapeHabitat"></div>
+                <div class="credit-info" id="soundscapeCredit"></div>
             </div>
             
             <!-- Scrollable Spectrogram -->
@@ -520,6 +544,16 @@
             // Set info
             document.getElementById('soundscapeName').textContent = currentSoundscape.name;
             document.getElementById('soundscapeHabitat').textContent = currentSoundscape.habitat;
+            
+            // Set credit info
+            let creditHTML = `<strong>Credit:</strong> ${currentSoundscape.credit || 'Unknown'}`;
+            if (currentSoundscape.licenseLink) {
+                creditHTML += `<br><strong>License:</strong> <a href="${currentSoundscape.licenseLink}" target="_blank">View License</a>`;
+            }
+            if (currentSoundscape.changes) {
+                creditHTML += `<br><strong>Changes:</strong> ${currentSoundscape.changes}`;
+            }
+            document.getElementById('soundscapeCredit').innerHTML = creditHTML;
             
             // Set difficulty info
             const targetBirds = getTargetBirds();

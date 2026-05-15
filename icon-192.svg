@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="32" fill="url(#bg)"/>
+  <!-- Bird silhouette -->
+  <g transform="translate(96,88) scale(1.1)" fill="white">
+    <!-- Body -->
+    <ellipse cx="0" cy="10" rx="30" ry="22"/>
+    <!-- Head -->
+    <circle cx="-25" cy="-10" r="16"/>
+    <!-- Beak -->
+    <polygon points="-40,-14 -55,-10 -40,-6"/>
+    <!-- Eye -->
+    <circle cx="-28" cy="-12" r="3" fill="#764ba2"/>
+    <!-- Wing -->
+    <path d="M5,0 Q25,-25 40,-15 Q30,-5 10,5 Z" fill="rgba(255,255,255,0.7)"/>
+    <!-- Tail -->
+    <polygon points="28,5 50,-10 48,0 55,15 30,15" fill="rgba(255,255,255,0.85)"/>
+  </g>
+  <!-- Sound waves -->
+  <g stroke="white" stroke-width="2.5" fill="none" opacity="0.6" transform="translate(42,68)">
+    <path d="M0,0 Q-8,-10 0,-20" />
+    <path d="M-6,4 Q-18,-12 -6,-28" />
+    <path d="M-12,8 Q-28,-14 -12,-36" />
+  </g>
+  <!-- Text -->
+  <text x="96" y="160" text-anchor="middle" fill="white" font-family="Segoe UI, sans-serif" font-size="18" font-weight="bold">Bird Sound ID</text>
+</svg>

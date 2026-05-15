@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bird Sound ID">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-192.svg">
     <title>Bird Sound ID - Start</title>
     <style>
         body {
@@ -76,6 +83,38 @@
             opacity: 0.9;
         }
         
+        .install-tip {
+            background: #f0f4ff;
+            border: 1px solid #d0d8f0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #555;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .install-tip strong {
+            color: #333;
+        }
+        
+        .install-tip .dismiss-tip {
+            display: block;
+            text-align: right;
+            margin-top: 8px;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.85em;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        
+        .install-tip .dismiss-tip:hover {
+            text-decoration: underline;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -139,9 +178,40 @@
                 <div class="mode-description">How to use this app</div>
             </button>
         </div>
+        
+        <!-- Gentle install tip -->
+        <div class="install-tip" id="installTip" style="display: none;">
+            <strong>Tip:</strong> You can add this app to your phone's home screen for quick access — it will look and feel like a real app!<br>
+            <strong>Android:</strong> Tap the menu (three dots) in your browser and select <em>"Add to Home screen"</em>.<br>
+            <strong>iPhone:</strong> Tap the share button and select <em>"Add to Home Screen"</em>.
+            <button class="dismiss-tip" onclick="dismissInstallTip()">Got it, don't show again</button>
+        </div>
     </div>
     
     <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf - Beta Version</div>
+    
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(function() {});
+        }
+        
+        // Show install tip if not dismissed and not already installed as PWA
+        function showInstallTip() {
+            const dismissed = localStorage.getItem('installTipDismissed');
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (!dismissed && !isStandalone) {
+                document.getElementById('installTip').style.display = 'block';
+            }
+        }
+        
+        function dismissInstallTip() {
+            localStorage.setItem('installTipDismissed', 'true');
+            document.getElementById('installTip').style.display = 'none';
+        }
+        
+        showInstallTip();
+    </script>
     <script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
