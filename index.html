@@ -222,6 +222,42 @@ select:focus {
 .correct { color: #28a745; font-weight: bold; }
 .wrong { color: #dc3545; font-weight: bold; }
 
+/* Scoreboard */
+.scoreboard {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.scoreboard .stat-box {
+    background: linear-gradient(135deg, #667eea22, #764ba222);
+    border-radius: 10px;
+    padding: 10px 6px;
+    border: 1px solid #667eea33;
+}
+
+.scoreboard .stat-value {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+}
+
+.scoreboard .stat-label {
+    font-size: 0.65em;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+    .scoreboard {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 /* Spectrogram styles */
 .spectrogram-outer {
     margin: 15px 0;
@@ -361,6 +397,30 @@ hr {
         <hr>
         
         <div id="gameArea" style="display:none;">
+            
+            <!-- Scoreboard -->
+            <div class="scoreboard" id="scoreboard">
+                <div class="stat-box">
+                    <div class="stat-value" id="statScore">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statHighScore">0</div>
+                    <div class="stat-label">High Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statStreak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statLongestStreak">0</div>
+                    <div class="stat-label">Best Streak</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statAccuracy">0%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
             
             <!-- Scrollable spectrogram -->
             <div class="spectrogram-outer" id="spectrogramOuter" style="display: none;">

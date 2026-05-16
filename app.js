@@ -26,6 +26,15 @@ let wrongAnswers = [];
 let audio = new Audio();
 let started = false;
 
+// Game stats
+let gameScore = 0;
+let gameHighScore = parseInt(localStorage.getItem('birdGameHighScore')) || 0;
+let gameStreak = 0;
+let gameLongestStreak = parseInt(localStorage.getItem('birdGameLongestStreak')) || 0;
+let gameTotalQuestions = 0;
+let gameCorrectAnswers = 0;
+let answered = false;
+
 function loadCategory() {
   const cat = document.getElementById("category").value;
   birds = allData[cat] || [];
@@ -107,6 +116,14 @@ function startGame() {
   console.log("Starting game...");
   wrongAnswers = [];
 
+  // Reset game stats for new game
+  gameScore = 0;
+  gameStreak = 0;
+  gameTotalQuestions = 0;
+  gameCorrectAnswers = 0;
+  answered = false;
+  updateScoreboard();
+
   const type = document.getElementById("filterType").value;
   const filterValueEl = document.getElementById("filterValue");
   const selectedValues = Array.from(filterValueEl.selectedOptions).map(o => o.value);
@@ -169,6 +186,7 @@ function nextBird() {
     copyrightOverlay.style.display = "none";
   }
 
+  answered = false;
   createOptions();
   document.getElementById("info").innerHTML = "";
 }
@@ -206,12 +224,30 @@ function createOptions() {
 }
 
 function check(answer) {
-  if (!currentBird) return;
+  if (!currentBird || answered) return;
+  answered = true;
 
   const correct = answer === currentBird.english;
-  if (!correct) {
+  gameTotalQuestions++;
+
+  if (correct) {
+    gameScore++;
+    gameCorrectAnswers++;
+    gameStreak++;
+    if (gameStreak > gameLongestStreak) {
+      gameLongestStreak = gameStreak;
+      localStorage.setItem('birdGameLongestStreak', gameLongestStreak);
+    }
+    if (gameScore > gameHighScore) {
+      gameHighScore = gameScore;
+      localStorage.setItem('birdGameHighScore', gameHighScore);
+    }
+  } else {
+    gameStreak = 0;
     wrongAnswers.push(currentBird);
   }
+
+  updateScoreboard();
 
   const img = document.getElementById("birdImage");
   const copyrightOverlay = document.getElementById("copyrightOverlay");
@@ -270,6 +306,17 @@ function reviewMode() {
 }
 
 
+function updateScoreboard() {
+  const el = document.getElementById('scoreboard');
+  if (!el) return;
+  const accuracy = gameTotalQuestions > 0 ? Math.round((gameCorrectAnswers / gameTotalQuestions) * 100) : 0;
+  document.getElementById('statScore').textContent = gameScore;
+  document.getElementById('statHighScore').textContent = gameHighScore;
+  document.getElementById('statStreak').textContent = gameStreak;
+  document.getElementById('statLongestStreak').textContent = gameLongestStreak;
+  document.getElementById('statAccuracy').textContent = accuracy + '%';
+}
+
 // Initialize language from localStorage
 (function() {
   const savedLang = localStorage.getItem('birdAppLanguage');
@@ -284,3 +331,4 @@ function reviewMode() {
 // Initialize
 loadCategory();
 updateFilterOptions();
+updateScoreboard();
