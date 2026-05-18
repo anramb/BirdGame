@@ -115,6 +115,24 @@
             text-decoration: underline;
         }
         
+        .add-home-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        
+        .add-home-btn:hover {
+            transform: translateY(-2px);
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -182,8 +200,11 @@
         <!-- Gentle install tip -->
         <div class="install-tip" id="installTip" style="display: none;">
             <strong>Tip:</strong> You can add this app to your phone's home screen for quick access — it will look and feel like a real app!<br>
-            <strong>Android:</strong> Tap the menu (three dots) in your browser and select <em>"Add to Home screen"</em>.<br>
-            <strong>iPhone:</strong> Tap the share button and select <em>"Add to Home Screen"</em>.
+            <button id="addToHomeBtn" class="add-home-btn" onclick="addToHomeScreen()" style="display: none;">Add to Home Screen</button>
+            <div id="manualAddTip">
+                <strong>Android:</strong> Tap the menu (three dots) in your browser and select <em>"Add to Home screen"</em>.<br>
+                <strong>iPhone:</strong> Tap the share button and select <em>"Add to Home Screen"</em>.
+            </div>
             <button class="dismiss-tip" onclick="dismissInstallTip()">Got it, don't show again</button>
         </div>
     </div>
@@ -194,6 +215,28 @@
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js').catch(function() {});
+        }
+        
+        // Intercept browser install prompt — show custom "Add to Home Screen" button instead
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            var btn = document.getElementById('addToHomeBtn');
+            var manual = document.getElementById('manualAddTip');
+            if (btn) btn.style.display = 'block';
+            if (manual) manual.style.display = 'none';
+            showInstallTip();
+        });
+        
+        function addToHomeScreen() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function() {
+                deferredPrompt = null;
+                document.getElementById('addToHomeBtn').style.display = 'none';
+                document.getElementById('installTip').style.display = 'none';
+            });
         }
         
         // Show install tip if not dismissed and not already installed as PWA

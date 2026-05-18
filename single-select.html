@@ -53,8 +53,49 @@
             font-size: 0.8em;
         }
         
+        .bird-search-wrapper {
+            position: relative;
+            flex: 1;
+            width: 100%;
+        }
+        
+        .bird-search-wrapper input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 0.8em;
+            box-sizing: border-box;
+        }
+        
+        .bird-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .bird-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.8em;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .bird-option:hover {
+            background: linear-gradient(135deg, #667eea22, #764ba222);
+        }
+        
         /* Bird name & species dropdown - adjust font-size here if names are too big/small */
-        #birdSelector, #speciesFilter {
+        #speciesFilter {
             font-size: 0.75em;
         }
         
@@ -207,12 +248,12 @@
                 gap: 10px;
             }
             
-            select {
+            select, .bird-search-wrapper {
                 width: 100%;
             }
             
             /* Bird name font size on mobile - adjust px value here */
-            #birdSelector, #speciesFilter {
+            #speciesFilter {
                 font-size: 13px;
             }
             
@@ -241,9 +282,10 @@
             <select id="speciesFilter" onchange="filterBySpecies()">
                 <option value="">All Species</option>
             </select>
-            <select id="birdSelector">
-                <option value="">Select a bird...</option>
-            </select>
+            <div class="bird-search-wrapper" id="birdSearchWrapper">
+                <input type="text" id="birdSearch" placeholder="Search or select a bird..." oninput="searchBirds()" onfocus="showBirdDropdown()" autocomplete="off">
+                <div class="bird-dropdown" id="birdDropdown"></div>
+            </div>
         </div>
         
         <div id="birdDisplay" style="display: none;">
@@ -330,6 +372,7 @@
             currentLanguage = document.getElementById('languageSelector').value;
             localStorage.setItem('birdAppLanguage', currentLanguage);
             currentSpeciesFilter = '';
+            document.getElementById('birdSearch').value = '';
             populateSpeciesFilter();
             populateBirdSelector();
             if (currentBird) {
@@ -337,52 +380,104 @@
             }
         }
         
-        // Populate bird selector
+        // Spaceless search: generates keys for original and reversed word order
+        function getSearchKeys(name) {
+            if (!name) return [];
+            const lower = name.toLowerCase();
+            const noSpaces = lower.replace(/\s+/g, '');
+            const words = lower.split(/\s+/);
+            const reversed = words.length > 1 
+                ? [...words.slice(1), words[0]].join('') 
+                : noSpaces;
+            return [noSpaces, reversed];
+        }
+        
+        function searchBirds() {
+            populateBirdSelector();
+            showBirdDropdown();
+        }
+        
+        function showBirdDropdown() {
+            var searchInput = document.getElementById('birdSearch');
+            // If showing a previously selected bird name, clear to allow fresh search
+            if (currentBird) {
+                var nk = currentLanguage === 'af' ? 'afrikaans' : 'english';
+                if (searchInput.value === currentBird[nk]) {
+                    searchInput.value = '';
+                    populateBirdSelector();
+                }
+            }
+            document.getElementById('birdDropdown').style.display = 'block';
+        }
+        
+        function hideBirdDropdown() {
+            document.getElementById('birdDropdown').style.display = 'none';
+        }
+        
+        function selectBirdFromDropdown(index) {
+            currentBird = filteredBirds[index];
+            currentBirdIndex = index;
+            var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            document.getElementById('birdSearch').value = currentBird[nameKey];
+            hideBirdDropdown();
+            displayBird();
+        }
+        
+        // Populate bird dropdown
         function populateBirdSelector() {
-            const selector = document.getElementById('birdSelector');
+            var dropdown = document.getElementById('birdDropdown');
             
             if (typeof allbirds === 'undefined' || !Array.isArray(allbirds)) {
-                selector.innerHTML = '<option value="">No birds available</option>';
+                dropdown.innerHTML = '<div class="bird-option" style="color:#999;">No birds available</div>';
                 return;
             }
             
-            const nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            var searchInput = document.getElementById('birdSearch');
+            var query = searchInput ? searchInput.value.toLowerCase().replace(/\s+/g, '') : '';
+            
+            // Start with all birds
+            filteredBirds = [...allbirds];
             
             // Filter by species if selected
             if (currentSpeciesFilter) {
-                filteredBirds = allbirds.filter(b => getSpecies(b[nameKey]) === currentSpeciesFilter);
-            } else {
-                filteredBirds = [...allbirds];
+                filteredBirds = filteredBirds.filter(b => getSpecies(b[nameKey]) === currentSpeciesFilter);
+            }
+            
+            // Filter by search query (spaceless match on EN + AF, original + reversed word order)
+            if (query) {
+                filteredBirds = filteredBirds.filter(bird => {
+                    var keys = [...getSearchKeys(bird.english), ...getSearchKeys(bird.afrikaans)];
+                    return keys.some(k => k.includes(query));
+                });
             }
             
             // Sort by selected language
-            filteredBirds.sort((a, b) => {
-                return a[nameKey].localeCompare(b[nameKey]);
-            });
+            filteredBirds.sort((a, b) => a[nameKey].localeCompare(b[nameKey]));
             
-            // Clear and repopulate
-            const placeholder = currentLanguage === 'af' ? 'Kies \'n voël...' : 'Select a bird...';
-            selector.innerHTML = `<option value="">${placeholder}</option>`;
-            
-            filteredBirds.forEach((bird, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = bird[nameKey];
-                selector.appendChild(option);
-            });
-        }
-        
-        // Select bird
-        document.getElementById('birdSelector').addEventListener('change', function() {
-            const index = this.value;
-            if (index === '') {
-                document.getElementById('birdDisplay').style.display = 'none';
+            // Populate dropdown
+            dropdown.innerHTML = '';
+            if (filteredBirds.length === 0) {
+                dropdown.innerHTML = '<div class="bird-option" style="color:#999;">No results</div>';
                 return;
             }
             
-            currentBird = filteredBirds[index];
-            currentBirdIndex = parseInt(index);
-            displayBird();
+            filteredBirds.forEach((bird, index) => {
+                var div = document.createElement('div');
+                div.className = 'bird-option';
+                div.textContent = bird[nameKey];
+                div.addEventListener('mousedown', function(e) { e.preventDefault(); });
+                div.addEventListener('click', function() { selectBirdFromDropdown(index); });
+                dropdown.appendChild(div);
+            });
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            var wrapper = document.getElementById('birdSearchWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                hideBirdDropdown();
+            }
         });
         
         let currentBirdIndex = -1;
@@ -391,7 +486,8 @@
             if (!filteredBirds || filteredBirds.length === 0) return;
             currentBirdIndex = (currentBirdIndex - 1 + filteredBirds.length) % filteredBirds.length;
             currentBird = filteredBirds[currentBirdIndex];
-            document.getElementById('birdSelector').value = currentBirdIndex;
+            var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            document.getElementById('birdSearch').value = currentBird[nameKey];
             displayBird();
         }
         
@@ -399,7 +495,8 @@
             if (!filteredBirds || filteredBirds.length === 0) return;
             currentBirdIndex = (currentBirdIndex + 1) % filteredBirds.length;
             currentBird = filteredBirds[currentBirdIndex];
-            document.getElementById('birdSelector').value = currentBirdIndex;
+            var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
+            document.getElementById('birdSearch').value = currentBird[nameKey];
             displayBird();
         }
         

@@ -391,6 +391,18 @@
             return Array.from(values).sort();
         }
         
+        // Spaceless search: generates keys for original and reversed word order
+        function getSearchKeys(name) {
+            if (!name) return [];
+            const lower = name.toLowerCase();
+            const noSpaces = lower.replace(/\s+/g, '');
+            const words = lower.split(/\s+/);
+            const reversed = words.length > 1 
+                ? [...words.slice(1), words[0]].join('') 
+                : noSpaces;
+            return [noSpaces, reversed];
+        }
+        
         // === BIRD MULTI-SELECT ===
         function toggleBirdList() {
             const wrapper = document.getElementById('birdListWrapper');
@@ -414,6 +426,9 @@
             sorted.forEach(bird => {
                 const label = document.createElement('label');
                 label.dataset.search = bird[nameKey].toLowerCase();
+                const enKeys = getSearchKeys(bird.english);
+                const afKeys = getSearchKeys(bird.afrikaans);
+                label.dataset.searchkeys = [...enKeys, ...afKeys].join('|');
                 const cb = document.createElement('input');
                 cb.type = 'checkbox';
                 cb.value = bird.english;
@@ -427,10 +442,15 @@
         }
         
         function filterBirdList() {
-            const query = document.getElementById('birdSearchInput').value.toLowerCase();
+            const query = document.getElementById('birdSearchInput').value.toLowerCase().replace(/\s+/g, '');
             const labels = document.querySelectorAll('#birdList label');
             labels.forEach(label => {
-                label.style.display = label.dataset.search.includes(query) ? 'block' : 'none';
+                if (!query) {
+                    label.style.display = 'block';
+                    return;
+                }
+                const keys = label.dataset.searchkeys.split('|');
+                label.style.display = keys.some(k => k.includes(query)) ? 'block' : 'none';
             });
         }
         
