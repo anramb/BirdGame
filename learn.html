@@ -113,22 +113,53 @@
             text-decoration: underline;
         }
         
-        #spectrogram-container {
-            position: relative;
-            margin: 20px 0;
-            background: #f8f9fa;
+        .spectrogram-outer {
+            margin: 15px 0;
+            background: #1a1a2e;
             border-radius: 10px;
-            padding: 20px;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 8px;
         }
         
-        #spectrogram-container canvas {
-            max-width: 100%;
-            height: auto;
+        .spectrogram-scroll {
+            position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 220px;
             border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .spectrogram-scroll canvas {
+            display: block;
+            height: 200px;
+        }
+        
+        .spectrogram-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+            background-color: red;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+            box-shadow: 0 0 4px rgba(255,0,0,0.6);
+        }
+        
+        .spectrogram-time-axis {
+            height: 18px;
+            position: relative;
+            color: #aaa;
+            font-size: 10px;
+            font-family: monospace;
+        }
+        
+        .spectrogram-loading {
+            color: #aaa;
+            text-align: center;
+            padding: 80px 0;
+            font-size: 0.95em;
         }
         
         .progress-info {
@@ -297,6 +328,14 @@
             
             <audio id="audioPlayer" class="audio-player" controls></audio>
             
+            <div class="spectrogram-outer" id="spectrogramOuter" style="display: none;">
+                <div class="spectrogram-scroll" id="spectrogramScroll">
+                    <canvas id="spectrogramCanvas"></canvas>
+                    <div class="spectrogram-line" id="spectrogramLine"></div>
+                </div>
+                <div class="spectrogram-time-axis" id="timeAxis"></div>
+            </div>
+            
             <div id="learnBirdPhotoContainer" style="display: none; text-align: center; margin-top: 15px;">
                 <img id="learnBirdPhoto" alt="Bird photo" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
                 <div id="learnBirdPhotoCredit" style="font-size: 0.75em; color: #888; margin-top: 4px;"></div>
@@ -307,7 +346,7 @@
     </div>
     
     <script src="allbirds.js"></script>
-    <script src="interactive-spectrogram.js"></script>
+    <script src="spectrogram-generator.js"></script>
     
     <script>
         let playlist = [];
@@ -316,6 +355,8 @@
         let isPaused = false;
         let currentLanguage = localStorage.getItem('birdAppLanguage') || 'en';
         let audio = document.getElementById('audioPlayer');
+        let spectrogramReady = false;
+        let totalCanvasWidth = 0;
         
         // Set language on load
         document.getElementById('languageSelector').value = currentLanguage;
@@ -668,6 +709,26 @@
             }
         });
         
+        // Spectrogram
+        async function generateSpectrogramForBird(audioSrc) {
+            spectrogramReady = false;
+            totalCanvasWidth = 0;
+            
+            const result = await generateScrollableSpectrogram(audioSrc, {
+                canvas: document.getElementById('spectrogramCanvas'),
+                scrollContainer: document.getElementById('spectrogramScroll'),
+                line: document.getElementById('spectrogramLine'),
+                timeAxis: document.getElementById('timeAxis'),
+                outerContainer: document.getElementById('spectrogramOuter'),
+                pxPerSec: 75,
+                canvasHeight: 200,
+                audioElement: audio
+            });
+            
+            spectrogramReady = result.ready;
+            totalCanvasWidth = result.totalWidth;
+        }
+        
         // Start learning
         function startLearning() {
             // If paused, resume instead of restarting
@@ -836,6 +897,9 @@
             audio.src = bird.audio;
             audio.play();
             
+            // Generate spectrogram
+            generateSpectrogramForBird(bird.audio);
+            
             currentIndex++;
         }
         
@@ -875,6 +939,10 @@
             document.getElementById('stopBtn').style.display = 'none';
             document.getElementById('skipBtn').style.display = 'none';
             document.getElementById('learningDisplay').style.display = 'none';
+            document.getElementById('spectrogramOuter').style.display = 'none';
+            document.getElementById('spectrogramLine').style.display = 'none';
+            spectrogramReady = false;
+            totalCanvasWidth = 0;
         }
         
         // Auto-advance to next bird when audio ends
@@ -883,6 +951,27 @@
                 setTimeout(playNext, 1000);
             }
         });
+        
+        // Spectrogram line tracking
+        audio.addEventListener('timeupdate', function() {
+            updateSpectrogramLine(audio, document.getElementById('spectrogramLine'), document.getElementById('spectrogramScroll'), totalCanvasWidth, spectrogramReady);
+        });
+        
+        audio.addEventListener('play', function() {
+            if (spectrogramReady) {
+                document.getElementById('spectrogramLine').style.display = 'block';
+                updateSpectrogramLine(audio, document.getElementById('spectrogramLine'), document.getElementById('spectrogramScroll'), totalCanvasWidth, spectrogramReady);
+            }
+        });
+        
+        // Click-to-seek on spectrogram
+        setupSpectrogramClick(
+            document.getElementById('spectrogramScroll'),
+            document.getElementById('spectrogramCanvas'),
+            audio,
+            function() { return totalCanvasWidth; },
+            function() { return spectrogramReady; }
+        );
     </script>
     
     <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
