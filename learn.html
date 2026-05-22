@@ -178,6 +178,10 @@
             color: #333;
         }
         
+        .btn-retry {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+        
         .language-selector {
             padding: 12px;
             border-radius: 8px;
@@ -316,6 +320,7 @@
             <button id="pauseBtn" onclick="pauseResume()" class="btn btn-pause" style="display: none;">⏸ Pause</button>
             <button id="prevBtn" onclick="playPrevious()" class="btn" style="display: none;">⏮ Previous</button>
             <button id="skipBtn" onclick="skipToNext()" class="btn" style="display: none;">⏭ Skip</button>
+            <button id="retryBtn" onclick="retryCurrent()" class="btn btn-retry" style="display: none;">🔄 Retry</button>
             <button id="stopBtn" onclick="stopLearning()" class="btn btn-stop" style="display: none;">⏹ Stop</button>
         </div>
         
@@ -714,19 +719,57 @@
             spectrogramReady = false;
             totalCanvasWidth = 0;
             
-            const result = await generateScrollableSpectrogram(audioSrc, {
-                canvas: document.getElementById('spectrogramCanvas'),
-                scrollContainer: document.getElementById('spectrogramScroll'),
-                line: document.getElementById('spectrogramLine'),
-                timeAxis: document.getElementById('timeAxis'),
-                outerContainer: document.getElementById('spectrogramOuter'),
-                pxPerSec: 75,
-                canvasHeight: 200,
-                audioElement: audio
+            try {
+                const result = await generateScrollableSpectrogram(audioSrc, {
+                    canvas: document.getElementById('spectrogramCanvas'),
+                    scrollContainer: document.getElementById('spectrogramScroll'),
+                    line: document.getElementById('spectrogramLine'),
+                    timeAxis: document.getElementById('timeAxis'),
+                    outerContainer: document.getElementById('spectrogramOuter'),
+                    pxPerSec: 75,
+                    canvasHeight: 200,
+                    audioElement: audio
+                });
+                
+                spectrogramReady = result.ready;
+                totalCanvasWidth = result.totalWidth;
+            } catch (err) {
+                console.error('Spectrogram generation error:', err);
+                spectrogramReady = false;
+                totalCanvasWidth = 0;
+            }
+        }
+        
+        // Retry current bird (reload audio + spectrogram without losing position)
+        function retryCurrent() {
+            // currentIndex points to the NEXT bird, so current is currentIndex - 1
+            var retryIndex = currentIndex - 1;
+            if (retryIndex < 0) retryIndex = playlist.length - 1;
+            
+            var bird = playlist[retryIndex];
+            if (!bird) return;
+            
+            // Ensure playing state
+            if (isPaused) {
+                isPaused = false;
+                isPlaying = true;
+                document.getElementById('pauseBtn').textContent = '⏸ Pause';
+            }
+            if (!isPlaying) isPlaying = true;
+            
+            // Stop current audio
+            audio.pause();
+            audio.currentTime = 0;
+            
+            // Reload audio
+            audio.src = bird.audio;
+            audio.load();
+            audio.play().catch(function(e) {
+                console.error('Retry audio play failed:', e);
             });
             
-            spectrogramReady = result.ready;
-            totalCanvasWidth = result.totalWidth;
+            // Regenerate spectrogram
+            generateSpectrogramForBird(bird.audio);
         }
         
         // Start learning
@@ -828,6 +871,7 @@
             document.getElementById('pauseBtn').style.display = 'inline-block';
             document.getElementById('prevBtn').style.display = 'inline-block';
             document.getElementById('skipBtn').style.display = 'inline-block';
+            document.getElementById('retryBtn').style.display = 'inline-block';
             document.getElementById('stopBtn').style.display = 'inline-block';
             document.getElementById('learningDisplay').style.display = 'block';
             
@@ -895,9 +939,11 @@
             
             // Load audio
             audio.src = bird.audio;
-            audio.play();
+            audio.play().catch(function(e) {
+                console.error('Audio play failed:', e);
+            });
             
-            // Generate spectrogram
+            // Generate spectrogram (errors handled internally, won't block playback)
             generateSpectrogramForBird(bird.audio);
             
             currentIndex++;
@@ -938,6 +984,7 @@
             document.getElementById('prevBtn').style.display = 'none';
             document.getElementById('stopBtn').style.display = 'none';
             document.getElementById('skipBtn').style.display = 'none';
+            document.getElementById('retryBtn').style.display = 'none';
             document.getElementById('learningDisplay').style.display = 'none';
             document.getElementById('spectrogramOuter').style.display = 'none';
             document.getElementById('spectrogramLine').style.display = 'none';
@@ -949,6 +996,13 @@
         audio.addEventListener('ended', function() {
             if (isPlaying && !isPaused) {
                 setTimeout(playNext, 1000);
+            }
+        });
+        
+        // Handle audio load errors
+        audio.addEventListener('error', function() {
+            if (isPlaying || isPaused) {
+                console.error('Audio failed to load:', audio.src);
             }
         });
         
