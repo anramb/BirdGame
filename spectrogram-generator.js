@@ -1,5 +1,19 @@
 // ===== SCROLLABLE SPECTROGRAM GENERATOR (Web Audio API + FFT) =====
-// Shared by soundscape.html and single-select.html
+// Shared by soundscape.html, single-select.html, and learn.html
+
+// Reuse a single AudioContext to avoid browser limits (max ~6 concurrent contexts)
+let _spectrogramAudioCtx = null;
+let _spectrogramGenId = 0;
+
+function getSpectrogramAudioCtx() {
+    if (!_spectrogramAudioCtx || _spectrogramAudioCtx.state === 'closed') {
+        _spectrogramAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (_spectrogramAudioCtx.state === 'suspended') {
+        _spectrogramAudioCtx.resume();
+    }
+    return _spectrogramAudioCtx;
+}
 
 // Simple FFT implementation (radix-2 Cooley-Tukey)
 function spectrogramFFT(re, im) {
@@ -98,11 +112,26 @@ async function generateScrollableSpectrogram(audioSrc, options) {
         existingLoading.style.color = '#aaa';
     }
     
+    // Track generation ID so stale requests can be discarded on rapid skip/next
+    const genId = ++_spectrogramGenId;
+    
     try {
         const arrayBuffer = await loadAudioAsBuffer(audioSrc);
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        audioCtx.close();
+        
+        // If a newer generation started while we were loading, abort this one
+        if (genId !== _spectrogramGenId) {
+            return { ready: false, totalWidth: 0 };
+        }
+        
+        const audioCtx = getSpectrogramAudioCtx();
+        // decodeAudioData detaches the buffer, so we must copy it for safety
+        const bufferCopy = arrayBuffer.slice(0);
+        const audioBuffer = await audioCtx.decodeAudioData(bufferCopy);
+        
+        // Check again after decode
+        if (genId !== _spectrogramGenId) {
+            return { ready: false, totalWidth: 0 };
+        }
         
         const samples = audioBuffer.getChannelData(0);
         const sampleRate = audioBuffer.sampleRate;
