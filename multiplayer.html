@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <title>Bird Sound ID - Multiplayer Quiz</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            padding-bottom: 40px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 25px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        h1 { color: #333; text-align: center; margin-bottom: 10px; font-size: 1.8em; }
+        h2 { color: #333; text-align: center; margin-bottom: 15px; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Setup Screen */
+        .setup-group { margin-bottom: 18px; }
+        .setup-group label { display: block; font-weight: 600; color: #555; margin-bottom: 6px; font-size: 0.95em; }
+        .setup-group select, .setup-group input {
+            width: 100%; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px;
+            font-size: 1em; transition: border-color 0.2s;
+        }
+        .setup-group select:focus, .setup-group input:focus { border-color: #667eea; outline: none; }
+        .player-inputs { display: grid; gap: 8px; margin-top: 8px; }
+        .player-row { display: flex; gap: 8px; align-items: center; }
+        .player-row input { flex: 1; }
+        .player-row .color-dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
+        .ai-toggle { display: flex; align-items: center; gap: 10px; margin-top: 10px; cursor: pointer; }
+        .ai-toggle input { width: 18px; height: 18px; }
+        .options-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .option-btn {
+            flex: 1; min-width: 60px; padding: 10px; border: 2px solid #ddd; border-radius: 8px;
+            background: white; cursor: pointer; text-align: center; font-size: 0.95em; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .option-btn.selected { border-color: #667eea; background: #f0f4ff; color: #667eea; }
+        .option-btn:hover { border-color: #667eea; }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; padding: 14px 30px; border-radius: 10px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer; width: 100%;
+            transition: transform 0.2s; margin-top: 10px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            background: #f0f0f0; color: #333; border: 2px solid #ddd; padding: 10px 20px;
+            border-radius: 8px; font-size: 1em; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-secondary:hover { border-color: #667eea; }
+        .btn-back {
+            background: none; border: none; color: #667eea; cursor: pointer;
+            font-size: 0.95em; padding: 5px; margin-bottom: 10px;
+        }
+
+        /* Scoreboard */
+        .scoreboard {
+            display: none; background: #f8f9fa; border-radius: 12px; padding: 12px;
+            margin-bottom: 15px; border: 1px solid #e0e0e0;
+        }
+        .scoreboard.visible { display: block; }
+        .scoreboard-title { font-size: 0.8em; color: #888; text-align: center; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .scoreboard-players { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .sb-player {
+            background: white; border-radius: 8px; padding: 8px 14px; min-width: 90px;
+            text-align: center; border: 2px solid transparent; transition: all 0.3s;
+        }
+        .sb-player.active-turn { border-color: #667eea; box-shadow: 0 2px 8px rgba(102,126,234,0.3); }
+        .sb-player-name { font-size: 0.8em; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+        .sb-player-score { font-size: 1.4em; font-weight: bold; color: #333; }
+        .sb-player-bar { height: 3px; border-radius: 2px; background: #eee; margin-top: 4px; }
+        .sb-player-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+        .target-label { font-size: 0.65em; color: #aaa; }
+
+        /* Turn Handoff */
+        .turn-screen { text-align: center; padding: 40px 20px; }
+        .turn-player-name { font-size: 2.5em; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .turn-subtitle { color: #888; font-size: 1.1em; margin-bottom: 30px; }
+        .turn-score-preview { color: #666; font-size: 0.95em; margin-bottom: 20px; }
+
+        /* Difficulty Selection */
+        .diff-screen { text-align: center; padding: 20px 0; }
+        .diff-options { display: grid; gap: 12px; margin: 20px 0; }
+        .diff-btn {
+            padding: 18px; border: 2px solid #ddd; border-radius: 12px; background: white;
+            cursor: pointer; text-align: left; transition: all 0.2s; display: flex;
+            align-items: center; gap: 15px;
+        }
+        .diff-btn:hover { border-color: #667eea; transform: translateX(5px); }
+        .diff-icon { font-size: 1.8em; }
+        .diff-info { flex: 1; }
+        .diff-label { font-weight: bold; font-size: 1.1em; color: #333; }
+        .diff-desc { font-size: 0.85em; color: #888; margin-top: 2px; }
+        .diff-points { font-weight: bold; color: #667eea; font-size: 1.1em; white-space: nowrap; }
+        .diff-btn.bonus { border-color: #ff6b35; }
+        .diff-btn.bonus:hover { background: #fff8f5; }
+        .diff-btn.bonus .diff-points { color: #ff6b35; }
+
+        /* Question */
+        .question-area { padding: 10px 0; }
+        .question-type-badge {
+            display: inline-block; background: #667eea; color: white; padding: 4px 12px;
+            border-radius: 20px; font-size: 0.8em; font-weight: 600; margin-bottom: 12px;
+        }
+        .question-type-badge.bonus { background: #ff6b35; }
+        .question-text { font-size: 1.15em; color: #333; font-weight: 600; margin-bottom: 15px; text-align: center; }
+        .question-media { margin: 15px 0; text-align: center; }
+        .question-media img {
+            max-width: 100%; max-height: 250px; border-radius: 12px; border: 2px solid #eee;
+        }
+        .question-media audio { width: 100%; }
+        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .answer-btn {
+            padding: 14px 10px; border: 2px solid #ddd; border-radius: 10px; background: white;
+            cursor: pointer; font-size: 0.95em; font-weight: 600; color: #333;
+            transition: all 0.2s; text-align: center; word-break: break-word;
+        }
+        .answer-btn:hover { border-color: #667eea; background: #f8f9ff; }
+        .answer-btn.correct { border-color: #28a745; background: #d4edda; color: #155724; }
+        .answer-btn.wrong { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+        .answer-btn.reveal { border-color: #28a745; background: #d4edda; color: #155724; }
+        .answer-btn:disabled { cursor: default; }
+
+        /* Audio buttons for spectrogram match */
+        .audio-option-btn {
+            padding: 14px; border: 2px solid #ddd; border-radius: 10px; background: white;
+            cursor: pointer; font-size: 1em; font-weight: 600; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .audio-option-btn:hover { border-color: #667eea; }
+        .audio-option-btn.playing { border-color: #667eea; background: #f0f4ff; }
+        .audio-option-btn.correct { border-color: #28a745; background: #d4edda; }
+        .audio-option-btn.wrong { border-color: #dc3545; background: #f8d7da; }
+        .audio-option-btn.reveal { border-color: #28a745; background: #d4edda; }
+
+        /* Timer */
+        .timer-bar { height: 6px; background: #eee; border-radius: 3px; margin-bottom: 12px; overflow: hidden; }
+        .timer-fill { height: 100%; background: #667eea; border-radius: 3px; transition: width 0.1s linear; }
+        .timer-fill.warning { background: #ffc107; }
+        .timer-fill.danger { background: #dc3545; }
+        .timer-text { text-align: center; font-size: 0.85em; color: #888; margin-bottom: 5px; }
+
+        /* Feedback */
+        .feedback-area { text-align: center; padding: 20px 0; }
+        .feedback-icon { font-size: 3em; margin-bottom: 10px; }
+        .feedback-text { font-size: 1.3em; font-weight: bold; margin-bottom: 5px; }
+        .feedback-text.correct { color: #28a745; }
+        .feedback-text.wrong { color: #dc3545; }
+        .feedback-text.timeout { color: #ffc107; }
+        .feedback-answer { color: #666; font-size: 0.95em; margin-bottom: 15px; }
+        .feedback-points { font-size: 1.1em; font-weight: bold; color: #667eea; margin-bottom: 15px; }
+        .feedback-bird-info {
+            background: #f8f9fa; border-radius: 10px; padding: 12px; text-align: left;
+            margin: 15px 0; font-size: 0.9em; color: #555;
+        }
+        .feedback-bird-info img { max-width: 120px; border-radius: 8px; float: right; margin-left: 10px; }
+
+        /* Spectrogram */
+        .spectrogram-outer { margin: 12px 0; background: #1a1a2e; border-radius: 10px; padding: 8px; }
+        .spectrogram-scroll {
+            position: relative; overflow-x: auto; overflow-y: hidden;
+            height: 170px; border-radius: 8px; cursor: pointer;
+        }
+        .spectrogram-scroll canvas { display: block; height: 150px; }
+        .spectrogram-line {
+            position: absolute; top: 0; left: 0; width: 2px; height: 100%;
+            background-color: red; pointer-events: none; z-index: 10; display: none;
+            box-shadow: 0 0 4px rgba(255,0,0,0.6);
+        }
+        .spectrogram-time-axis { height: 16px; position: relative; color: #aaa; font-size: 9px; font-family: monospace; }
+        .spectrogram-loading { color: #aaa; text-align: center; padding: 60px 0; font-size: 0.9em; }
+
+        /* Loading */
+        .loading-screen { text-align: center; padding: 60px 20px; }
+        .loading-spinner {
+            width: 50px; height: 50px; border: 4px solid #eee; border-top-color: #667eea;
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Winner Screen */
+        .winner-screen { text-align: center; padding: 30px 10px; position: relative; overflow: hidden; }
+        .winner-title { font-size: 2em; color: #333; margin-bottom: 5px; }
+        .winner-name { font-size: 2.5em; font-weight: bold; color: #667eea; margin: 10px 0; }
+        .winner-score { font-size: 1.3em; color: #666; margin-bottom: 20px; }
+        .final-scoreboard { text-align: left; margin: 20px 0; }
+        .final-sb-row {
+            display: flex; align-items: center; padding: 10px 15px; border-radius: 8px;
+            margin-bottom: 6px; background: #f8f9fa;
+        }
+        .final-sb-row.winner-row { background: linear-gradient(135deg, #ffd700 0%, #ffec80 100%); }
+        .final-sb-rank { font-weight: bold; font-size: 1.2em; width: 30px; color: #888; }
+        .final-sb-name { flex: 1; font-weight: 600; color: #333; }
+        .final-sb-score { font-weight: bold; font-size: 1.2em; color: #667eea; }
+
+        /* Confetti */
+        .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        .confetti {
+            position: absolute; width: 10px; height: 10px; top: -10px;
+            animation: confetti-fall linear forwards;
+        }
+        @keyframes confetti-fall {
+            to { top: 110vh; transform: rotate(720deg); }
+        }
+
+        /* Replay audio btn */
+        .replay-btn {
+            background: #667eea; color: white; border: none; padding: 10px 20px;
+            border-radius: 8px; cursor: pointer; font-size: 1em; margin: 8px 0;
+            transition: transform 0.2s;
+        }
+        .replay-btn:hover { transform: translateY(-2px); }
+
+        @media (max-width: 500px) {
+            .container { padding: 15px; }
+            h1 { font-size: 1.5em; }
+            .answers-grid { grid-template-columns: 1fr; }
+            .turn-player-name { font-size: 2em; }
+            .sb-player { min-width: 70px; padding: 6px 10px; }
+            .sb-player-name { max-width: 60px; font-size: 0.7em; }
+            .sb-player-score { font-size: 1.1em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="scoreboard" id="scoreboard">
+            <div class="scoreboard-title">Scoreboard — Target: <span id="sbTarget">100</span></div>
+            <div class="scoreboard-players" id="sbPlayers"></div>
+        </div>
+
+        <!-- SETUP SCREEN -->
+        <div class="screen active" id="setupScreen">
+            <h1>🎮 Multiplayer Bird Quiz</h1>
+            <p style="text-align:center;color:#888;margin-bottom:20px;">Challenge your friends to a bird identification showdown!</p>
+
+            <div class="setup-group">
+                <label>Number of Players</label>
+                <div class="options-row" id="playerCountRow"></div>
+            </div>
+
+            <div class="setup-group" id="playerNamesGroup" style="display:none;">
+                <label>Player Names</label>
+                <div class="player-inputs" id="playerInputs"></div>
+                <label class="ai-toggle">
+                    <input type="checkbox" id="aiToggle" onchange="toggleAI()">
+                    <span>Add 🤖 AI Opponent</span>
+                </label>
+            </div>
+
+            <div class="setup-group">
+                <label>Target Score</label>
+                <div class="options-row" id="targetRow"></div>
+            </div>
+
+            <div class="setup-group">
+                <label>Time Limit per Question</label>
+                <div class="options-row" id="timerRow"></div>
+            </div>
+
+            <div class="setup-group">
+                <label>Language</label>
+                <select id="setupLang" onchange="setupLangChanged()">
+                    <option value="en">English</option>
+                    <option value="af">Afrikaans</option>
+                </select>
+            </div>
+
+            <button class="btn-primary" id="startGameBtn" onclick="startGame()" disabled>Start Game</button>
+            <button class="btn-back" onclick="window.location.href='start.html'" style="margin-top:12px;display:block;text-align:center;width:100%;">← Back to Menu</button>
+        </div>
+
+        <!-- TURN HANDOFF SCREEN -->
+        <div class="screen" id="turnScreen">
+            <div class="turn-screen">
+                <div style="font-size:1.2em;color:#888;">Get ready...</div>
+                <div class="turn-player-name" id="turnPlayerName"></div>
+                <div class="turn-subtitle">It's your turn!</div>
+                <div class="turn-score-preview" id="turnScorePreview"></div>
+                <button class="btn-primary" onclick="showDifficultySelect()" style="max-width:300px;margin:0 auto;">Start Turn</button>
+            </div>
+        </div>
+
+        <!-- DIFFICULTY SELECTION SCREEN -->
+        <div class="screen" id="diffScreen">
+            <div class="diff-screen">
+                <h2 id="diffPlayerLabel">Choose Difficulty</h2>
+                <div class="diff-options">
+                    <button class="diff-btn" onclick="selectDifficulty(1)">
+                        <div class="diff-icon">⭐</div>
+                        <div class="diff-info"><div class="diff-label" data-lang-en="Easy" data-lang-af="Maklik">Easy</div><div class="diff-desc" data-lang-en="Common birds" data-lang-af="Algemene voëls">Common birds</div></div>
+                        <div class="diff-points">1 pt</div>
+                    </button>
+                    <button class="diff-btn" onclick="selectDifficulty(2)">
+                        <div class="diff-icon">⭐⭐</div>
+                        <div class="diff-info"><div class="diff-label" data-lang-en="Medium" data-lang-af="Medium">Medium</div><div class="diff-desc" data-lang-en="Intermediate birds" data-lang-af="Intermediêre voëls">Intermediate birds</div></div>
+                        <div class="diff-points">2 pts</div>
+                    </button>
+                    <button class="diff-btn" onclick="selectDifficulty(3)">
+                        <div class="diff-icon">⭐⭐⭐</div>
+                        <div class="diff-info"><div class="diff-label" data-lang-en="Hard" data-lang-af="Moeilik">Hard</div><div class="diff-desc" data-lang-en="Advanced birds" data-lang-af="Gevorderde voëls">Advanced birds</div></div>
+                        <div class="diff-points">3 pts</div>
+                    </button>
+                    <button class="diff-btn bonus" onclick="selectDifficulty(5)">
+                        <div class="diff-icon">🔥</div>
+                        <div class="diff-info"><div class="diff-label" data-lang-en="Bonus Challenge" data-lang-af="Bonus Uitdaging">Bonus Challenge</div><div class="diff-desc" data-lang-en="Spectrogram only — no sound!" data-lang-af="Slegs spectrogram — geen klank!">Spectrogram only — no sound!</div></div>
+                        <div class="diff-points">5 pts</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING SCREEN -->
+        <div class="screen" id="loadingScreen">
+            <div class="loading-screen">
+                <div class="loading-spinner"></div>
+                <div style="color:#888;" data-lang-en="Preparing question..." data-lang-af="Berei vraag voor...">Preparing question...</div>
+            </div>
+        </div>
+
+        <!-- QUESTION SCREEN -->
+        <div class="screen" id="questionScreen">
+            <div class="question-area">
+                <div id="timerContainer" style="display:none;">
+                    <div class="timer-text" id="timerText"></div>
+                    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+                </div>
+                <div style="text-align:center;">
+                    <span class="question-type-badge" id="questionBadge"></span>
+                </div>
+                <div class="question-text" id="questionText"></div>
+                <div class="question-media" id="questionMedia"></div>
+                <div class="answers-grid" id="answersGrid"></div>
+            </div>
+        </div>
+
+        <!-- FEEDBACK SCREEN -->
+        <div class="screen" id="feedbackScreen">
+            <div class="feedback-area">
+                <div class="feedback-icon" id="feedbackIcon"></div>
+                <div class="feedback-text" id="feedbackText"></div>
+                <div class="feedback-points" id="feedbackPoints"></div>
+                <div class="feedback-bird-info" id="feedbackBirdInfo"></div>
+                <button class="btn-primary" style="max-width:300px;margin:20px auto 0;" id="nextTurnBtn"></button>
+            </div>
+        </div>
+
+        <!-- WINNER SCREEN -->
+        <div class="screen" id="winnerScreen">
+            <div class="winner-screen">
+                <div style="font-size:3em;">🎉</div>
+                <div class="winner-title" data-lang-en="Congratulations!" data-lang-af="Geluk!">Congratulations!</div>
+                <div class="winner-name" id="winnerName"></div>
+                <div class="winner-score" id="winnerScore"></div>
+                <div class="final-scoreboard" id="finalScoreboard"></div>
+                <button class="btn-primary" onclick="resetGame()" style="max-width:300px;margin:20px auto 0;" data-lang-en="Play Again" data-lang-af="Speel Weer">Play Again</button>
+                <button class="btn-back" onclick="window.location.href='start.html'" style="margin-top:12px;display:block;text-align:center;width:100%;">← Back to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <div style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:8px;background:rgba(255,255,255,0.9);color:#666;font-size:0.7em;z-index:1000;">Created by Marna Buys with Windsurf</div>
+
+    <!-- Hidden audio elements -->
+    <audio id="gameAudio" preload="auto"></audio>
+    <audio id="optionAudio1" preload="auto"></audio>
+    <audio id="optionAudio2" preload="auto"></audio>
+    <audio id="optionAudio3" preload="auto"></audio>
+    <audio id="optionAudio4" preload="auto"></audio>
+
+    <script src="allbirds.js"></script>
+    <script src="spectrogram-generator.js"></script>
+
+    <script>
+    // =================== GAME STATE ===================
+    const PLAYER_COLORS = ['#667eea','#e74c3c','#2ecc71','#f39c12','#9b59b6','#1abc9c'];
+    let players = [];
+    let targetScore = 100;
+    let timerSeconds = 0; // 0 = no timer
+    let lang = 'en';
+    let currentPlayerIndex = 0;
+    let usedBirds = new Set();
+    let gameActive = false;
+    let timerInterval = null;
+    let timerRemaining = 0;
+    let currentQuestion = null;
+    let answered = false;
+    let playingOptionIndex = -1;
+
+    // =================== SETUP ===================
+    const playerCounts = [2,3,4,5,6];
+    const targets = [15,25,50,75,100];
+    const timers = [{v:0,l:'No Limit'},{v:10,l:'10s'},{v:20,l:'20s'},{v:30,l:'30s'}];
+    let selectedPlayerCount = 0;
+    let selectedTarget = 0;
+    let selectedTimer = -1;
+
+    function initSetup() {
+        // Player count buttons
+        const pcRow = document.getElementById('playerCountRow');
+        playerCounts.forEach(n => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = n;
+            btn.onclick = () => selectPlayerCount(n);
+            btn.id = 'pc_' + n;
+            pcRow.appendChild(btn);
+        });
+        // Target buttons
+        const tRow = document.getElementById('targetRow');
+        targets.forEach(t => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = t;
+            btn.onclick = () => selectTarget(t);
+            btn.id = 'tgt_' + t;
+            tRow.appendChild(btn);
+        });
+        // Timer buttons
+        const tmRow = document.getElementById('timerRow');
+        timers.forEach((t,i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = t.l;
+            btn.onclick = () => selectTimerOption(i);
+            btn.id = 'tmr_' + i;
+            tmRow.appendChild(btn);
+        });
+        // Set language from storage
+        const savedLang = localStorage.getItem('birdAppLanguage') || 'en';
+        document.getElementById('setupLang').value = savedLang;
+        lang = savedLang;
+    }
+
+    function selectPlayerCount(n) {
+        selectedPlayerCount = n;
+        document.querySelectorAll('#playerCountRow .option-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('pc_' + n).classList.add('selected');
+        buildPlayerInputs(n);
+        checkCanStart();
+    }
+
+    function buildPlayerInputs(count) {
+        const container = document.getElementById('playerInputs');
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const row = document.createElement('div');
+            row.className = 'player-row';
+            const dot = document.createElement('div');
+            dot.className = 'color-dot';
+            dot.style.background = PLAYER_COLORS[i];
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = (lang === 'af' ? 'Speler ' : 'Player ') + (i + 1);
+            input.id = 'pname_' + i;
+            input.maxLength = 15;
+            input.oninput = checkCanStart;
+            row.appendChild(dot);
+            row.appendChild(input);
+            container.appendChild(row);
+        }
+        document.getElementById('playerNamesGroup').style.display = 'block';
+        document.getElementById('aiToggle').checked = false;
+    }
+
+    function toggleAI() {
+        // AI is always the last slot
+        checkCanStart();
+    }
+
+    function selectTarget(t) {
+        selectedTarget = t;
+        document.querySelectorAll('#targetRow .option-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('tgt_' + t).classList.add('selected');
+        checkCanStart();
+    }
+
+    function selectTimerOption(i) {
+        selectedTimer = i;
+        document.querySelectorAll('#timerRow .option-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('tmr_' + i).classList.add('selected');
+        checkCanStart();
+    }
+
+    function setupLangChanged() {
+        lang = document.getElementById('setupLang').value;
+        localStorage.setItem('birdAppLanguage', lang);
+        updateAllLangTexts();
+        // Rebuild player inputs with new placeholder
+        if (selectedPlayerCount > 0) buildPlayerInputs(selectedPlayerCount);
+    }
+
+    function checkCanStart() {
+        const hasCount = selectedPlayerCount > 0;
+        const hasTarget = selectedTarget > 0;
+        const hasTimer = selectedTimer >= 0;
+        let hasNames = true;
+        if (hasCount) {
+            for (let i = 0; i < selectedPlayerCount; i++) {
+                const el = document.getElementById('pname_' + i);
+                if (el && !el.value.trim()) { hasNames = false; break; }
+            }
+        }
+        document.getElementById('startGameBtn').disabled = !(hasCount && hasTarget && hasTimer && hasNames);
+    }
+
+    // =================== START GAME ===================
+    function startGame() {
+        targetScore = selectedTarget;
+        timerSeconds = timers[selectedTimer].v;
+        players = [];
+        for (let i = 0; i < selectedPlayerCount; i++) {
+            const name = document.getElementById('pname_' + i).value.trim() || ('Player ' + (i + 1));
+            players.push({ name: name, score: 0, color: PLAYER_COLORS[i], isAI: false });
+        }
+        if (document.getElementById('aiToggle').checked) {
+            players.push({ name: '🤖 AI', score: 0, color: '#888', isAI: true });
+        }
+        usedBirds = new Set();
+        currentPlayerIndex = 0;
+        gameActive = true;
+        answered = false;
+        updateScoreboard();
+        document.getElementById('scoreboard').classList.add('visible');
+        showScreen('turnScreen');
+        showTurnHandoff();
+    }
+
+    // =================== SCREENS ===================
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function showTurnHandoff() {
+        const p = players[currentPlayerIndex];
+        document.getElementById('turnPlayerName').textContent = p.name;
+        document.getElementById('turnPlayerName').style.color = p.color;
+        const needed = targetScore - p.score;
+        document.getElementById('turnScorePreview').textContent =
+            (lang === 'af' ? `Huidige telling: ${p.score} — Nog ${needed} nodig` : `Current score: ${p.score} — Need ${needed} more`);
+        updateScoreboard();
+        showScreen('turnScreen');
+
+        // If AI, auto-start after a short delay
+        if (p.isAI) {
+            setTimeout(() => {
+                showDifficultySelect();
+            }, 1200);
+        }
+    }
+
+    function showDifficultySelect() {
+        const p = players[currentPlayerIndex];
+        document.getElementById('diffPlayerLabel').textContent =
+            (lang === 'af' ? `${p.name}, kies moeilikheidsgraad` : `${p.name}, choose difficulty`);
+        showScreen('diffScreen');
+
+        // If AI, auto-select difficulty
+        if (p.isAI) {
+            setTimeout(() => {
+                const r = Math.random();
+                const aiDiff = r < 0.15 ? 1 : r < 0.55 ? 2 : r < 0.85 ? 3 : 5;
+                selectDifficulty(aiDiff);
+            }, 800);
+        }
+    }
+
+    // =================== QUESTION GENERATION ===================
+    function getAvailableBirds() {
+        return allbirds.filter(b => !b.exclude && !usedBirds.has(b.english) && b.audio);
+    }
+
+    function getBirdsByDifficulty(diff, field) {
+        const available = getAvailableBirds();
+        const matching = available.filter(b => b[field] === diff);
+        if (matching.length >= 4) return matching;
+        // Fallback: include adjacent difficulties
+        const fallback = available.filter(b => Math.abs(b[field] - diff) <= 1);
+        if (fallback.length >= 4) return fallback;
+        return available; // ultimate fallback
+    }
+
+    function pickRandom(arr, count) {
+        const shuffled = [...arr].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, count);
+    }
+
+    function getWrongOptions(correctBird, pool, count) {
+        const others = pool.filter(b => b.english !== correctBird.english);
+        return pickRandom(others, count);
+    }
+
+    function selectDifficulty(diff) {
+        showScreen('loadingScreen');
+        // Determine question type based on difficulty
+        setTimeout(() => generateQuestion(diff), 100);
+    }
+
+    async function generateQuestion(diff) {
+        const pointValue = diff;
+        let questionType;
+
+        if (diff === 5) {
+            // Bonus: always silent spectrogram
+            questionType = 'bonusSpectrogram';
+        } else {
+            // Random type weighted by available data
+            const types = ['soundId', 'photoId', 'spectrogramMatch'];
+            const weights = [3, 2, 1]; // sound questions more common
+            const totalW = weights.reduce((a, b) => a + b, 0);
+            let r = Math.random() * totalW;
+            questionType = types[0];
+            for (let i = 0; i < types.length; i++) {
+                r -= weights[i];
+                if (r <= 0) { questionType = types[i]; break; }
+            }
+        }
+
+        const diffField = (questionType === 'photoId') ? 'photoDifficulty'
+                        : (questionType === 'bonusSpectrogram' || questionType === 'spectrogramMatch') ? 'specDifficulty'
+                        : 'difficulty';
+        const actualDiff = diff === 5 ? 3 : diff; // bonus uses difficulty 3 birds
+        let pool = getBirdsByDifficulty(actualDiff, diffField);
+
+        // For photo questions, filter to birds with images
+        if (questionType === 'photoId') {
+            pool = pool.filter(b => b.image);
+            if (pool.length < 4) {
+                questionType = 'soundId'; // fallback
+                pool = getBirdsByDifficulty(actualDiff, 'difficulty');
+            }
+        }
+
+        if (pool.length < 4) {
+            pool = getAvailableBirds();
+        }
+        if (pool.length < 4) {
+            // Reset used birds if running low
+            usedBirds.clear();
+            pool = getAvailableBirds();
+        }
+
+        const correctBird = pickRandom(pool, 1)[0];
+        usedBirds.add(correctBird.english);
+
+        // Get wrong options from ALL birds (not just difficulty-matched) for variety
+        const allPool = allbirds.filter(b => !b.exclude && b.english !== correctBird.english);
+        const wrongBirds = getWrongOptions(correctBird, allPool, 3);
+        const nameKey = lang === 'af' ? 'afrikaans' : 'english';
+
+        // Build options
+        const options = [
+            { bird: correctBird, label: correctBird[nameKey], correct: true },
+            ...wrongBirds.map(b => ({ bird: b, label: b[nameKey], correct: false }))
+        ].sort(() => Math.random() - 0.5);
+
+        currentQuestion = {
+            type: questionType,
+            correctBird: correctBird,
+            options: options,
+            pointValue: pointValue,
+            diff: diff
+        };
+
+        await renderQuestion();
+    }
+
+    async function renderQuestion() {
+        const q = currentQuestion;
+        answered = false;
+        const nameKey = lang === 'af' ? 'afrikaans' : 'english';
+        const mediaDiv = document.getElementById('questionMedia');
+        const answersDiv = document.getElementById('answersGrid');
+        const badge = document.getElementById('questionBadge');
+        const qText = document.getElementById('questionText');
+        mediaDiv.innerHTML = '';
+        answersDiv.innerHTML = '';
+
+        // Badge
+        if (q.diff === 5) {
+            badge.className = 'question-type-badge bonus';
+            badge.textContent = '🔥 BONUS — 5 pts';
+        } else {
+            badge.className = 'question-type-badge';
+            badge.textContent = '⭐'.repeat(q.diff) + ' — ' + q.pointValue + (q.pointValue === 1 ? ' pt' : ' pts');
+        }
+
+        if (q.type === 'soundId') {
+            qText.textContent = lang === 'af' ? 'Watter voël maak hierdie klank?' : 'Which bird makes this sound?';
+            // Audio player + replay button
+            const audio = document.getElementById('gameAudio');
+            audio.src = q.correctBird.audio;
+            const replayBtn = document.createElement('button');
+            replayBtn.className = 'replay-btn';
+            replayBtn.textContent = '🔊 ' + (lang === 'af' ? 'Speel Weer' : 'Play Again');
+            replayBtn.onclick = () => { audio.currentTime = 0; audio.play(); };
+            mediaDiv.appendChild(replayBtn);
+            audio.play().catch(() => {});
+
+            // Standard 4-option answers
+            renderNameOptions(answersDiv, q.options);
+
+        } else if (q.type === 'photoId') {
+            qText.textContent = lang === 'af' ? 'Identifiseer hierdie voël:' : 'Identify this bird:';
+            if (q.correctBird.image) {
+                const img = document.createElement('img');
+                img.src = q.correctBird.image;
+                img.alt = 'Bird photo';
+                img.onerror = () => { img.style.display = 'none'; };
+                mediaDiv.appendChild(img);
+            }
+            renderNameOptions(answersDiv, q.options);
+
+        } else if (q.type === 'spectrogramMatch') {
+            qText.textContent = lang === 'af' ? 'Watter klank pas by hierdie spectrogram?' : 'Which sound matches this spectrogram?';
+            // Generate spectrogram
+            const specOuter = document.createElement('div');
+            specOuter.className = 'spectrogram-outer';
+            const specScroll = document.createElement('div');
+            specScroll.className = 'spectrogram-scroll';
+            const canvas = document.createElement('canvas');
+            const line = document.createElement('div');
+            line.className = 'spectrogram-line';
+            specScroll.appendChild(canvas);
+            specScroll.appendChild(line);
+            const timeAxis = document.createElement('div');
+            timeAxis.className = 'spectrogram-time-axis';
+            specOuter.appendChild(specScroll);
+            specOuter.appendChild(timeAxis);
+            mediaDiv.appendChild(specOuter);
+
+            try {
+                await generateScrollableSpectrogram(q.correctBird.audio, {
+                    canvas: canvas, scrollContainer: specScroll, line: line,
+                    timeAxis: timeAxis, outerContainer: specOuter,
+                    pxPerSec: 75, canvasHeight: 150
+                });
+            } catch(e) { console.error('Spectrogram failed:', e); }
+
+            // 4 audio option buttons
+            answersDiv.style.gridTemplateColumns = '1fr 1fr';
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'audio-option-btn';
+                btn.innerHTML = '🔊 ' + (lang === 'af' ? 'Klank' : 'Sound') + ' ' + (i + 1);
+                const audioEl = document.getElementById('optionAudio' + (i + 1));
+                audioEl.src = opt.bird.audio;
+                btn.onclick = () => {
+                    if (answered) return;
+                    // Play this audio
+                    stopAllOptionAudio();
+                    document.querySelectorAll('.audio-option-btn').forEach(b => b.classList.remove('playing'));
+                    btn.classList.add('playing');
+                    audioEl.currentTime = 0;
+                    audioEl.play().catch(() => {});
+                };
+                // Double-click or long-press to select as answer
+                const selectBtn = document.createElement('button');
+                selectBtn.className = 'answer-btn';
+                selectBtn.style.marginTop = '4px';
+                selectBtn.textContent = lang === 'af' ? 'Kies' : 'Select';
+                selectBtn.onclick = () => {
+                    if (answered) return;
+                    submitAnswer(opt, i);
+                };
+                const wrapper = document.createElement('div');
+                wrapper.appendChild(btn);
+                wrapper.appendChild(selectBtn);
+                answersDiv.appendChild(wrapper);
+            });
+
+        } else if (q.type === 'bonusSpectrogram') {
+            qText.textContent = lang === 'af' ? 'Identifiseer die voël slegs uit die spectrogram (geen klank!)' : 'Identify the bird from the spectrogram only (no sound!)';
+            const specOuter = document.createElement('div');
+            specOuter.className = 'spectrogram-outer';
+            const specScroll = document.createElement('div');
+            specScroll.className = 'spectrogram-scroll';
+            const canvas = document.createElement('canvas');
+            const line = document.createElement('div');
+            line.className = 'spectrogram-line';
+            specScroll.appendChild(canvas);
+            specScroll.appendChild(line);
+            const timeAxis = document.createElement('div');
+            timeAxis.className = 'spectrogram-time-axis';
+            specOuter.appendChild(specScroll);
+            specOuter.appendChild(timeAxis);
+            mediaDiv.appendChild(specOuter);
+
+            try {
+                await generateScrollableSpectrogram(q.correctBird.audio, {
+                    canvas: canvas, scrollContainer: specScroll, line: line,
+                    timeAxis: timeAxis, outerContainer: specOuter,
+                    pxPerSec: 75, canvasHeight: 150
+                });
+            } catch(e) { console.error('Spectrogram failed:', e); }
+
+            renderNameOptions(answersDiv, q.options);
+        }
+
+        showScreen('questionScreen');
+
+        // Start timer if enabled
+        if (timerSeconds > 0) {
+            startTimer();
+        }
+
+        // If AI player, auto-answer
+        if (players[currentPlayerIndex].isAI) {
+            const thinkTime = 2000 + Math.random() * 3000;
+            setTimeout(() => aiAnswer(), thinkTime);
+        }
+    }
+
+    function renderNameOptions(container, options) {
+        container.style.gridTemplateColumns = '1fr 1fr';
+        options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'answer-btn';
+            btn.textContent = opt.label;
+            btn.onclick = () => { if (!answered) submitAnswer(opt, i); };
+            btn.id = 'ans_' + i;
+            container.appendChild(btn);
+        });
+    }
+
+    // =================== ANSWER ===================
+    function submitAnswer(selectedOpt, index) {
+        if (answered) return;
+        answered = true;
+        clearTimer();
+        stopAllAudio();
+
+        const q = currentQuestion;
+        const correct = selectedOpt.correct;
+        const points = correct ? q.pointValue : 0;
+        players[currentPlayerIndex].score += points;
+
+        // Highlight answers
+        q.options.forEach((opt, i) => {
+            const btn = document.getElementById('ans_' + i);
+            if (!btn) {
+                // spectrogramMatch type - find by wrapper
+                const wrappers = document.querySelectorAll('#answersGrid > div');
+                if (wrappers[i]) {
+                    const selBtn = wrappers[i].querySelector('.answer-btn');
+                    const audioBtn = wrappers[i].querySelector('.audio-option-btn');
+                    if (opt.correct) {
+                        if (selBtn) selBtn.classList.add('reveal');
+                        if (audioBtn) audioBtn.classList.add('reveal');
+                    } else if (i === index && !correct) {
+                        if (selBtn) selBtn.classList.add('wrong');
+                        if (audioBtn) audioBtn.classList.add('wrong');
+                    }
+                }
+                return;
+            }
+            btn.disabled = true;
+            if (opt.correct) {
+                btn.classList.add(i === index ? 'correct' : 'reveal');
+            } else if (i === index) {
+                btn.classList.add('wrong');
+            }
+        });
+
+        // Show feedback after brief delay
+        setTimeout(() => showFeedback(correct, points, q), 1200);
+    }
+
+    function handleTimeout() {
+        if (answered) return;
+        answered = true;
+        clearTimer();
+        stopAllAudio();
+
+        const q = currentQuestion;
+        // Show correct answer
+        q.options.forEach((opt, i) => {
+            const btn = document.getElementById('ans_' + i);
+            if (btn) {
+                btn.disabled = true;
+                if (opt.correct) btn.classList.add('reveal');
+            }
+        });
+        setTimeout(() => showFeedback('timeout', 0, q), 1000);
+    }
+
+    function showFeedback(result, points, q) {
+        const nameKey = lang === 'af' ? 'afrikaans' : 'english';
+        const bird = q.correctBird;
+        const icon = document.getElementById('feedbackIcon');
+        const text = document.getElementById('feedbackText');
+        const ptsDiv = document.getElementById('feedbackPoints');
+        const info = document.getElementById('feedbackBirdInfo');
+        const nextBtn = document.getElementById('nextTurnBtn');
+
+        if (result === true) {
+            icon.textContent = '✅';
+            text.textContent = lang === 'af' ? 'Korrek!' : 'Correct!';
+            text.className = 'feedback-text correct';
+            ptsDiv.textContent = '+' + points + (points === 1 ? ' pt' : ' pts');
+        } else if (result === 'timeout') {
+            icon.textContent = '⏱️';
+            text.textContent = lang === 'af' ? 'Tyd verstreke!' : 'Time\'s up!';
+            text.className = 'feedback-text timeout';
+            ptsDiv.textContent = '0 pts';
+        } else {
+            icon.textContent = '❌';
+            text.textContent = lang === 'af' ? 'Verkeerd!' : 'Incorrect!';
+            text.className = 'feedback-text wrong';
+            ptsDiv.textContent = '0 pts';
+        }
+
+        // Bird info
+        let infoHTML = '<strong>' + bird[nameKey] + '</strong>';
+        if (nameKey === 'english' && bird.afrikaans) infoHTML += ' (' + bird.afrikaans + ')';
+        if (nameKey === 'afrikaans' && bird.english) infoHTML += ' (' + bird.english + ')';
+        if (bird.image) infoHTML += '<img src="' + bird.image + '" alt="' + bird[nameKey] + '">';
+        if (bird.habitat) infoHTML += '<br><em>Habitat: ' + bird.habitat + '</em>';
+        info.innerHTML = infoHTML;
+
+        // Play the correct bird sound for learning
+        const audio = document.getElementById('gameAudio');
+        audio.src = bird.audio;
+        audio.play().catch(() => {});
+
+        nextBtn.textContent = lang === 'af' ? 'Volgende Beurt →' : 'Next Turn →';
+
+        updateScoreboard();
+        showScreen('feedbackScreen');
+
+        // Check for winner
+        if (players[currentPlayerIndex].score >= targetScore) {
+            nextBtn.textContent = lang === 'af' ? 'Sien Resultate →' : 'See Results →';
+            nextBtn.onclick = () => showWinner();
+        } else {
+            nextBtn.onclick = () => nextTurn();
+            // Auto-advance for AI turns
+            if (players[currentPlayerIndex].isAI) {
+                setTimeout(() => nextTurn(), 2500);
+            }
+        }
+    }
+
+    // =================== TIMER ===================
+    function startTimer() {
+        timerRemaining = timerSeconds;
+        document.getElementById('timerContainer').style.display = 'block';
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            timerRemaining -= 0.1;
+            if (timerRemaining <= 0) {
+                timerRemaining = 0;
+                clearTimer();
+                handleTimeout();
+            }
+            updateTimerDisplay();
+        }, 100);
+    }
+
+    function updateTimerDisplay() {
+        const pct = (timerRemaining / timerSeconds) * 100;
+        const fill = document.getElementById('timerFill');
+        fill.style.width = pct + '%';
+        fill.className = 'timer-fill' + (pct < 20 ? ' danger' : pct < 40 ? ' warning' : '');
+        document.getElementById('timerText').textContent = Math.ceil(timerRemaining) + 's';
+    }
+
+    function clearTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        document.getElementById('timerContainer').style.display = 'none';
+    }
+
+    // =================== AUDIO HELPERS ===================
+    function stopAllAudio() {
+        ['gameAudio','optionAudio1','optionAudio2','optionAudio3','optionAudio4'].forEach(id => {
+            const a = document.getElementById(id);
+            if (a) { a.pause(); a.currentTime = 0; }
+        });
+    }
+
+    function stopAllOptionAudio() {
+        ['optionAudio1','optionAudio2','optionAudio3','optionAudio4'].forEach(id => {
+            const a = document.getElementById(id);
+            if (a) { a.pause(); a.currentTime = 0; }
+        });
+    }
+
+    // =================== AI ===================
+    function aiAnswer() {
+        if (answered || !currentQuestion) return;
+        const q = currentQuestion;
+        const p = players[currentPlayerIndex];
+        if (!p.isAI) return;
+
+        // AI accuracy based on difficulty
+        const accuracy = q.diff === 1 ? 0.80 : q.diff === 2 ? 0.60 : q.diff === 3 ? 0.40 : 0.25;
+        const isCorrect = Math.random() < accuracy;
+
+        if (isCorrect) {
+            const correctOpt = q.options.find(o => o.correct);
+            const idx = q.options.indexOf(correctOpt);
+            submitAnswer(correctOpt, idx);
+        } else {
+            const wrongOpts = q.options.filter(o => !o.correct);
+            const pick = wrongOpts[Math.floor(Math.random() * wrongOpts.length)];
+            const idx = q.options.indexOf(pick);
+            submitAnswer(pick, idx);
+        }
+    }
+
+    // =================== TURN MANAGEMENT ===================
+    function nextTurn() {
+        stopAllAudio();
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        showTurnHandoff();
+    }
+
+    // =================== SCOREBOARD ===================
+    function updateScoreboard() {
+        const container = document.getElementById('sbPlayers');
+        container.innerHTML = '';
+        document.getElementById('sbTarget').textContent = targetScore;
+        players.forEach((p, i) => {
+            const div = document.createElement('div');
+            div.className = 'sb-player' + (i === currentPlayerIndex ? ' active-turn' : '');
+            const pct = Math.min(100, (p.score / targetScore) * 100);
+            div.innerHTML = `
+                <div class="sb-player-name" style="color:${p.color}">${p.name}</div>
+                <div class="sb-player-score">${p.score}</div>
+                <div class="sb-player-bar"><div class="sb-player-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+                <div class="target-label">/ ${targetScore}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // =================== WINNER ===================
+    function showWinner() {
+        stopAllAudio();
+        gameActive = false;
+        const sorted = [...players].sort((a, b) => b.score - a.score);
+        const winner = sorted[0];
+
+        document.getElementById('winnerName').textContent = winner.name;
+        document.getElementById('winnerName').style.color = winner.color;
+        document.getElementById('winnerScore').textContent =
+            (lang === 'af' ? 'Finale telling: ' : 'Final score: ') + winner.score + ' pts';
+
+        const sb = document.getElementById('finalScoreboard');
+        sb.innerHTML = '';
+        sorted.forEach((p, i) => {
+            const row = document.createElement('div');
+            row.className = 'final-sb-row' + (i === 0 ? ' winner-row' : '');
+            row.innerHTML = `
+                <div class="final-sb-rank">${i === 0 ? '🏆' : (i + 1)}</div>
+                <div class="final-sb-name" style="color:${p.color}">${p.name}</div>
+                <div class="final-sb-score">${p.score} pts</div>
+            `;
+            sb.appendChild(row);
+        });
+
+        showScreen('winnerScreen');
+        launchConfetti();
+    }
+
+    function resetGame() {
+        document.getElementById('scoreboard').classList.remove('visible');
+        document.getElementById('confettiContainer').innerHTML = '';
+        showScreen('setupScreen');
+    }
+
+    // =================== CONFETTI ===================
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        container.innerHTML = '';
+        const colors = ['#667eea','#e74c3c','#2ecc71','#f39c12','#9b59b6','#1abc9c','#ffd700','#ff6b35'];
+        for (let i = 0; i < 100; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.width = (5 + Math.random() * 10) + 'px';
+            piece.style.height = (5 + Math.random() * 10) + 'px';
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+            piece.style.animationDelay = Math.random() * 2 + 's';
+            container.appendChild(piece);
+        }
+        // Clean up after animation
+        setTimeout(() => { container.innerHTML = ''; }, 7000);
+    }
+
+    // =================== LANGUAGE ===================
+    function updateAllLangTexts() {
+        document.querySelectorAll('[data-lang-en]').forEach(el => {
+            el.textContent = el.getAttribute('data-lang-' + lang) || el.getAttribute('data-lang-en');
+        });
+    }
+
+    // =================== INIT ===================
+    initSetup();
+    updateAllLangTexts();
+    </script>
+    <script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

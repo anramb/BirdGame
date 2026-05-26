@@ -307,6 +307,7 @@
             
             <div style="margin-top: 15px; text-align: center;">
                 <button id="prevBirdBtn" onclick="prevBird()" class="btn">◀ Previous</button>
+                <button id="playPauseBtn" onclick="togglePlayPause()" class="btn" style="background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%); color: #333;">⏸ Pause</button>
                 <button id="nextBirdBtn" onclick="nextBird()" class="btn">Next Bird ▶</button>
             </div>
             
@@ -585,7 +586,25 @@
         
         audio.addEventListener('ended', function() {
             spectrogramLine.style.display = 'none';
+            document.getElementById('playPauseBtn').textContent = '▶ Play';
         });
+        
+        audio.addEventListener('play', function() {
+            document.getElementById('playPauseBtn').textContent = '⏸ Pause';
+        });
+        
+        audio.addEventListener('pause', function() {
+            document.getElementById('playPauseBtn').textContent = '▶ Play';
+        });
+        
+        function togglePlayPause() {
+            if (!audio.src) return;
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
+        }
         
         setupSpectrogramClick(spectrogramScroll, canvas, audio,
             function() { return totalCanvasWidth; },
