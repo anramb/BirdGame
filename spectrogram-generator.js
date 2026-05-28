@@ -66,6 +66,7 @@ function loadAudioAsBuffer(audioSrc) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', audioSrc, true);
         xhr.responseType = 'arraybuffer';
+        xhr.timeout = 15000; // 15 second timeout
         xhr.onload = function() {
             if (xhr.status === 200 || xhr.status === 0) {
                 resolve(xhr.response);
@@ -75,6 +76,9 @@ function loadAudioAsBuffer(audioSrc) {
         };
         xhr.onerror = function() {
             reject(new Error('Could not load: ' + audioSrc));
+        };
+        xhr.ontimeout = function() {
+            reject(new Error('Timeout loading: ' + audioSrc));
         };
         xhr.send();
     });
@@ -123,10 +127,21 @@ async function generateScrollableSpectrogram(audioSrc, options) {
             return { ready: false, totalWidth: 0 };
         }
         
-        const audioCtx = getSpectrogramAudioCtx();
+        let audioCtx = getSpectrogramAudioCtx();
         // decodeAudioData detaches the buffer, so we must copy it for safety
-        const bufferCopy = arrayBuffer.slice(0);
-        const audioBuffer = await audioCtx.decodeAudioData(bufferCopy);
+        let audioBuffer;
+        try {
+            const bufferCopy = arrayBuffer.slice(0);
+            audioBuffer = await audioCtx.decodeAudioData(bufferCopy);
+        } catch (decodeErr) {
+            // AudioContext may be in a bad state — force-recreate and retry once
+            console.warn('decodeAudioData failed, recreating AudioContext:', decodeErr);
+            try { _spectrogramAudioCtx.close(); } catch(e) {}
+            _spectrogramAudioCtx = null;
+            audioCtx = getSpectrogramAudioCtx();
+            const bufferCopy2 = arrayBuffer.slice(0);
+            audioBuffer = await audioCtx.decodeAudioData(bufferCopy2);
+        }
         
         // Check again after decode
         if (genId !== _spectrogramGenId) {

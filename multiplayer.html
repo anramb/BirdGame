@@ -226,6 +226,12 @@
             transition: transform 0.2s;
         }
         .replay-btn:hover { transform: translateY(-2px); }
+        .retry-spec-btn {
+            background: #ff6b35; color: white; border: none; padding: 10px 20px;
+            border-radius: 8px; cursor: pointer; font-size: 0.95em; margin: 8px auto;
+            display: block; transition: transform 0.2s;
+        }
+        .retry-spec-btn:hover { transform: translateY(-2px); background: #e55a25; }
 
         /* Hotspot multi-select */
         .multi-select-container { position: relative; width: 100%; }
@@ -827,29 +833,7 @@
 
         } else if (q.type === 'spectrogramMatch') {
             qText.textContent = lang === 'af' ? 'Watter klank pas by hierdie spectrogram?' : 'Which sound matches this spectrogram?';
-            // Generate spectrogram
-            const specOuter = document.createElement('div');
-            specOuter.className = 'spectrogram-outer';
-            const specScroll = document.createElement('div');
-            specScroll.className = 'spectrogram-scroll';
-            const canvas = document.createElement('canvas');
-            const line = document.createElement('div');
-            line.className = 'spectrogram-line';
-            specScroll.appendChild(canvas);
-            specScroll.appendChild(line);
-            const timeAxis = document.createElement('div');
-            timeAxis.className = 'spectrogram-time-axis';
-            specOuter.appendChild(specScroll);
-            specOuter.appendChild(timeAxis);
-            mediaDiv.appendChild(specOuter);
-
-            try {
-                await generateScrollableSpectrogram(q.correctBird.audio, {
-                    canvas: canvas, scrollContainer: specScroll, line: line,
-                    timeAxis: timeAxis, outerContainer: specOuter,
-                    pxPerSec: 75, canvasHeight: 150
-                });
-            } catch(e) { console.error('Spectrogram failed:', e); }
+            await buildSpectrogram(mediaDiv, q.correctBird.audio);
 
             // 4 audio option buttons
             answersDiv.style.gridTemplateColumns = '1fr 1fr';
@@ -885,29 +869,7 @@
 
         } else if (q.type === 'bonusSpectrogram') {
             qText.textContent = lang === 'af' ? 'Identifiseer die voël slegs uit die spectrogram (geen klank!)' : 'Identify the bird from the spectrogram only (no sound!)';
-            const specOuter = document.createElement('div');
-            specOuter.className = 'spectrogram-outer';
-            const specScroll = document.createElement('div');
-            specScroll.className = 'spectrogram-scroll';
-            const canvas = document.createElement('canvas');
-            const line = document.createElement('div');
-            line.className = 'spectrogram-line';
-            specScroll.appendChild(canvas);
-            specScroll.appendChild(line);
-            const timeAxis = document.createElement('div');
-            timeAxis.className = 'spectrogram-time-axis';
-            specOuter.appendChild(specScroll);
-            specOuter.appendChild(timeAxis);
-            mediaDiv.appendChild(specOuter);
-
-            try {
-                await generateScrollableSpectrogram(q.correctBird.audio, {
-                    canvas: canvas, scrollContainer: specScroll, line: line,
-                    timeAxis: timeAxis, outerContainer: specOuter,
-                    pxPerSec: 75, canvasHeight: 150
-                });
-            } catch(e) { console.error('Spectrogram failed:', e); }
-
+            await buildSpectrogram(mediaDiv, q.correctBird.audio);
             renderNameOptions(answersDiv, q.options);
         }
 
@@ -923,6 +885,66 @@
             const thinkTime = 2000 + Math.random() * 3000;
             setTimeout(() => aiAnswer(), thinkTime);
         }
+    }
+
+    // =================== SPECTROGRAM WITH RETRY ===================
+    async function buildSpectrogram(mediaDiv, audioSrc) {
+        // Clear any previous spectrogram content in mediaDiv
+        const existing = mediaDiv.querySelector('.spectrogram-outer');
+        if (existing) existing.remove();
+        const existingRetry = mediaDiv.querySelector('.retry-spec-btn');
+        if (existingRetry) existingRetry.remove();
+
+        const specOuter = document.createElement('div');
+        specOuter.className = 'spectrogram-outer';
+        const specScroll = document.createElement('div');
+        specScroll.className = 'spectrogram-scroll';
+        const canvas = document.createElement('canvas');
+        const line = document.createElement('div');
+        line.className = 'spectrogram-line';
+        specScroll.appendChild(canvas);
+        specScroll.appendChild(line);
+        const timeAxis = document.createElement('div');
+        timeAxis.className = 'spectrogram-time-axis';
+        specOuter.appendChild(specScroll);
+        specOuter.appendChild(timeAxis);
+        mediaDiv.appendChild(specOuter);
+
+        let success = false;
+        try {
+            const result = await generateScrollableSpectrogram(audioSrc, {
+                canvas: canvas, scrollContainer: specScroll, line: line,
+                timeAxis: timeAxis, outerContainer: specOuter,
+                pxPerSec: 75, canvasHeight: 150
+            });
+            success = result && result.ready;
+        } catch(e) {
+            console.error('Spectrogram failed:', e);
+            success = false;
+        }
+
+        if (!success) {
+            // Show error message inside spectrogram area if not already shown
+            if (!specScroll.querySelector('.spectrogram-loading')) {
+                specScroll.innerHTML = '';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'spectrogram-loading';
+                errorDiv.style.color = '#ff6b6b';
+                errorDiv.textContent = lang === 'af' ? 'Spectrogram kon nie laai nie' : 'Spectrogram could not load';
+                specScroll.appendChild(errorDiv);
+            }
+        }
+
+        // Always add retry button for spectrogram questions
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'retry-spec-btn';
+        retryBtn.textContent = '🔄 ' + (lang === 'af' ? 'Herlaai Spectrogram' : 'Reload Spectrogram');
+        retryBtn.onclick = async () => {
+            retryBtn.disabled = true;
+            retryBtn.textContent = lang === 'af' ? '⏳ Genereer...' : '⏳ Generating...';
+            await buildSpectrogram(mediaDiv, audioSrc);
+        };
+        mediaDiv.appendChild(retryBtn);
     }
 
     function renderNameOptions(container, options) {
