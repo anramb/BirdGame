@@ -159,9 +159,41 @@
                 font-size: 0.85em;
             }
         }
+        
+        /* Splash Screen */
+        .splash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.6s ease;
+        }
+        .splash-overlay.fade-out { opacity: 0; pointer-events: none; }
+        .splash-icon {
+            width: 180px; height: 180px; border-radius: 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: splash-pulse 1.5s ease-in-out;
+        }
+        .splash-title {
+            color: white; font-size: 1.6em; font-weight: bold; margin-top: 20px;
+            opacity: 0; animation: splash-fade-in 0.8s ease 0.3s forwards;
+        }
+        @keyframes splash-pulse {
+            0% { transform: scale(0.7); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes splash-fade-in {
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
+    <!-- Splash Screen -->
+    <div class="splash-overlay" id="splashScreen">
+        <img src="app-icon.png" alt="Bird Sound ID" class="splash-icon">
+        <div class="splash-title">Bird Sound ID</div>
+    </div>
+
     <div class="container">
         <h1>Bird Sound ID</h1>
         
@@ -260,6 +292,15 @@
         }
         
         showInstallTip();
+        
+        // Splash screen
+        setTimeout(function() {
+            var splash = document.getElementById('splashScreen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                setTimeout(function() { splash.style.display = 'none'; }, 600);
+            }
+        }, 1500);
     </script>
     <script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
