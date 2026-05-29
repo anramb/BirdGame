@@ -246,9 +246,9 @@
             overflow-y: auto; background: white; border: 2px solid #667eea;
             border-top: none; border-radius: 0 0 8px 8px; z-index: 100;
         }
-        .multi-select-list label { display: block; padding: 7px 10px; cursor: pointer; font-size: 0.9em; }
+        .multi-select-list label { display: flex; align-items: center; padding: 7px 10px; cursor: pointer; font-size: 0.9em; text-align: left; }
         .multi-select-list label:hover { background: #f0f4ff; }
-        .multi-select-list input[type="checkbox"] { margin-right: 8px; }
+        .multi-select-list input[type="checkbox"] { margin-right: 8px; flex-shrink: 0; }
 
         @media (max-width: 500px) {
             .container { padding: 15px; }
@@ -391,6 +391,7 @@
                 <div class="feedback-text" id="feedbackText"></div>
                 <div class="feedback-points" id="feedbackPoints"></div>
                 <div class="feedback-bird-info" id="feedbackBirdInfo"></div>
+                <div id="feedbackSpectrogram" style="margin:10px 0;"></div>
                 <button class="btn-primary" style="max-width:300px;margin:20px auto 0;" id="nextTurnBtn"></button>
             </div>
         </div>
@@ -440,7 +441,7 @@
     let playingOptionIndex = -1;
 
     // =================== SETUP ===================
-    const playerCounts = [2,3,4,5,6];
+    const playerCounts = [1,2,3,4,5,6];
     const targets = [15,25,50,75,100];
     const timers = [{v:0,l:'No Limit'},{v:10,l:'10s'},{v:20,l:'20s'},{v:30,l:'30s'}];
     let selectedPlayerCount = 0;
@@ -516,7 +517,14 @@
             container.appendChild(row);
         }
         document.getElementById('playerNamesGroup').style.display = 'block';
-        document.getElementById('aiToggle').checked = false;
+        // Auto-check AI when only 1 human player
+        if (count === 1) {
+            document.getElementById('aiToggle').checked = true;
+            document.getElementById('aiToggle').disabled = true;
+        } else {
+            document.getElementById('aiToggle').checked = false;
+            document.getElementById('aiToggle').disabled = false;
+        }
     }
 
     function toggleAI() {
@@ -550,6 +558,9 @@
         const hasCount = selectedPlayerCount > 0;
         const hasTarget = selectedTarget > 0;
         const hasTimer = selectedTimer >= 0;
+        const aiChecked = document.getElementById('aiToggle').checked;
+        const totalPlayers = selectedPlayerCount + (aiChecked ? 1 : 0);
+        const enoughPlayers = totalPlayers >= 2;
         let hasNames = true;
         if (hasCount) {
             for (let i = 0; i < selectedPlayerCount; i++) {
@@ -557,7 +568,7 @@
                 if (el && !el.value.trim()) { hasNames = false; break; }
             }
         }
-        document.getElementById('startGameBtn').disabled = !(hasCount && hasTarget && hasTimer && hasNames);
+        document.getElementById('startGameBtn').disabled = !(hasCount && hasTarget && hasTimer && hasNames && enoughPlayers);
     }
 
     // =================== HOTSPOT MULTI-SELECT ===================
@@ -678,7 +689,7 @@
 
     // =================== QUESTION GENERATION ===================
     function getAvailableBirds() {
-        let pool = allbirds.filter(b => !b.exclude && !usedBirds.has(b.english) && b.audio);
+        let pool = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true' && !usedBirds.has(b.english) && b.audio);
         // Apply hotspot filter if any selected
         if (selectedHotspots.length > 0) {
             pool = pool.filter(b =>
@@ -692,10 +703,10 @@
 
     function getBirdsByDifficulty(diff, field) {
         const available = getAvailableBirds();
-        const matching = available.filter(b => b[field] === diff);
+        const matching = available.filter(b => Number(b[field]) === diff);
         if (matching.length >= 4) return matching;
         // Fallback: include adjacent difficulties
-        const fallback = available.filter(b => Math.abs(b[field] - diff) <= 1);
+        const fallback = available.filter(b => Math.abs(Number(b[field]) - diff) <= 1);
         if (fallback.length >= 4) return fallback;
         return available; // ultimate fallback
     }
@@ -1058,6 +1069,13 @@
         const audio = document.getElementById('gameAudio');
         audio.src = bird.audio;
         audio.play().catch(() => {});
+
+        // Generate spectrogram in feedback for spectrogram question types
+        const feedbackSpecDiv = document.getElementById('feedbackSpectrogram');
+        feedbackSpecDiv.innerHTML = '';
+        if (q.type === 'bonusSpectrogram' || q.type === 'spectrogramMatch') {
+            buildSpectrogram(feedbackSpecDiv, bird.audio);
+        }
 
         nextBtn.textContent = lang === 'af' ? 'Volgende Beurt →' : 'Next Turn →';
 
