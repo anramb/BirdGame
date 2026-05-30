@@ -293,14 +293,19 @@
         
         showInstallTip();
         
-        // Splash screen
-        setTimeout(function() {
-            var splash = document.getElementById('splashScreen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                setTimeout(function() { splash.style.display = 'none'; }, 600);
-            }
-        }, 1500);
+        // Splash screen - only show once per session
+        var splash = document.getElementById('splashScreen');
+        if (sessionStorage.getItem('splashShown')) {
+            if (splash) splash.style.display = 'none';
+        } else {
+            sessionStorage.setItem('splashShown', '1');
+            setTimeout(function() {
+                if (splash) {
+                    splash.classList.add('fade-out');
+                    setTimeout(function() { splash.style.display = 'none'; }, 600);
+                }
+            }, 1500);
+        }
     </script>
     <script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
