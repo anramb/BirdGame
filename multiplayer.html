@@ -170,6 +170,7 @@
             margin: 15px 0; font-size: 0.9em; color: #555;
         }
         .feedback-bird-info img { max-width: 120px; border-radius: 8px; float: right; margin-left: 10px; }
+        .feedback-bird-info::after { content: ''; display: table; clear: both; }
 
         /* Spectrogram */
         .spectrogram-outer { margin: 12px 0; background: #1a1a2e; border-radius: 10px; padding: 8px; }
@@ -246,9 +247,9 @@
             overflow-y: auto; background: white; border: 2px solid #667eea;
             border-top: none; border-radius: 0 0 8px 8px; z-index: 100;
         }
-        .multi-select-list label { display: block; padding: 7px 10px; cursor: pointer; font-size: 0.85em; }
+        .multi-select-list label { display: flex; align-items: flex-start; padding: 7px 10px; cursor: pointer; font-size: 0.85em; text-align: left; }
         .multi-select-list label:hover { background: #f0f0ff; }
-        .multi-select-list input[type="checkbox"] { margin-right: 6px; }
+        .multi-select-list input[type="checkbox"] { margin-right: 6px; margin-top: 2px; flex-shrink: 0; }
 
         @media (max-width: 500px) {
             .container { padding: 15px; }
@@ -926,7 +927,7 @@
             const result = await generateScrollableSpectrogram(audioSrc, {
                 canvas: canvas, scrollContainer: specScroll, line: line,
                 timeAxis: timeAxis, outerContainer: specOuter,
-                pxPerSec: 75, canvasHeight: 150
+                pxPerSec: 95, canvasHeight: 150
             });
             success = result && result.ready;
         } catch(e) {
