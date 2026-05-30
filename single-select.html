@@ -420,6 +420,7 @@
             currentBirdIndex = index;
             var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
             document.getElementById('birdSearch').value = currentBird[nameKey];
+            document.getElementById('birdSearch').blur();
             hideBirdDropdown();
             displayBird();
         }
