@@ -18,6 +18,33 @@ Object.entries(birdgroupMap).forEach(([key, group]) => {
   allData[key] = allData.allbirds.filter(bird => bird && bird.birdgroup === group);
 });
 
+// Species grouping - strip call-type suffixes to get base species name
+const GAME_CALL_SUFFIXES = [
+  'song & immitation', 'song & imitation',
+  'interaction m & f', 'male & female',
+  '2 birds interacting', 'advertising call',
+  'alarm call', 'territorial call', 'contact call',
+  'flight call', 'call variation', 'variation of call',
+  'call male', 'call female', 'courting male',
+  'duet', 'song', 'drumming', 'additional',
+  'immature', 'adult', 'juvenile',
+  'male', 'female',
+  'call',
+  'ec', 'wc'
+];
+
+function getBaseName(name) {
+  const lower = name.toLowerCase().trim();
+  for (const s of GAME_CALL_SUFFIXES) {
+    if (lower.endsWith(' ' + s)) {
+      return name.substring(0, name.length - s.length - 1).trim();
+    }
+  }
+  const numMatch = name.match(/\s\d+$/);
+  if (numMatch) return name.substring(0, name.length - numMatch[0].length).trim();
+  return name;
+}
+
 let birds = [];
 let filtered = [];
 let queue = [];
@@ -194,14 +221,18 @@ function nextBird() {
 function createOptions() {
   if (!currentBird) return;
 
+  const currentBase = getBaseName(currentBird.english);
   let options = [currentBird.english];
+  let usedBases = [currentBase];
   const pool = filtered.filter(b => b.english !== currentBird.english);
 
   while (options.length < 4 && pool.length > 0) {
     const randomIndex = Math.floor(Math.random() * pool.length);
     const randomBird = pool[randomIndex];
-    if (!options.includes(randomBird.english)) {
+    const randomBase = getBaseName(randomBird.english);
+    if (!usedBases.includes(randomBase)) {
       options.push(randomBird.english);
+      usedBases.push(randomBase);
     }
     pool.splice(randomIndex, 1);
   }
@@ -217,7 +248,7 @@ function createOptions() {
     if (!birdObj) return;
 
     const btn = document.createElement("button");
-    btn.textContent = lang === "af" ? birdObj.afrikaans : birdObj.english;
+    btn.textContent = lang === "af" ? getBaseName(birdObj.afrikaans) : getBaseName(birdObj.english);
     btn.onclick = () => check(option);
     optionsDiv.appendChild(btn);
   });
@@ -286,8 +317,8 @@ function check(answer) {
       ${correct ? "Correct" : "Wrong"}
     </div>
     <br>
-    <b>English:</b> ${currentBird.english}<br>
-    <b>Afrikaans:</b> ${currentBird.afrikaans}<br>
+    <b>English:</b> ${getBaseName(currentBird.english)}<br>
+    <b>Afrikaans:</b> ${getBaseName(currentBird.afrikaans)}<br>
     <small>${currentBird.credit || ""}</small><br>
     <a href="${currentBird.licenseLink}" target="_blank">License</a>
   `;

@@ -182,6 +182,20 @@
             background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
         }
         
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .btn-row .btn {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 8px;
+            font-size: 0.9em;
+        }
+        
         .language-selector {
             padding: 12px;
             border-radius: 8px;
@@ -317,11 +331,19 @@
                 <option value="3">Advanced</option>
             </select>
             <button id="startBtn" onclick="startLearning()" class="btn">▶ Start</button>
-            <button id="pauseBtn" onclick="pauseResume()" class="btn btn-pause" style="display: none;">⏸ Pause</button>
-            <button id="prevBtn" onclick="playPrevious()" class="btn" style="display: none;">⏮ Previous</button>
-            <button id="skipBtn" onclick="skipToNext()" class="btn" style="display: none;">⏭ Skip</button>
-            <button id="retryBtn" onclick="retryCurrent()" class="btn btn-retry" style="display: none;">🔄 Retry</button>
-            <button id="stopBtn" onclick="stopLearning()" class="btn btn-stop" style="display: none;">⏹ Stop</button>
+            <div id="playbackControls" style="display: none;">
+                <div class="btn-row">
+                    <button id="pauseBtn" onclick="pauseResume()" class="btn btn-pause">⏸ Pause</button>
+                    <button id="stopBtn" onclick="stopLearning()" class="btn btn-stop">⏹ Stop</button>
+                </div>
+                <div class="btn-row">
+                    <button id="prevBtn" onclick="playPrevious()" class="btn">⏮ Previous</button>
+                    <button id="skipBtn" onclick="skipToNext()" class="btn">⏭ Next</button>
+                </div>
+                <div class="btn-row">
+                    <button id="retryBtn" onclick="retryCurrent()" class="btn btn-retry">🔄 Retry</button>
+                </div>
+            </div>
         </div>
         
         <div id="learningDisplay" style="display: none;">
@@ -783,7 +805,7 @@
                 document.getElementById('pauseBtn').classList.remove('btn-pause');
                 document.getElementById('pauseBtn').classList.add('btn-pause');
                 document.getElementById('startBtn').style.display = 'none';
-                document.getElementById('pauseBtn').style.display = 'inline-block';
+                document.getElementById('playbackControls').style.display = 'block';
                 return;
             }
             
@@ -868,11 +890,7 @@
             isPaused = false;
             
             document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('pauseBtn').style.display = 'inline-block';
-            document.getElementById('prevBtn').style.display = 'inline-block';
-            document.getElementById('skipBtn').style.display = 'inline-block';
-            document.getElementById('retryBtn').style.display = 'inline-block';
-            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('playbackControls').style.display = 'block';
             document.getElementById('learningDisplay').style.display = 'block';
             
             playNext();
@@ -980,11 +998,7 @@
             audio.currentTime = 0;
             
             document.getElementById('startBtn').style.display = 'inline-block';
-            document.getElementById('pauseBtn').style.display = 'none';
-            document.getElementById('prevBtn').style.display = 'none';
-            document.getElementById('stopBtn').style.display = 'none';
-            document.getElementById('skipBtn').style.display = 'none';
-            document.getElementById('retryBtn').style.display = 'none';
+            document.getElementById('playbackControls').style.display = 'none';
             document.getElementById('learningDisplay').style.display = 'none';
             document.getElementById('spectrogramOuter').style.display = 'none';
             document.getElementById('spectrogramLine').style.display = 'none';

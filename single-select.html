@@ -234,6 +234,40 @@
             background: white;
         }
         
+        .call-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 12px 0;
+            padding: 10px;
+            background: #f0f0ff;
+            border-radius: 8px;
+        }
+        
+        .call-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .call-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .call-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -292,6 +326,7 @@
             <div class="bird-info">
                 <div class="bird-name" id="birdName"></div>
                 <div class="bird-name-afr" id="birdNameAfr"></div>
+                <div id="callSelector" class="call-selector" style="display: none;"></div>
                 <div class="bird-credit" id="birdCredit"></div>
             </div>
             
@@ -306,9 +341,11 @@
             <audio id="audioPlayer" controls></audio>
             
             <div style="margin-top: 15px; text-align: center;">
-                <button id="prevBirdBtn" onclick="prevBird()" class="btn">◀ Previous</button>
-                <button id="playPauseBtn" onclick="togglePlayPause()" class="btn" style="background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%); color: #333;">⏸ Pause</button>
-                <button id="nextBirdBtn" onclick="nextBird()" class="btn">Next Bird ▶</button>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 10px;">
+                    <button id="prevBirdBtn" onclick="prevBird()" class="btn" style="flex: 1;">◀ Previous</button>
+                    <button id="nextBirdBtn" onclick="nextBird()" class="btn" style="flex: 1;">Next Bird ▶</button>
+                </div>
+                <button id="playPauseBtn" onclick="togglePlayPause()" class="btn" style="background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%); color: #333; width: 100%;">⏸ Pause</button>
             </div>
             
             <div class="bird-photo-container" id="birdPhotoContainer" style="display: none;">
@@ -329,10 +366,113 @@
         let currentBird = null;
         let currentLanguage = localStorage.getItem('birdAppLanguage') || 'en';
         let currentSpeciesFilter = '';
-        let filteredBirds = [];
+        let filteredBirds = [];  // grouped species list for dropdown navigation
         let audio = document.getElementById('audioPlayer');
+        let currentSpeciesGroup = []; // all entries for currently selected species
         
-        // Get species (first word) from name
+        // === SPECIES GROUPING LOGIC ===
+        const CALL_SUFFIXES = [
+            'song & immitation', 'song & imitation',
+            'interaction m & f', 'male & female',
+            '2 birds interacting', 'advertising call',
+            'alarm call', 'territorial call', 'contact call',
+            'flight call', 'call variation', 'variation of call',
+            'call male', 'call female', 'courting male',
+            'duet', 'song', 'drumming', 'additional',
+            'immature', 'adult', 'juvenile',
+            'male', 'female',
+            'call',
+            'ec', 'wc'
+        ];
+        
+        // Priority for selecting base entry (lower = better)
+        const BASE_PRIORITY = {
+            'base': 0,
+            'call': 1,
+            'song': 2,
+            'contact call': 3,
+            'duet': 4,
+            'drumming': 4,
+            'call male': 5,
+            'call female': 5,
+            'courting male': 5,
+            'advertising call': 5,
+            'flight call': 5,
+            'territorial call': 6,
+            'alarm call': 7,
+            'call variation': 8,
+            'variation of call': 8,
+            'song & immitation': 8,
+            'song & imitation': 8,
+            'additional': 9,
+            '2 birds interacting': 9,
+            'interaction m & f': 9,
+            'male & female': 9,
+            'male': 10,
+            'female': 10,
+            'adult': 10,
+            'immature': 10,
+            'juvenile': 10,
+            'ec': 11,
+            'wc': 11
+        };
+        
+        function getCallSuffix(name) {
+            const lower = name.toLowerCase().trim();
+            for (const s of CALL_SUFFIXES) {
+                if (lower.endsWith(' ' + s)) return s;
+            }
+            // Check for numbered variants (e.g. "2", "3")
+            const numMatch = lower.match(/\s(\d+)$/);
+            if (numMatch) return numMatch[1];
+            return null;
+        }
+        
+        function getBaseName(name) {
+            const lower = name.toLowerCase().trim();
+            for (const s of CALL_SUFFIXES) {
+                if (lower.endsWith(' ' + s)) {
+                    return name.substring(0, name.length - s.length - 1).trim();
+                }
+            }
+            // Check for numbered variants
+            const numMatch = name.match(/\s\d+$/);
+            if (numMatch) return name.substring(0, name.length - numMatch[0].length).trim();
+            return name;
+        }
+        
+        function getCallLabel(name, baseName) {
+            if (name === baseName) return 'Main Call';
+            const suffix = name.substring(baseName.length).trim();
+            // Capitalize first letter
+            return suffix.charAt(0).toUpperCase() + suffix.slice(1);
+        }
+        
+        // Group all birds by base species name
+        function groupBirdsBySpecies() {
+            const groups = {};
+            allbirds.forEach(bird => {
+                if (bird.exclude === true || bird.exclude === 'true') return;
+                const base = getBaseName(bird.english);
+                if (!groups[base]) groups[base] = [];
+                groups[base].push(bird);
+            });
+            
+            // Sort entries within each group by priority
+            Object.values(groups).forEach(entries => {
+                entries.sort((a, b) => {
+                    const aSuffix = getCallSuffix(a.english);
+                    const bSuffix = getCallSuffix(b.english);
+                    const aPri = aSuffix ? (BASE_PRIORITY[aSuffix] || 9) : 0;
+                    const bPri = bSuffix ? (BASE_PRIORITY[bSuffix] || 9) : 0;
+                    return aPri - bPri;
+                });
+            });
+            
+            return groups;
+        }
+        
+        // Get species (first word) from name - for species filter
         function getSpecies(name) {
             return name.split(' ')[0];
         }
@@ -343,7 +483,8 @@
             if (typeof allbirds === 'undefined' || !Array.isArray(allbirds)) return;
             
             const nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
-            const species = [...new Set(allbirds.map(b => getSpecies(b[nameKey])))].sort();
+            const activeBirds = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true');
+            const species = [...new Set(activeBirds.map(b => getSpecies(b[nameKey])))].sort();
             const allLabel = currentLanguage === 'af' ? 'Alle Spesies' : 'All Species';
             filter.innerHTML = `<option value="">${allLabel}</option>`;
             species.forEach(s => {
@@ -352,7 +493,6 @@
                 opt.textContent = s;
                 filter.appendChild(opt);
             });
-            // Restore previous selection if still valid
             if (currentSpeciesFilter && species.includes(currentSpeciesFilter)) {
                 filter.value = currentSpeciesFilter;
             } else {
@@ -364,7 +504,6 @@
         function filterBySpecies() {
             currentSpeciesFilter = document.getElementById('speciesFilter').value;
             populateBirdSelector();
-            // Hide bird display when filter changes
             document.getElementById('birdDisplay').style.display = 'none';
         }
         
@@ -400,10 +539,10 @@
         
         function showBirdDropdown() {
             var searchInput = document.getElementById('birdSearch');
-            // If showing a previously selected bird name, clear to allow fresh search
             if (currentBird) {
                 var nk = currentLanguage === 'af' ? 'afrikaans' : 'english';
-                if (searchInput.value === currentBird[nk]) {
+                var baseName = getBaseName(currentBird[nk]);
+                if (searchInput.value === baseName || searchInput.value === currentBird[nk]) {
                     searchInput.value = '';
                     populateBirdSelector();
                 }
@@ -416,16 +555,18 @@
         }
         
         function selectBirdFromDropdown(index) {
-            currentBird = filteredBirds[index];
+            const speciesEntry = filteredBirds[index];
             currentBirdIndex = index;
+            currentBird = speciesEntry.entries[0]; // Select base/primary entry
+            currentSpeciesGroup = speciesEntry.entries;
             var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
-            document.getElementById('birdSearch').value = currentBird[nameKey];
+            document.getElementById('birdSearch').value = speciesEntry.displayName;
             document.getElementById('birdSearch').blur();
             hideBirdDropdown();
             displayBird();
         }
         
-        // Populate bird dropdown
+        // Populate bird dropdown - now shows grouped species
         function populateBirdSelector() {
             var dropdown = document.getElementById('birdDropdown');
             
@@ -438,36 +579,60 @@
             var searchInput = document.getElementById('birdSearch');
             var query = searchInput ? searchInput.value.toLowerCase().replace(/\s+/g, '') : '';
             
-            // Start with all birds
-            filteredBirds = [...allbirds];
+            // Build grouped species list
+            const groups = groupBirdsBySpecies();
             
-            // Filter by species if selected
+            // Create display list with base names
+            let speciesList = Object.entries(groups).map(([baseName, entries]) => {
+                // Use the base entry's name in selected language, or derive from first entry
+                const primaryEntry = entries[0];
+                const displayName = currentLanguage === 'af' 
+                    ? getBaseName(primaryEntry.afrikaans)
+                    : baseName;
+                return {
+                    baseName: baseName,
+                    displayName: displayName,
+                    entries: entries,
+                    callCount: entries.length
+                };
+            });
+            
+            // Filter by species (first word) if selected
             if (currentSpeciesFilter) {
-                filteredBirds = filteredBirds.filter(b => getSpecies(b[nameKey]) === currentSpeciesFilter);
+                speciesList = speciesList.filter(s => getSpecies(s.displayName) === currentSpeciesFilter);
             }
             
-            // Filter by search query (spaceless match on EN + AF, original + reversed word order)
+            // Filter by search query
             if (query) {
-                filteredBirds = filteredBirds.filter(bird => {
-                    var keys = [...getSearchKeys(bird.english), ...getSearchKeys(bird.afrikaans)];
-                    return keys.some(k => k.includes(query));
+                speciesList = speciesList.filter(species => {
+                    // Search across all entries in the group
+                    return species.entries.some(bird => {
+                        var keys = [...getSearchKeys(bird.english), ...getSearchKeys(bird.afrikaans)];
+                        return keys.some(k => k.includes(query));
+                    });
                 });
             }
             
-            // Sort by selected language
-            filteredBirds.sort((a, b) => a[nameKey].localeCompare(b[nameKey]));
+            // Sort by display name
+            speciesList.sort((a, b) => a.displayName.localeCompare(b.displayName));
+            
+            filteredBirds = speciesList;
             
             // Populate dropdown
             dropdown.innerHTML = '';
-            if (filteredBirds.length === 0) {
+            if (speciesList.length === 0) {
                 dropdown.innerHTML = '<div class="bird-option" style="color:#999;">No results</div>';
                 return;
             }
             
-            filteredBirds.forEach((bird, index) => {
+            speciesList.forEach((species, index) => {
                 var div = document.createElement('div');
                 div.className = 'bird-option';
-                div.textContent = bird[nameKey];
+                var label = species.displayName;
+                if (species.callCount > 1) {
+                    label += ' (' + species.callCount + ' calls)';
+                }
+                div.textContent = label;
                 div.addEventListener('mousedown', function(e) { e.preventDefault(); });
                 div.addEventListener('click', function() { selectBirdFromDropdown(index); });
                 dropdown.appendChild(div);
@@ -487,29 +652,101 @@
         function prevBird() {
             if (!filteredBirds || filteredBirds.length === 0) return;
             currentBirdIndex = (currentBirdIndex - 1 + filteredBirds.length) % filteredBirds.length;
-            currentBird = filteredBirds[currentBirdIndex];
+            const speciesEntry = filteredBirds[currentBirdIndex];
+            currentBird = speciesEntry.entries[0];
+            currentSpeciesGroup = speciesEntry.entries;
             var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
-            document.getElementById('birdSearch').value = currentBird[nameKey];
+            document.getElementById('birdSearch').value = speciesEntry.displayName;
             displayBird();
         }
         
         function nextBird() {
             if (!filteredBirds || filteredBirds.length === 0) return;
             currentBirdIndex = (currentBirdIndex + 1) % filteredBirds.length;
-            currentBird = filteredBirds[currentBirdIndex];
+            const speciesEntry = filteredBirds[currentBirdIndex];
+            currentBird = speciesEntry.entries[0];
+            currentSpeciesGroup = speciesEntry.entries;
             var nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
-            document.getElementById('birdSearch').value = currentBird[nameKey];
+            document.getElementById('birdSearch').value = speciesEntry.displayName;
             displayBird();
         }
         
-        // Display bird
+        // Switch to a specific call within the current species group
+        function selectCall(index) {
+            currentBird = currentSpeciesGroup[index];
+            playCurrentCall();
+            updateCallButtons(index);
+        }
+        
+        function updateCallButtons(activeIndex) {
+            const buttons = document.querySelectorAll('#callSelector .call-btn');
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('active', i === activeIndex);
+            });
+        }
+        
+        function playCurrentCall() {
+            // Update credit
+            const creditHTML = `
+                <strong>Credit:</strong> ${currentBird.credit}<br>
+                <strong>License:</strong> <a href="${currentBird.licenseLink}" target="_blank">View License</a><br>
+                <strong>Changes:</strong> ${currentBird.changes}
+            `;
+            document.getElementById('birdCredit').innerHTML = creditHTML;
+            
+            // Generate spectrogram and play
+            generateSpectrogramForBird(currentBird.audio);
+            audio.src = currentBird.audio;
+            audio.play();
+            
+            // Update photo
+            showBirdPhoto();
+        }
+        
+        function showBirdPhoto() {
+            const photoContainer = document.getElementById('birdPhotoContainer');
+            const photoImg = document.getElementById('birdPhoto');
+            const photoCredit = document.getElementById('birdPhotoCredit');
+            if (currentBird.image) {
+                photoImg.onload = function() {
+                    photoContainer.style.display = 'block';
+                };
+                photoImg.onerror = function() {
+                    photoContainer.style.display = 'none';
+                };
+                photoImg.src = currentBird.image;
+                photoCredit.textContent = currentBird.photographer ? '© ' + currentBird.photographer : '';
+            } else {
+                photoContainer.style.display = 'none';
+            }
+        }
+        
+        // Display bird - now shows call selector if multiple entries exist
         function displayBird() {
             if (!currentBird) return;
             
-            const mainName = currentLanguage === 'af' ? currentBird.afrikaans : currentBird.english;
-            const altName = currentLanguage === 'af' ? currentBird.english : currentBird.afrikaans;
+            const baseName = getBaseName(currentBird.english);
+            const baseNameAfr = getBaseName(currentBird.afrikaans);
+            const mainName = currentLanguage === 'af' ? baseNameAfr : baseName;
+            const altName = currentLanguage === 'af' ? baseName : baseNameAfr;
             document.getElementById('birdName').textContent = mainName;
             document.getElementById('birdNameAfr').textContent = altName;
+            
+            // Show call selector if species has multiple entries
+            const callSelector = document.getElementById('callSelector');
+            if (currentSpeciesGroup.length > 1) {
+                callSelector.innerHTML = '';
+                currentSpeciesGroup.forEach((entry, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'call-btn' + (entry === currentBird ? ' active' : '');
+                    btn.textContent = getCallLabel(entry.english, baseName);
+                    btn.addEventListener('click', function() { selectCall(i); });
+                    callSelector.appendChild(btn);
+                });
+                callSelector.style.display = 'flex';
+            } else {
+                callSelector.style.display = 'none';
+            }
             
             // Display credit info
             const creditHTML = `
@@ -526,22 +763,8 @@
             audio.src = currentBird.audio;
             audio.play();
             
-            // Show bird photo if available
-            const photoContainer = document.getElementById('birdPhotoContainer');
-            const photoImg = document.getElementById('birdPhoto');
-            const photoCredit = document.getElementById('birdPhotoCredit');
-            if (currentBird.image) {
-                photoImg.onload = function() {
-                    photoContainer.style.display = 'block';
-                };
-                photoImg.onerror = function() {
-                    photoContainer.style.display = 'none';
-                };
-                photoImg.src = currentBird.image;
-                photoCredit.textContent = currentBird.photographer ? '© ' + currentBird.photographer : '';
-            } else {
-                photoContainer.style.display = 'none';
-            }
+            // Show bird photo
+            showBirdPhoto();
             
             document.getElementById('birdDisplay').style.display = 'block';
         }
@@ -619,7 +842,10 @@
             populateSpeciesFilter();
             populateBirdSelector();
             if (typeof allbirds !== 'undefined') {
-                document.getElementById('totalBirdCalls').textContent = 'Total Bird Calls: ' + allbirds.length;
+                const activeBirds = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true');
+                const speciesCount = Object.keys(groupBirdsBySpecies()).length;
+                document.getElementById('totalBirdCalls').textContent = 
+                    'Species: ' + speciesCount + ' | Total Calls: ' + activeBirds.length;
             }
         });
     </script>

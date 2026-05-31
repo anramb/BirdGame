@@ -689,6 +689,32 @@
     }
 
     // =================== QUESTION GENERATION ===================
+    const MP_CALL_SUFFIXES = [
+        'song & immitation', 'song & imitation',
+        'interaction m & f', 'male & female',
+        '2 birds interacting', 'advertising call',
+        'alarm call', 'territorial call', 'contact call',
+        'flight call', 'call variation', 'variation of call',
+        'call male', 'call female', 'courting male',
+        'duet', 'song', 'drumming', 'additional',
+        'immature', 'adult', 'juvenile',
+        'male', 'female',
+        'call',
+        'ec', 'wc'
+    ];
+
+    function getBaseName(name) {
+        const lower = name.toLowerCase().trim();
+        for (const s of MP_CALL_SUFFIXES) {
+            if (lower.endsWith(' ' + s)) {
+                return name.substring(0, name.length - s.length - 1).trim();
+            }
+        }
+        const numMatch = name.match(/\s\d+$/);
+        if (numMatch) return name.substring(0, name.length - numMatch[0].length).trim();
+        return name;
+    }
+
     function getAvailableBirds() {
         let pool = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true' && !usedBirds.has(b.english) && b.audio);
         // Apply hotspot filter if any selected
@@ -718,8 +744,21 @@
     }
 
     function getWrongOptions(correctBird, pool, count) {
-        const others = pool.filter(b => b.english !== correctBird.english);
-        return pickRandom(others, count);
+        const correctBase = getBaseName(correctBird.english);
+        const others = pool.filter(b => getBaseName(b.english) !== correctBase);
+        // Pick unique base species
+        const usedBases = [correctBase];
+        const result = [];
+        const shuffled = [...others].sort(() => Math.random() - 0.5);
+        for (const b of shuffled) {
+            const base = getBaseName(b.english);
+            if (!usedBases.includes(base)) {
+                result.push(b);
+                usedBases.push(base);
+                if (result.length >= count) break;
+            }
+        }
+        return result;
     }
 
     function selectDifficulty(diff) {
@@ -780,10 +819,10 @@
         const wrongBirds = getWrongOptions(correctBird, allPool, 3);
         const nameKey = lang === 'af' ? 'afrikaans' : 'english';
 
-        // Build options
+        // Build options - show base species names only
         const options = [
-            { bird: correctBird, label: correctBird[nameKey], correct: true },
-            ...wrongBirds.map(b => ({ bird: b, label: b[nameKey], correct: false }))
+            { bird: correctBird, label: getBaseName(correctBird[nameKey]), correct: true },
+            ...wrongBirds.map(b => ({ bird: b, label: getBaseName(b[nameKey]), correct: false }))
         ].sort(() => Math.random() - 0.5);
 
         currentQuestion = {
@@ -1058,10 +1097,10 @@
             ptsDiv.textContent = '0 pts';
         }
 
-        // Bird info
-        let infoHTML = '<strong>' + bird[nameKey] + '</strong>';
-        if (nameKey === 'english' && bird.afrikaans) infoHTML += ' (' + bird.afrikaans + ')';
-        if (nameKey === 'afrikaans' && bird.english) infoHTML += ' (' + bird.english + ')';
+        // Bird info - show base species name
+        let infoHTML = '<strong>' + getBaseName(bird[nameKey]) + '</strong>';
+        if (nameKey === 'english' && bird.afrikaans) infoHTML += ' (' + getBaseName(bird.afrikaans) + ')';
+        if (nameKey === 'afrikaans' && bird.english) infoHTML += ' (' + getBaseName(bird.english) + ')';
         if (bird.image) infoHTML += '<img src="' + bird.image + '" alt="' + bird[nameKey] + '">';
         if (bird.habitat) infoHTML += '<br><em>Habitat: ' + bird.habitat + '</em>';
         info.innerHTML = infoHTML;
