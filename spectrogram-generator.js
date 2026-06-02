@@ -84,6 +84,75 @@ function loadAudioAsBuffer(audioSrc) {
     });
 }
 
+// Create or update the frequency axis on the left of the spectrogram
+function buildFrequencyAxis(outerContainer, scrollContainer, canvasHeight, maxFreqHz) {
+    // Ensure outer container uses flex layout
+    outerContainer.style.display = 'flex';
+    outerContainer.style.flexDirection = 'row';
+    outerContainer.style.flexWrap = 'wrap';
+    outerContainer.style.alignItems = 'flex-start';
+    
+    // Remove existing freq axis if present
+    const existing = outerContainer.querySelector('.spectrogram-freq-axis');
+    if (existing) existing.remove();
+    
+    const axisDiv = document.createElement('div');
+    axisDiv.className = 'spectrogram-freq-axis';
+    axisDiv.style.position = 'relative';
+    axisDiv.style.width = '38px';
+    axisDiv.style.minWidth = '38px';
+    axisDiv.style.height = canvasHeight + 'px';
+    axisDiv.style.flexShrink = '0';
+    axisDiv.style.borderRight = '1px solid #555';
+    axisDiv.style.marginRight = '0px';
+    axisDiv.style.boxSizing = 'border-box';
+    
+    // Frequency labels at 1kHz intervals (or 2kHz for small heights)
+    const step = canvasHeight < 150 ? 2000 : 1000;
+    for (let freq = 0; freq <= maxFreqHz; freq += step) {
+        const label = document.createElement('span');
+        label.style.position = 'absolute';
+        label.style.right = '4px';
+        label.style.fontSize = '9px';
+        label.style.color = '#aaa';
+        label.style.lineHeight = '1';
+        label.style.whiteSpace = 'nowrap';
+        
+        // Position: 0 Hz at bottom, maxFreqHz at top
+        const yFraction = freq / maxFreqHz;
+        const yPos = canvasHeight - (yFraction * canvasHeight);
+        label.style.top = yPos + 'px';
+        label.style.transform = 'translateY(-50%)';
+        
+        // Format label
+        if (freq >= 1000) {
+            label.textContent = (freq / 1000) + 'k';
+        } else {
+            label.textContent = freq + '';
+        }
+        axisDiv.appendChild(label);
+        
+        // Add tick mark
+        const tick = document.createElement('span');
+        tick.style.position = 'absolute';
+        tick.style.right = '0';
+        tick.style.top = yPos + 'px';
+        tick.style.width = '3px';
+        tick.style.height = '1px';
+        tick.style.background = '#555';
+        axisDiv.appendChild(tick);
+    }
+    
+    // Insert axis before the scroll container
+    outerContainer.insertBefore(axisDiv, scrollContainer);
+    
+    // Ensure scroll container fills remaining space
+    scrollContainer.style.flex = '1';
+    scrollContainer.style.minWidth = '0';
+    
+    return axisDiv;
+}
+
 // Main: generate spectrogram and draw on canvas
 // Options: { canvas, scrollContainer, line, timeAxis, outerContainer, pxPerSec, canvasHeight, audioElement }
 async function generateScrollableSpectrogram(audioSrc, options) {
@@ -100,7 +169,7 @@ async function generateScrollableSpectrogram(audioSrc, options) {
     
     const ctx = canvas.getContext('2d');
     line.style.display = 'none';
-    outerContainer.style.display = 'block';
+    outerContainer.style.display = 'flex';
     
     // Show loading
     const existingLoading = scrollContainer.querySelector('.spectrogram-loading');
@@ -160,6 +229,9 @@ async function generateScrollableSpectrogram(audioSrc, options) {
         // Show up to ~10kHz
         const maxFreqHz = 10000;
         const maxBin = Math.min(freqBins, Math.floor(maxFreqHz / (sampleRate / fftSize)));
+        
+        // Build frequency axis
+        buildFrequencyAxis(outerContainer, scrollContainer, canvasHeight, maxFreqHz);
         
         const totalWidth = numColumns;
         
@@ -224,7 +296,10 @@ async function generateScrollableSpectrogram(audioSrc, options) {
         // Time axis
         if (timeAxis) {
             timeAxis.innerHTML = '';
-            timeAxis.style.width = totalWidth + 'px';
+            timeAxis.style.width = '100%';
+            timeAxis.style.flexBasis = '100%';
+            timeAxis.style.position = 'relative';
+            timeAxis.style.marginLeft = '38px';
             const interval = 5;
             for (let t = 0; t <= duration; t += interval) {
                 const x = (t / duration) * totalWidth;
