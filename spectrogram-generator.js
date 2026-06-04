@@ -61,26 +61,47 @@ function spectrogramColor(value) {
 }
 
 // Load audio as ArrayBuffer (works with both HTTP and file://)
-function loadAudioAsBuffer(audioSrc) {
+// Retries once with cache-busting if the first attempt fails or returns partial content
+function loadAudioAsBuffer(audioSrc, _retryCount) {
+    _retryCount = _retryCount || 0;
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', audioSrc, true);
+        // On retry, add cache-buster to avoid stale range-request responses
+        let url = audioSrc;
+        if (_retryCount > 0) {
+            url += (url.indexOf('?') === -1 ? '?' : '&') + '_t=' + Date.now();
+        }
+        xhr.open('GET', url, true);
         xhr.responseType = 'arraybuffer';
-        xhr.timeout = 15000; // 15 second timeout
+        xhr.timeout = 30000; // 30 second timeout
+        // Prevent range requests that cause 206 responses
+        xhr.setRequestHeader('Cache-Control', 'no-cache');
         xhr.onload = function() {
-            if (xhr.status === 200 || xhr.status === 0) {
-                resolve(xhr.response);
+            // Accept any 2xx status or 0 (file://)
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) {
+                if (xhr.response && xhr.response.byteLength > 0) {
+                    resolve(xhr.response);
+                } else {
+                    reject(new Error('Empty response for: ' + audioSrc));
+                }
             } else {
-                reject(new Error('HTTP error: ' + xhr.status));
+                reject(new Error('HTTP error ' + xhr.status + ': ' + audioSrc));
             }
         };
         xhr.onerror = function() {
-            reject(new Error('Could not load: ' + audioSrc));
+            reject(new Error('Network error loading: ' + audioSrc));
         };
         xhr.ontimeout = function() {
             reject(new Error('Timeout loading: ' + audioSrc));
         };
         xhr.send();
+    }).catch(function(err) {
+        // Retry once with cache-busting
+        if (_retryCount < 2) {
+            console.warn('loadAudioAsBuffer retry ' + (_retryCount + 1) + ':', err.message);
+            return loadAudioAsBuffer(audioSrc, _retryCount + 1);
+        }
+        throw err;
     });
 }
 

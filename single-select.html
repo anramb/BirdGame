@@ -292,11 +292,20 @@
             }
             
             .bird-name {
-                font-size: 1.5em;
+                font-size: 1.2em;
+                margin-bottom: 2px;
             }
             
             .bird-name-afr {
-                font-size: 1.2em;
+                font-size: 1em;
+            }
+            
+            .bird-info {
+                padding: 8px 5px;
+            }
+            
+            #birdSearch {
+                scroll-margin-bottom: 200px;
             }
         }
     </style>
@@ -379,7 +388,7 @@
             'flight call', 'call variation', 'variation of call',
             'call male', 'call female', 'courting male',
             'duet', 'song', 'drumming', 'additional',
-            'immature', 'adult', 'juvenile',
+            'immature', 'adult', 'juvenile', 
             'male', 'female',
             'call',
             'ec', 'wc'
@@ -846,6 +855,15 @@
                 const speciesCount = Object.keys(groupBirdsBySpecies()).length;
                 document.getElementById('totalBirdCalls').textContent = 
                     'Species: ' + speciesCount + ' | Total Calls: ' + activeBirds.length;
+            }
+            // Scroll search input into view when keyboard opens on mobile
+            var searchInput = document.getElementById('birdSearch');
+            if (searchInput) {
+                searchInput.addEventListener('focus', function() {
+                    setTimeout(function() {
+                        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 350);
+                });
             }
         });
     </script>

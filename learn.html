@@ -266,11 +266,20 @@
             }
             
             .bird-name {
-                font-size: 1.5em;
+                font-size: 1.2em;
+                margin-bottom: 2px;
             }
             
             .bird-name-afr {
-                font-size: 1.2em;
+                font-size: 1em;
+            }
+            
+            .current-bird {
+                padding: 8px 5px;
+            }
+            
+            #birdSearchInput {
+                scroll-margin-bottom: 200px;
             }
         }
     </style>
@@ -783,14 +792,29 @@
             audio.pause();
             audio.currentTime = 0;
             
-            // Reload audio
-            audio.src = bird.audio;
+            // Reload audio with cache-busting to avoid stale/partial responses
+            var cacheBust = bird.audio + (bird.audio.indexOf('?') === -1 ? '?' : '&') + '_t=' + Date.now();
+            audio.src = cacheBust;
             audio.load();
-            audio.play().catch(function(e) {
-                console.error('Retry audio play failed:', e);
-            });
             
-            // Regenerate spectrogram
+            // Wait for audio to be ready before playing
+            var playOnce = function() {
+                audio.removeEventListener('canplay', playOnce);
+                audio.play().catch(function(e) {
+                    console.error('Retry audio play failed:', e);
+                });
+            };
+            audio.addEventListener('canplay', playOnce);
+            // Fallback: try playing after a short delay
+            setTimeout(function() {
+                if (audio.paused && isPlaying && !isPaused) {
+                    audio.play().catch(function(e) {
+                        console.error('Retry audio play fallback failed:', e);
+                    });
+                }
+            }, 2000);
+            
+            // Regenerate spectrogram with original URL (spectrogram-generator handles its own cache-busting)
             generateSpectrogramForBird(bird.audio);
         }
         
@@ -955,11 +979,28 @@
                 photoContainer.style.display = 'none';
             }
             
-            // Load audio
+            // Load audio with reliable playback
+            audio.pause();
+            audio.currentTime = 0;
             audio.src = bird.audio;
-            audio.play().catch(function(e) {
-                console.error('Audio play failed:', e);
-            });
+            audio.load();
+            
+            // Wait for audio to be ready before playing
+            var playOnce = function() {
+                audio.removeEventListener('canplay', playOnce);
+                audio.play().catch(function(e) {
+                    console.error('Audio play failed:', e);
+                });
+            };
+            audio.addEventListener('canplay', playOnce);
+            // Fallback: try playing after a short delay if canplay never fires
+            setTimeout(function() {
+                if (audio.paused && isPlaying && !isPaused) {
+                    audio.play().catch(function(e) {
+                        console.error('Audio play fallback failed:', e);
+                    });
+                }
+            }, 2000);
             
             // Generate spectrogram (errors handled internally, won't block playback)
             generateSpectrogramForBird(bird.audio);
@@ -1040,6 +1081,16 @@
             function() { return totalCanvasWidth; },
             function() { return spectrogramReady; }
         );
+        
+        // Scroll search input into view when keyboard opens on mobile
+        var birdSearchEl = document.getElementById('birdSearchInput');
+        if (birdSearchEl) {
+            birdSearchEl.addEventListener('focus', function() {
+                setTimeout(function() {
+                    birdSearchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 350);
+            });
+        }
     </script>
     
     <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
