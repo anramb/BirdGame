@@ -34,15 +34,27 @@ const GAME_CALL_SUFFIXES = [
 ];
 
 function getBaseName(name) {
-  const lower = name.toLowerCase().trim();
-  for (const s of GAME_CALL_SUFFIXES) {
-    if (lower.endsWith(' ' + s)) {
-      return name.substring(0, name.length - s.length - 1).trim();
+  let result = name.trim();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const lower = result.toLowerCase();
+    for (const s of GAME_CALL_SUFFIXES) {
+      if (lower.endsWith(' ' + s)) {
+        result = result.substring(0, result.length - s.length - 1).trim();
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) {
+      const numMatch = result.match(/\s\d+$/);
+      if (numMatch) {
+        result = result.substring(0, result.length - numMatch[0].length).trim();
+        changed = true;
+      }
     }
   }
-  const numMatch = name.match(/\s\d+$/);
-  if (numMatch) return name.substring(0, name.length - numMatch[0].length).trim();
-  return name;
+  return result;
 }
 
 let birds = [];
