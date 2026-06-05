@@ -321,7 +321,12 @@ async function generateScrollableSpectrogram(audioSrc, options) {
             timeAxis.style.flexBasis = '100%';
             timeAxis.style.position = 'relative';
             timeAxis.style.marginLeft = '38px';
-            const interval = 5;
+            // Adaptive interval based on duration
+            let interval;
+            if (duration <= 5) interval = 1;
+            else if (duration <= 15) interval = 2;
+            else if (duration <= 60) interval = 5;
+            else interval = 10;
             for (let t = 0; t <= duration; t += interval) {
                 const x = (t / duration) * totalWidth;
                 const marker = document.createElement('span');
