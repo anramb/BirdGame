@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bird Sound ID - Super Spectro Challenge</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#667eea">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="app-icon.png" type="image/png">
+<link rel="apple-touch-icon" href="app-icon.png">
+
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 50px;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+h1 {
+    color: #333;
+    margin: 0;
+    font-size: 1.8em;
+}
+
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #e94560 0%, #c23616 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    width: 100%;
+    transition: transform 0.2s;
+}
+
+.btn-start:hover {
+    transform: translateY(-2px);
+}
+
+.btn-review {
+    background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.btn-review:hover {
+    transform: translateY(-2px);
+}
+
+.btn-next {
+    background: linear-gradient(135deg, #e94560 0%, #c23616 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.btn-next:hover {
+    transform: translateY(-2px);
+}
+
+.btn-play-reveal {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: transform 0.2s;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-play-reveal:hover {
+    transform: translateY(-2px);
+}
+
+.subtitle {
+    font-size: 0.95em;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    margin-bottom: 15px;
+}
+
+.filter-label {
+    font-weight: bold;
+    font-size: 0.85em;
+    color: #555;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 2px solid #e94560;
+    font-size: 0.8em;
+    background: white;
+    color: #333;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+select:focus {
+    outline: none;
+    border-color: #c23616;
+}
+
+#options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#options button {
+    background: linear-gradient(135deg, #e94560 0%, #c23616 100%);
+    color: white;
+    border: none;
+    padding: 14px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+#options button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* BIRD IMAGE WITH COPYRIGHT */
+#birdImage {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    background: #ffffff;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    position: relative;
+}
+
+.bird-photo-container {
+    position: relative;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.copyright-overlay {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    font-family: Arial, sans-serif;
+    z-index: 10;
+}
+
+#info {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+    font-size: 0.9em;
+    color: #444;
+}
+
+.bottomButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.correct { color: #28a745; font-weight: bold; }
+.wrong { color: #dc3545; font-weight: bold; }
+
+/* Scoreboard */
+.scoreboard {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.scoreboard .stat-box {
+    background: linear-gradient(135deg, #e9456022, #c2361622);
+    border-radius: 10px;
+    padding: 10px 6px;
+    border: 1px solid #e9456033;
+}
+
+.scoreboard .stat-value {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+}
+
+.scoreboard .stat-label {
+    font-size: 0.65em;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+    .scoreboard {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Spectrogram image display */
+.spectro-display {
+    margin: 15px 0;
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+
+.spectro-display img {
+    width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.spectro-label {
+    color: #e94560;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.no-audio-badge {
+    display: inline-block;
+    background: #e94560;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 15px 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 1.4em;
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+    
+    #options {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .bottomButtons {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Super Spectro Challenge</h1>
+            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+        </div>
+        
+        <p class="subtitle">Can you identify birds from their spectrogram alone? No audio clues — pure visual recognition!</p>
+        
+        <div style="display:flex; justify-content:flex-end; margin-bottom:15px;">
+            <select id="lang" style="width: auto;">
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+            </select>
+        </div>
+        
+        <!-- CATEGORY -->
+        <div class="filter-section">
+            <span class="filter-label">Select group of birds</span>
+            <select id="category" onchange="scChangeCategory()">
+                <option value="allbirds">All birds</option>
+                <option value="cisticolas">Cisticolas</option>
+                <option value="gardenwoodland">Garden and Woodland</option>
+                <option value="groundbirds">Groundbirds</option>
+                <option value="LBJs">LBJs</option>
+                <option value="other">Other</option>
+                <option value="raptors">Raptors</option>
+                <option value="seedeaters">Seedeaters</option>
+                <option value="waders">Waders</option>
+                <option value="warblers">Warblers</option>
+                <option value="waterbirds">Waterbirds</option>
+            </select>
+        </div>
+        
+        <!-- FILTERS -->
+        <div class="filter-section">
+            <span class="filter-label">Select hotspot or habitat</span>
+            <div class="filter-row">
+                <select id="filterType" onchange="scUpdateFilterOptions()">
+                    <option value="none">All</option>
+                    <option value="habitat">Habitat</option>
+                    <option value="hotspot">Hotspot</option>
+                </select>
+                <select id="filterValue" multiple style="min-height: 80px;"></select>
+            </div>
+            <div class="filter-row">
+                <select id="levelFilter">
+                    <option value="">All Levels</option>
+                    <option value="1">Beginner</option>
+                    <option value="2">Intermediate</option>
+                    <option value="3">Advanced</option>
+                </select>
+            </div>
+            <button id="mainBtn" class="btn-start" onclick="scStartGame()">Start Challenge</button>
+        </div>
+        
+        <hr>
+        
+        <div id="gameArea" style="display:none;">
+            
+            <!-- Scoreboard -->
+            <div class="scoreboard" id="scoreboard">
+                <div class="stat-box">
+                    <div class="stat-value" id="statScore">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statHighScore">0</div>
+                    <div class="stat-label">High Score</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statStreak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statLongestStreak">0</div>
+                    <div class="stat-label">Best Streak</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statAccuracy">0%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+            
+            <!-- Spectrogram image (static) -->
+            <div class="spectro-display" id="spectroDisplay">
+                <div class="spectro-label">Identify this spectrogram</div>
+                <img id="spectrogramImage" src="" alt="Spectrogram">
+                <div class="no-audio-badge">🔇 No Audio — Visual Only</div>
+            </div>
+            
+            <!-- Bird photo (hidden until answer) -->
+            <div class="bird-photo-container">
+                <img id="birdImage" style="display:none;">
+                <div class="copyright-overlay" id="copyrightOverlay" style="display:none;"></div>
+            </div>
+            
+            <div id="options"></div>
+            
+            <!-- Play audio button (hidden until answer) -->
+            <button id="playAudioBtn" class="btn-play-reveal" style="display:none;" onclick="scPlayAudio()">🔊 Play Audio</button>
+            
+            <div id="info"></div>
+            
+            <div class="bottomButtons">
+                <button id="reviewBtn" class="btn-review" onclick="scReviewMode()">Review</button>
+                <button class="btn-next" onclick="scNextBird()">Next</button>
+            </div>
+        </div>
+    </div>
+
+<script src="allbirds.js"></script>
+
+<script>
+// ===== SUPER SPECTRO CHALLENGE =====
+// All data derived from allbirds.js using birdgroup field
+const birdgroupMap = {
+  cisticolas: "Cisticolas",
+  gardenwoodland: "Garden and Woodland",
+  groundbirds: "Groundbirds",
+  LBJs: "LBJs",
+  other: "Other",
+  raptors: "Raptors",
+  seedeaters: "Seedeaters",
+  waders: "Waders",
+  warblers: "Warblers",
+  waterbirds: "Waterbirds"
+};
+
+let allData = { allbirds: typeof allbirds !== 'undefined' ? allbirds : [] };
+Object.entries(birdgroupMap).forEach(([key, group]) => {
+  allData[key] = allData.allbirds.filter(bird => bird && bird.birdgroup === group);
+});
+
+// Species grouping - strip call-type suffixes to get base species name
+const CALL_SUFFIXES = [
+  'song & immitation', 'song & imitation',
+  'interaction m & f', 'male & female',
+  '2 birds interacting', 'advertising call',
+  'alarm call', 'territorial call', 'contact call',
+  'flight call', 'call variation', 'variation of call',
+  'call male', 'call female', 'courting male',
+  'duet', 'song', 'drumming', 'additional',
+  'immature', 'adult', 'juvenile',
+  'male', 'female',
+  'call',
+  'ec', 'wc'
+];
+
+function getBaseName(name) {
+  let result = name.trim();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const lower = result.toLowerCase();
+    for (const s of CALL_SUFFIXES) {
+      if (lower.endsWith(' ' + s)) {
+        result = result.substring(0, result.length - s.length - 1).trim();
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) {
+      const numMatch = result.match(/\s\d+$/);
+      if (numMatch) {
+        result = result.substring(0, result.length - numMatch[0].length).trim();
+        changed = true;
+      }
+    }
+  }
+  return result;
+}
+
+let scBirds = [];
+let scFiltered = [];
+let scQueue = [];
+let scCurrentBird = null;
+let scWrongAnswers = [];
+let scAudio = new Audio();
+let scStarted = false;
+
+// Game stats
+let scScore = 0;
+let scHighScore = parseInt(localStorage.getItem('spectroHighScore')) || 0;
+let scStreak = 0;
+let scLongestStreak = parseInt(localStorage.getItem('spectroLongestStreak')) || 0;
+let scTotalQuestions = 0;
+let scCorrectAnswers = 0;
+let scAnswered = false;
+
+function scLoadCategory() {
+  const cat = document.getElementById("category").value;
+  scBirds = allData[cat] || [];
+  // Only include birds that have a spectrogram image
+  scBirds = scBirds.filter(b => b && b.spectrogram);
+  scUpdateFilterOptions();
+}
+
+function scChangeCategory() {
+  scLoadCategory();
+  scStarted = false;
+  scQueue = [];
+  scFiltered = [];
+  scCurrentBird = null;
+  scWrongAnswers = [];
+  scAudio.pause();
+  document.getElementById("gameArea").style.display = "none";
+  document.getElementById("info").innerHTML = "";
+  document.getElementById("options").innerHTML = "";
+}
+
+function scGetUnique(key) {
+  const uniqueSet = new Set();
+  scBirds.forEach(bird => {
+    if (bird && bird[key]) {
+      bird[key].split(";").forEach(v => {
+        v = v.trim();
+        if (v) uniqueSet.add(v);
+      });
+    }
+  });
+  return Array.from(uniqueSet);
+}
+
+function scUpdateFilterOptions() {
+  const type = document.getElementById("filterType").value;
+  const sel = document.getElementById("filterValue");
+  
+  if (!sel) return;
+  sel.innerHTML = "";
+
+  if (type === "none") {
+    sel.innerHTML = '<option value="">All</option>';
+    return;
+  }
+
+  const values = scGetUnique(type).sort((a, b) => a.localeCompare(b));
+  values.forEach(v => {
+    sel.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+}
+
+function scShuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function scStartGame() {
+  scWrongAnswers = [];
+  scScore = 0;
+  scStreak = 0;
+  scTotalQuestions = 0;
+  scCorrectAnswers = 0;
+  scAnswered = false;
+  scStarted = true;
+  scUpdateScoreboard();
+
+  const type = document.getElementById("filterType").value;
+  const filterValueEl = document.getElementById("filterValue");
+  const selectedValues = Array.from(filterValueEl.selectedOptions).map(o => o.value);
+  const lvl = document.getElementById("levelFilter").value;
+
+  scFiltered = scBirds.filter(bird => {
+    if (!bird) return false;
+    let match1 = true;
+    if (type !== "none" && selectedValues.length > 0) {
+      match1 = selectedValues.some(val => (bird[type] || "").toLowerCase().includes(val.toLowerCase()));
+    }
+    const match2 = !lvl || (bird.level || "").startsWith(lvl);
+    return match1 && match2;
+  });
+
+  if (scFiltered.length < 4) {
+    alert("Not enough birds with spectrograms for these filters. Please broaden your selection (minimum 4 needed).");
+    return;
+  }
+
+  scQueue = scShuffle([...scFiltered]);
+  scCurrentBird = null;
+
+  document.getElementById("gameArea").style.display = "block";
+  scNextBird();
+}
+
+function scNextBird() {
+  if (!scFiltered || scFiltered.length === 0) return;
+
+  if (scQueue.length === 0) {
+    scQueue = scShuffle([...scFiltered]);
+  }
+
+  scCurrentBird = scQueue.shift();
+
+  // Show spectrogram image
+  const spectroImg = document.getElementById("spectrogramImage");
+  spectroImg.src = scCurrentBird.spectrogram;
+  document.getElementById("spectroDisplay").style.display = "block";
+
+  // Hide bird photo
+  const img = document.getElementById("birdImage");
+  img.style.display = "none";
+  img.style.opacity = 0;
+
+  // Hide copyright overlay
+  const copyrightOverlay = document.getElementById("copyrightOverlay");
+  if (copyrightOverlay) copyrightOverlay.style.display = "none";
+
+  // Hide play audio button
+  document.getElementById("playAudioBtn").style.display = "none";
+
+  // Stop any playing audio
+  scAudio.pause();
+
+  scAnswered = false;
+  scCreateOptions();
+  document.getElementById("info").innerHTML = "";
+}
+
+function scCreateOptions() {
+  if (!scCurrentBird) return;
+
+  const currentBase = getBaseName(scCurrentBird.english);
+  let options = [scCurrentBird.english];
+  let usedBases = [currentBase];
+  const pool = scFiltered.filter(b => b.english !== scCurrentBird.english);
+
+  while (options.length < 4 && pool.length > 0) {
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const randomBird = pool[randomIndex];
+    const randomBase = getBaseName(randomBird.english);
+    if (!usedBases.includes(randomBase)) {
+      options.push(randomBird.english);
+      usedBases.push(randomBase);
+    }
+    pool.splice(randomIndex, 1);
+  }
+
+  options = scShuffle(options);
+
+  const lang = document.getElementById("lang").value;
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  options.forEach(option => {
+    const birdObj = scFiltered.find(b => b.english === option);
+    if (!birdObj) return;
+
+    const btn = document.createElement("button");
+    btn.textContent = lang === "af" ? getBaseName(birdObj.afrikaans) : getBaseName(birdObj.english);
+    btn.onclick = () => scCheck(option);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function scCheck(answer) {
+  if (!scCurrentBird || scAnswered) return;
+  scAnswered = true;
+
+  const correct = answer === scCurrentBird.english;
+  scTotalQuestions++;
+
+  if (correct) {
+    scScore++;
+    scCorrectAnswers++;
+    scStreak++;
+    if (scStreak > scLongestStreak) {
+      scLongestStreak = scStreak;
+      localStorage.setItem('spectroLongestStreak', scLongestStreak);
+    }
+    if (scScore > scHighScore) {
+      scHighScore = scScore;
+      localStorage.setItem('spectroHighScore', scHighScore);
+    }
+  } else {
+    scStreak = 0;
+    scWrongAnswers.push(scCurrentBird);
+  }
+
+  scUpdateScoreboard();
+
+  // Play audio after answer
+  if (scCurrentBird.audio) {
+    scAudio.pause();
+    scAudio.src = scCurrentBird.audio;
+    scAudio.play().catch(e => console.log("Audio play failed:", e));
+  }
+
+  // Show play audio button
+  document.getElementById("playAudioBtn").style.display = "block";
+
+  // Show bird photo
+  const img = document.getElementById("birdImage");
+  const copyrightOverlay = document.getElementById("copyrightOverlay");
+  
+  if (scCurrentBird.image) {
+    img.onerror = () => {
+      img.style.display = "none";
+      copyrightOverlay.style.display = "none";
+    };
+    img.onload = () => {
+      img.style.display = "block";
+      copyrightOverlay.style.display = "block";
+      setTimeout(() => img.style.opacity = 1, 50);
+    };
+    img.src = scCurrentBird.image;
+    
+    let copyrightText = "";
+    if (scCurrentBird.photographer) {
+      copyrightText = "\u00A9 " + scCurrentBird.photographer;
+    } else if (scCurrentBird.credit) {
+      const creditMatch = scCurrentBird.credit.match(/\u00A9\s*([^,]+)/);
+      if (creditMatch) copyrightText = creditMatch[0];
+    }
+    copyrightOverlay.textContent = copyrightText;
+  } else {
+    copyrightOverlay.style.display = "none";
+  }
+
+  document.getElementById("info").innerHTML = `
+    <div class="${correct ? "correct" : "wrong"}">
+      ${correct ? "Correct! 🎉" : "Wrong ❌"}
+    </div>
+    <br>
+    <b>English:</b> ${getBaseName(scCurrentBird.english)}<br>
+    <b>Afrikaans:</b> ${getBaseName(scCurrentBird.afrikaans)}<br>
+    <small>${scCurrentBird.credit || ""}</small><br>
+    <a href="${scCurrentBird.licenseLink}" target="_blank">License</a>
+  `;
+}
+
+function scPlayAudio() {
+  if (scCurrentBird && scCurrentBird.audio) {
+    scAudio.pause();
+    scAudio.src = scCurrentBird.audio;
+    scAudio.play().catch(e => console.log("Audio play failed:", e));
+  }
+}
+
+function scReviewMode() {
+  if (scWrongAnswers.length === 0) {
+    alert("No mistakes yet!");
+    return;
+  }
+
+  scFiltered = [...scWrongAnswers];
+  scQueue = scShuffle([...scFiltered]);
+  document.getElementById("gameArea").style.display = "block";
+  scNextBird();
+}
+
+function scUpdateScoreboard() {
+  const el = document.getElementById('scoreboard');
+  if (!el) return;
+  const accuracy = scTotalQuestions > 0 ? Math.round((scCorrectAnswers / scTotalQuestions) * 100) : 0;
+  document.getElementById('statScore').textContent = scScore;
+  document.getElementById('statHighScore').textContent = scHighScore;
+  document.getElementById('statStreak').textContent = scStreak;
+  document.getElementById('statLongestStreak').textContent = scLongestStreak;
+  document.getElementById('statAccuracy').textContent = accuracy + '%';
+}
+
+// Initialize language from localStorage
+(function() {
+  const savedLang = localStorage.getItem('birdAppLanguage');
+  if (savedLang) {
+    document.getElementById('lang').value = savedLang;
+  }
+  document.getElementById('lang').addEventListener('change', function() {
+    localStorage.setItem('birdAppLanguage', this.value);
+  });
+})();
+
+// Initialize
+scLoadCategory();
+scUpdateFilterOptions();
+scUpdateScoreboard();
+</script>
+
+<div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #999; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
+<script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
