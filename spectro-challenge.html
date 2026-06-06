@@ -276,20 +276,12 @@ select:focus {
     }
 }
 
-/* Spectrogram image display */
+/* Scrollable Spectrogram */
 .spectro-display {
     margin: 15px 0;
     background: #1a1a2e;
     border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-}
-
-.spectro-display img {
-    width: 100%;
-    max-height: 250px;
-    object-fit: contain;
-    border-radius: 8px;
+    padding: 8px;
 }
 
 .spectro-label {
@@ -299,19 +291,47 @@ select:focus {
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    text-align: center;
 }
 
 .no-audio-badge {
-    display: inline-block;
-    background: #e94560;
-    color: white;
+    display: block;
+    text-align: center;
+    color: #ff6b6b;
     padding: 4px 12px;
-    border-radius: 20px;
     font-size: 0.75em;
     font-weight: bold;
     margin-top: 8px;
     letter-spacing: 0.5px;
 }
+
+.spectrogram-outer { margin: 0; background: #1a1a2e; border-radius: 8px; padding: 0; }
+.spectrogram-scroll {
+    position: relative; overflow-x: auto; overflow-y: hidden;
+    height: 170px; border-radius: 8px; cursor: pointer;
+}
+.spectrogram-scroll canvas { display: block; height: 150px; }
+.spectrogram-line {
+    position: absolute; top: 0; left: 0; width: 2px; height: 100%;
+    background-color: red; pointer-events: none; z-index: 10; display: none;
+    box-shadow: 0 0 4px rgba(255,0,0,0.6);
+}
+.spectrogram-time-axis { height: 16px; position: relative; color: #aaa; font-size: 9px; font-family: monospace; }
+.spectrogram-loading { color: #aaa; text-align: center; padding: 60px 0; font-size: 0.9em; }
+.spectrogram-freq-axis span { font-family: monospace; }
+
+.retry-spec-btn {
+    display: block;
+    margin: 8px auto 0;
+    background: #444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8em;
+}
+.retry-spec-btn:hover { background: #666; }
 
 hr {
     border: none;
@@ -427,11 +447,11 @@ hr {
                 </div>
             </div>
             
-            <!-- Spectrogram image (static) -->
+            <!-- Scrollable spectrogram (generated from audio) -->
             <div class="spectro-display" id="spectroDisplay">
                 <div class="spectro-label">Identify this spectrogram</div>
-                <img id="spectrogramImage" src="" alt="Spectrogram">
-                <div class="no-audio-badge">🔇 No Audio — Visual Only</div>
+                <div id="spectroContainer"></div>
+                <div class="no-audio-badge" id="noAudioBadge">🔇 No Audio — Visual Only</div>
             </div>
             
             <!-- Bird photo (hidden until answer) -->
@@ -455,6 +475,7 @@ hr {
     </div>
 
 <script src="allbirds.js"></script>
+<script src="spectrogram-generator.js"></script>
 
 <script>
 // ===== SUPER SPECTRO CHALLENGE =====
@@ -524,6 +545,14 @@ let scWrongAnswers = [];
 let scAudio = new Audio();
 let scStarted = false;
 
+// Spectrogram state
+let scSpectroReady = false;
+let scSpectroTotalWidth = 0;
+let scSpectroLine = null;
+let scSpectroScroll = null;
+let scSpectroCanvas = null;
+let scAnimFrame = null;
+
 // Game stats
 let scScore = 0;
 let scHighScore = parseInt(localStorage.getItem('spectroHighScore')) || 0;
@@ -536,8 +565,8 @@ let scAnswered = false;
 function scLoadCategory() {
   const cat = document.getElementById("category").value;
   scBirds = allData[cat] || [];
-  // Only include birds that have a spectrogram image
-  scBirds = scBirds.filter(b => b && b.spectrogram);
+  // Only include birds that have audio (spectrogram is generated from audio)
+  scBirds = scBirds.filter(b => b && b.audio);
   scUpdateFilterOptions();
 }
 
@@ -549,6 +578,7 @@ function scChangeCategory() {
   scCurrentBird = null;
   scWrongAnswers = [];
   scAudio.pause();
+  if (scAnimFrame) { cancelAnimationFrame(scAnimFrame); scAnimFrame = null; }
   document.getElementById("gameArea").style.display = "none";
   document.getElementById("info").innerHTML = "";
   document.getElementById("options").innerHTML = "";
@@ -620,7 +650,7 @@ function scStartGame() {
   });
 
   if (scFiltered.length < 4) {
-    alert("Not enough birds with spectrograms for these filters. Please broaden your selection (minimum 4 needed).");
+    alert("Not enough birds with audio for these filters. Please broaden your selection (minimum 4 needed).");
     return;
   }
 
@@ -640,10 +670,23 @@ function scNextBird() {
 
   scCurrentBird = scQueue.shift();
 
-  // Show spectrogram image
-  const spectroImg = document.getElementById("spectrogramImage");
-  spectroImg.src = scCurrentBird.spectrogram;
+  // Stop any playing audio and animation
+  scAudio.pause();
+  scAudio.currentTime = 0;
+  if (scAnimFrame) { cancelAnimationFrame(scAnimFrame); scAnimFrame = null; }
+
+  // Reset spectrogram state
+  scSpectroReady = false;
+  scSpectroTotalWidth = 0;
+
+  // Show spectrogram display
   document.getElementById("spectroDisplay").style.display = "block";
+  document.getElementById("noAudioBadge").style.display = "block";
+
+  // Build dynamic spectrogram from audio (without playing)
+  const container = document.getElementById("spectroContainer");
+  container.innerHTML = '';
+  scBuildSpectrogram(container, scCurrentBird.audio);
 
   // Hide bird photo
   const img = document.getElementById("birdImage");
@@ -657,12 +700,82 @@ function scNextBird() {
   // Hide play audio button
   document.getElementById("playAudioBtn").style.display = "none";
 
-  // Stop any playing audio
-  scAudio.pause();
-
   scAnswered = false;
   scCreateOptions();
   document.getElementById("info").innerHTML = "";
+}
+
+async function scBuildSpectrogram(mediaDiv, audioSrc) {
+  // Clear previous content
+  const existing = mediaDiv.querySelector('.spectrogram-outer');
+  if (existing) existing.remove();
+  const existingRetry = mediaDiv.querySelector('.retry-spec-btn');
+  if (existingRetry) existingRetry.remove();
+
+  const specOuter = document.createElement('div');
+  specOuter.className = 'spectrogram-outer';
+  const specScroll = document.createElement('div');
+  specScroll.className = 'spectrogram-scroll';
+  const canvas = document.createElement('canvas');
+  const line = document.createElement('div');
+  line.className = 'spectrogram-line';
+  specScroll.appendChild(canvas);
+  specScroll.appendChild(line);
+  const timeAxis = document.createElement('div');
+  timeAxis.className = 'spectrogram-time-axis';
+  specOuter.appendChild(specScroll);
+  specOuter.appendChild(timeAxis);
+  mediaDiv.appendChild(specOuter);
+
+  // Store references for red line animation
+  scSpectroLine = line;
+  scSpectroScroll = specScroll;
+  scSpectroCanvas = canvas;
+
+  let success = false;
+  try {
+    const result = await generateScrollableSpectrogram(audioSrc, {
+      canvas: canvas, scrollContainer: specScroll, line: line,
+      timeAxis: timeAxis, outerContainer: specOuter,
+      pxPerSec: 95, canvasHeight: 150
+    });
+    success = result && result.ready;
+    if (success) {
+      scSpectroReady = true;
+      scSpectroTotalWidth = result.totalWidth;
+    }
+  } catch(e) {
+    console.error('Spectrogram failed:', e);
+    success = false;
+  }
+
+  if (!success) {
+    if (!specScroll.querySelector('.spectrogram-loading')) {
+      specScroll.innerHTML = '';
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'spectrogram-loading';
+      errorDiv.style.color = '#ff6b6b';
+      const lang = document.getElementById("lang").value;
+      errorDiv.textContent = lang === 'af' ? 'Spectrogram kon nie laai nie' : 'Spectrogram could not load';
+      specScroll.appendChild(errorDiv);
+    }
+  }
+
+  // Add retry button
+  const retryBtn = document.createElement('button');
+  retryBtn.className = 'retry-spec-btn';
+  const lang = document.getElementById("lang").value;
+  retryBtn.textContent = '🔄 ' + (lang === 'af' ? 'Herlaai Spectrogram' : 'Reload Spectrogram');
+  retryBtn.onclick = async () => {
+    retryBtn.disabled = true;
+    retryBtn.textContent = lang === 'af' ? '⏳ Genereer...' : '⏳ Generating...';
+    await scBuildSpectrogram(mediaDiv, audioSrc);
+  };
+  mediaDiv.appendChild(retryBtn);
+
+  // Setup click-to-seek on spectrogram (only works after answer when audio plays)
+  setupSpectrogramClick(specScroll, canvas, scAudio,
+    () => scSpectroTotalWidth, () => scSpectroReady && scAnswered);
 }
 
 function scCreateOptions() {
@@ -727,12 +840,9 @@ function scCheck(answer) {
 
   scUpdateScoreboard();
 
-  // Play audio after answer
-  if (scCurrentBird.audio) {
-    scAudio.pause();
-    scAudio.src = scCurrentBird.audio;
-    scAudio.play().catch(e => console.log("Audio play failed:", e));
-  }
+  // Hide the "no audio" badge and play audio with red line
+  document.getElementById("noAudioBadge").style.display = "none";
+  scPlayAudioWithLine();
 
   // Show play audio button
   document.getElementById("playAudioBtn").style.display = "block";
@@ -777,12 +887,44 @@ function scCheck(answer) {
   `;
 }
 
-function scPlayAudio() {
-  if (scCurrentBird && scCurrentBird.audio) {
-    scAudio.pause();
-    scAudio.src = scCurrentBird.audio;
-    scAudio.play().catch(e => console.log("Audio play failed:", e));
+function scPlayAudioWithLine() {
+  if (!scCurrentBird || !scCurrentBird.audio) return;
+  
+  scAudio.pause();
+  scAudio.currentTime = 0;
+  scAudio.src = scCurrentBird.audio;
+  scAudio.play().catch(e => console.log("Audio play failed:", e));
+
+  // Start red line animation
+  scStartLineAnimation();
+}
+
+function scStartLineAnimation() {
+  if (scAnimFrame) { cancelAnimationFrame(scAnimFrame); scAnimFrame = null; }
+
+  function animate() {
+    if (scSpectroReady && scSpectroLine && scSpectroScroll) {
+      updateSpectrogramLine(scAudio, scSpectroLine, scSpectroScroll, scSpectroTotalWidth, scSpectroReady);
+    }
+    if (!scAudio.paused && !scAudio.ended) {
+      scAnimFrame = requestAnimationFrame(animate);
+    } else {
+      // Hide line when audio ends
+      if (scAudio.ended && scSpectroLine) {
+        scSpectroLine.style.display = 'none';
+      }
+    }
   }
+  scAnimFrame = requestAnimationFrame(animate);
+}
+
+function scPlayAudio() {
+  if (!scCurrentBird || !scCurrentBird.audio) return;
+  scAudio.pause();
+  scAudio.currentTime = 0;
+  scAudio.src = scCurrentBird.audio;
+  scAudio.play().catch(e => console.log("Audio play failed:", e));
+  scStartLineAnimation();
 }
 
 function scReviewMode() {
