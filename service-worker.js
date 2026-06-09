@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bird-sound-id-v1';
+const CACHE_NAME = 'chirp-coach-v1';
 
 // Install event - cache core app shell
 self.addEventListener('install', function(event) {
