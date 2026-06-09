@@ -1,6 +1,6 @@
 {
-  "name": "Bird Sound ID",
-  "short_name": "Bird Sound ID",
+  "name": "Chirp Coach",
+  "short_name": "Chirp Coach",
   "description": "Learn to identify South African birds by their calls and songs",
   "start_url": "./start.html",
   "display": "standalone",
