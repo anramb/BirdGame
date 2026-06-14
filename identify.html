@@ -433,6 +433,87 @@
             background: #1a1a2e;
         }
 
+        /* Waveform trimmer */
+        .waveform-container {
+            position: relative;
+            width: 100%;
+            height: 80px;
+            background: #1a1a2e;
+            border-radius: 6px;
+            margin: 8px 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .waveform-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .trim-overlay-left, .trim-overlay-right {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: rgba(0,0,0,0.55);
+            pointer-events: none;
+        }
+        .trim-overlay-left { left: 0; }
+        .trim-overlay-right { right: 0; }
+        .trim-handle {
+            position: absolute;
+            top: 0;
+            width: 14px;
+            height: 100%;
+            background: #1a8f4a;
+            cursor: ew-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .trim-handle::after {
+            content: '';
+            width: 3px;
+            height: 24px;
+            background: white;
+            border-radius: 2px;
+        }
+        .trim-info {
+            font-size: 0.8em;
+            color: #888;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .trim-info span { color: #1a8f4a; font-weight: 600; }
+
+        /* Live spectrogram */
+        .live-spectro-canvas {
+            width: 100%;
+            height: 60px;
+            border-radius: 6px;
+            background: #1a1a2e;
+            margin-top: 6px;
+        }
+
+        /* Freq hints */
+        .freq-hint-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .freq-hint-row label {
+            font-size: 0.8em;
+            color: #666;
+            white-space: nowrap;
+        }
+        .freq-hint-row input[type="number"] {
+            width: 80px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85em;
+        }
+
         /* Confidence summary */
         .confidence-bar {
             text-align: center;
@@ -512,6 +593,7 @@
                     <div class="inner"></div>
                 </button>
                 <div class="record-status" id="recordStatus">Tap to start recording</div>
+                <canvas class="live-spectro-canvas hidden" id="liveSpectroCanvas"></canvas>
             </div>
 
             <!-- Upload Mode -->
@@ -521,6 +603,41 @@
                 </label>
                 <input type="file" id="fileInput" accept="audio/*" onchange="handleFileUpload(event)">
                 <div class="file-name" id="fileName"></div>
+            </div>
+
+            <!-- Waveform Trimmer (appears after record/upload) -->
+            <div class="hidden" id="trimSection">
+                <div style="font-size:0.85em; color:#666; margin-bottom:4px; font-weight:600;">
+                    Drag green handles to select the bird sound section:
+                </div>
+                <div class="waveform-container" id="waveformContainer">
+                    <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
+                    <div class="trim-overlay-left" id="trimOverlayLeft"></div>
+                    <div class="trim-overlay-right" id="trimOverlayRight"></div>
+                    <div class="trim-handle" id="trimHandleLeft" style="left:0px;"></div>
+                    <div class="trim-handle" id="trimHandleRight" style="right:0px;"></div>
+                </div>
+                <div class="trim-info" id="trimInfo">
+                    Selected: <span id="trimStartLabel">0.0</span>s — <span id="trimEndLabel">0.0</span>s
+                    (<span id="trimDurationLabel">0.0</span>s)
+                </div>
+            </div>
+        </div>
+
+        <!-- FREQUENCY HINTS SECTION -->
+        <div class="section" id="freqHintSection">
+            <div class="section-title">
+                <span class="step-badge">2</span> Frequency Hints
+                <span style="font-weight: normal; font-size: 0.8em; color: #888;">(optional — helps narrow results)</span>
+            </div>
+            <div class="freq-hint-row">
+                <label>Low (Hz):</label>
+                <input type="number" id="freqHintLow" min="100" max="12000" step="100" placeholder="e.g. 500">
+                <label>High (Hz):</label>
+                <input type="number" id="freqHintHigh" min="100" max="12000" step="100" placeholder="e.g. 5000">
+            </div>
+            <div style="font-size:0.75em; color:#999; margin-top:4px;">
+                Tip: Check the reference spectrogram — low notes are ~300-1000 Hz, whistles ~1500-4000 Hz, high chirps ~4000-8000 Hz
             </div>
         </div>
 
@@ -626,6 +743,14 @@
         let recordTimerInterval = null;
         let inputMode = null;           // 'record' or 'upload'
         let currentPlayingAudio = null;
+        // Trimmer state
+        let audioDuration = 0;
+        let trimStart = 0;
+        let trimEnd = 0;
+        let draggingHandle = null;      // 'left' or 'right'
+        // Live spectrogram state
+        let liveSpectroCtx = null;
+        let liveSpectroX = 0;
 
         // ===========================
         // Initialization
@@ -713,6 +838,17 @@
             document.getElementById('recordStatus').textContent = 'Recording... Tap to stop';
             document.getElementById('recordStatus').className = 'record-status';
 
+            // Show live spectrogram
+            var liveCanvas = document.getElementById('liveSpectroCanvas');
+            liveCanvas.classList.remove('hidden');
+            liveCanvas.width = liveCanvas.clientWidth || 400;
+            liveCanvas.height = 60;
+            liveSpectroCtx = liveCanvas.getContext('2d');
+            liveSpectroCtx.fillStyle = '#1a1a2e';
+            liveSpectroCtx.fillRect(0, 0, liveCanvas.width, liveCanvas.height);
+            liveSpectroX = 0;
+            startLiveSpectrogram();
+
             // Start timer
             recordTimerInterval = setInterval(updateRecordTimer, 100);
         }
@@ -735,6 +871,9 @@
                 // Create URL for playback
                 if (userAudioURL) URL.revokeObjectURL(userAudioURL);
                 userAudioURL = URL.createObjectURL(blob);
+
+                // Show waveform trimmer
+                showWaveformTrimmer(userAudioURL);
             }
 
             // Reset level meter
@@ -794,6 +933,9 @@
 
             if (userAudioURL) URL.revokeObjectURL(userAudioURL);
             userAudioURL = URL.createObjectURL(file);
+
+            // Show waveform trimmer
+            showWaveformTrimmer(userAudioURL);
         }
 
         // ===========================
@@ -831,11 +973,26 @@
 
             try {
                 const filters = getFilters();
+
+                // Build options with trim range and frequency hints
+                const options = {};
+                if (trimStart > 0 || (trimEnd > 0 && trimEnd < audioDuration)) {
+                    options.trimStart = trimStart;
+                    options.trimEnd = trimEnd > 0 ? trimEnd : audioDuration;
+                }
+                const fLow = parseInt(document.getElementById('freqHintLow').value);
+                const fHigh = parseInt(document.getElementById('freqHintHigh').value);
+                if (fLow > 0 || fHigh > 0) {
+                    options.freqHints = {};
+                    if (fLow > 0) options.freqHints.minFreq = fLow;
+                    if (fHigh > 0) options.freqHints.maxFreq = fHigh;
+                }
+
                 const result = await analyzer.identify(userAudioSource, filters, (msg, pct) => {
                     document.getElementById('progressMessage').innerHTML =
                         '<span class="progress-spinner"></span> ' + msg;
                     document.getElementById('progressFill').style.width = pct + '%';
-                });
+                }, options);
 
                 // Show quality
                 showQualityAssessment(result.quality);
@@ -895,6 +1052,19 @@
             document.getElementById('confidenceBar').innerHTML =
                 `<div class="confidence-bar ${confClass}">${confText}</div>`;
 
+            // Show detected features so user can refine
+            if (result.userFeatures) {
+                var uf = result.userFeatures;
+                document.getElementById('confidenceBar').innerHTML += `
+                    <div style="font-size:0.78em; color:#888; margin-top:6px; line-height:1.6;">
+                        <b>Detected:</b> dominant ${Math.round(uf.dominantFreq)} Hz,
+                        range ${Math.round(uf.freqLow)}–${Math.round(uf.freqHigh)} Hz,
+                        centroid ${Math.round(uf.spectralCentroid)} Hz,
+                        ${uf.numOnsets || 0} onsets,
+                        tempo ~${Math.round(uf.tempo || 0)} BPM
+                    </div>`;
+            }
+
             document.getElementById('resultsSummary').textContent =
                 `(${result.totalCandidates} recordings searched)`;
 
@@ -933,14 +1103,15 @@
                     <div class="result-details" id="resultDetail${idx}">
                         <div class="detail-row">
                             <button class="play-btn" onclick="playReferenceAudio('${bird.audio}', this, event)">&#9654; Play Reference</button>
-                            <span style="font-size:0.75em; color:#888;">
-                                Fast: ${r.fastScore || '—'}% | Spectro: ${r.spectrogramScore || '—'}%
-                            </span>
+                        </div>
+                        <div style="font-size:0.75em; color:#888; margin: 4px 0;">
+                            Score: Fast ${r.fastScore || '—'}% | Spectro ${r.spectrogramScore || '—'}% |
+                            Ref: ${Math.round(bird.features ? bird.features.dominantFreq : 0)} Hz
+                            (${Math.round(bird.features ? bird.features.freqLow : 0)}–${Math.round(bird.features ? bird.features.freqHigh : 0)} Hz)
                         </div>
                         <div class="spectro-compare">
                             <div class="spectro-label">Reference Spectrogram</div>
-                            <img class="spectro-img" src="${bird.spectrogram || ''}"
-                                 alt="Spectrogram" onerror="this.style.display='none'">
+                            <canvas class="spectro-canvas" id="refSpectro${idx}" data-audio="${bird.audio}"></canvas>
                         </div>
                     </div>
                 `;
@@ -953,7 +1124,96 @@
 
         function toggleResultDetails(idx) {
             const el = document.getElementById('resultDetail' + idx);
-            if (el) el.classList.toggle('open');
+            if (el) {
+                el.classList.toggle('open');
+                // Generate reference spectrogram when opened
+                if (el.classList.contains('open')) {
+                    var canvas = document.getElementById('refSpectro' + idx);
+                    if (canvas && !canvas.dataset.generated) {
+                        canvas.dataset.generated = '1';
+                        generateRefSpectrogram(canvas, canvas.dataset.audio);
+                    }
+                }
+            }
+        }
+
+        async function generateRefSpectrogram(canvas, audioPath) {
+            var displayWidth = canvas.clientWidth || 500;
+            var displayHeight = 100;
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+            var ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, displayWidth, displayHeight);
+            ctx.fillStyle = '#888';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Loading reference spectrogram...', displayWidth / 2, 55);
+
+            try {
+                var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                var buf = await loadAudioAsBuffer(audioPath);
+                var audioBuffer = await audioCtx.decodeAudioData(buf);
+                var channelData = audioBuffer.getChannelData(0);
+                var sampleRate = audioBuffer.sampleRate;
+                audioCtx.close();
+
+                var fftSize = 2048;
+                var hopLength = 512;
+                var numFrames = Math.floor((channelData.length - fftSize) / hopLength);
+                var numBins = fftSize / 2;
+                var maxFreq = 12000;
+                var maxBin = Math.min(Math.floor(maxFreq * fftSize / sampleRate), numBins);
+
+                var specData = [];
+                var globalMax = 0;
+                for (var f = 0; f < numFrames; f++) {
+                    var start = f * hopLength;
+                    var re = new Float64Array(fftSize);
+                    var im = new Float64Array(fftSize);
+                    for (var i = 0; i < fftSize; i++) {
+                        re[i] = (channelData[start + i] || 0) * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / fftSize));
+                    }
+                    spectrogramFFT(re, im);
+                    var mags = new Float32Array(maxBin);
+                    for (var i = 0; i < maxBin; i++) {
+                        mags[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+                        if (mags[i] > globalMax) globalMax = mags[i];
+                    }
+                    specData.push(mags);
+                }
+
+                canvas.width = displayWidth;
+                canvas.height = displayHeight;
+                var imgData = ctx.createImageData(displayWidth, displayHeight);
+
+                for (var x = 0; x < displayWidth; x++) {
+                    var frameIdx = Math.floor(x * numFrames / displayWidth);
+                    var frame = specData[Math.min(frameIdx, specData.length - 1)];
+                    for (var y = 0; y < displayHeight; y++) {
+                        var binIdx = Math.floor((1 - y / displayHeight) * maxBin);
+                        var mag = frame[Math.min(binIdx, frame.length - 1)] || 0;
+                        var dB = globalMax > 0 ? 20 * Math.log10(Math.max(mag / globalMax, 1e-6)) : -120;
+                        var norm = Math.max(0, Math.min(1, (dB + 80) / 80));
+                        var grey = Math.floor((1 - norm) * 255);
+                        var pIdx = (y * displayWidth + x) * 4;
+                        imgData.data[pIdx] = grey;
+                        imgData.data[pIdx + 1] = grey;
+                        imgData.data[pIdx + 2] = grey;
+                        imgData.data[pIdx + 3] = 255;
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+            } catch (e) {
+                console.warn('Ref spectrogram failed:', e);
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(0, 0, displayWidth, displayHeight);
+                ctx.fillStyle = '#e53935';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Could not load reference audio', displayWidth / 2, 55);
+            }
         }
 
         // Extract species name (strip call type suffixes)
@@ -1138,6 +1398,174 @@
         }
 
         // ===========================
+        // Waveform Trimmer
+        // ===========================
+        async function showWaveformTrimmer(audioURL) {
+            var section = document.getElementById('trimSection');
+            section.classList.remove('hidden');
+
+            try {
+                var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                var response = await fetch(audioURL);
+                var arrayBuffer = await response.arrayBuffer();
+                var audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                var channelData = audioBuffer.getChannelData(0);
+                audioDuration = audioBuffer.duration;
+                trimStart = 0;
+                trimEnd = audioDuration;
+                audioCtx.close();
+
+                // Draw waveform
+                var canvas = document.getElementById('waveformCanvas');
+                var container = document.getElementById('waveformContainer');
+                canvas.width = container.clientWidth || 400;
+                canvas.height = 80;
+                var ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                var samplesPerPixel = Math.floor(channelData.length / canvas.width);
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 1;
+                var mid = canvas.height / 2;
+
+                for (var x = 0; x < canvas.width; x++) {
+                    var start = x * samplesPerPixel;
+                    var min = 0, max = 0;
+                    for (var s = 0; s < samplesPerPixel; s++) {
+                        var val = channelData[start + s] || 0;
+                        if (val < min) min = val;
+                        if (val > max) max = val;
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(x, mid + min * mid);
+                    ctx.lineTo(x, mid + max * mid);
+                    ctx.stroke();
+                }
+
+                // Reset trim overlays
+                updateTrimOverlays();
+                updateTrimLabels();
+
+                // Set up drag handlers
+                setupTrimHandles();
+
+            } catch (e) {
+                console.warn('Waveform generation failed:', e);
+            }
+        }
+
+        function setupTrimHandles() {
+            var container = document.getElementById('waveformContainer');
+            var leftHandle = document.getElementById('trimHandleLeft');
+            var rightHandle = document.getElementById('trimHandleRight');
+
+            function getX(e) {
+                var rect = container.getBoundingClientRect();
+                var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                return Math.max(0, Math.min(clientX - rect.left, rect.width));
+            }
+
+            function onStart(handle, e) {
+                e.preventDefault();
+                draggingHandle = handle;
+            }
+
+            function onMove(e) {
+                if (!draggingHandle) return;
+                e.preventDefault();
+                var x = getX(e);
+                var containerW = container.clientWidth;
+                var timeFrac = x / containerW;
+                var time = timeFrac * audioDuration;
+
+                if (draggingHandle === 'left') {
+                    trimStart = Math.max(0, Math.min(time, trimEnd - 0.5));
+                } else {
+                    trimEnd = Math.min(audioDuration, Math.max(time, trimStart + 0.5));
+                }
+                updateTrimOverlays();
+                updateTrimLabels();
+            }
+
+            function onEnd() { draggingHandle = null; }
+
+            // Mouse events
+            leftHandle.onmousedown = function(e) { onStart('left', e); };
+            rightHandle.onmousedown = function(e) { onStart('right', e); };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+
+            // Touch events
+            leftHandle.ontouchstart = function(e) { onStart('left', e); };
+            rightHandle.ontouchstart = function(e) { onStart('right', e); };
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+        }
+
+        function updateTrimOverlays() {
+            var container = document.getElementById('waveformContainer');
+            var w = container.clientWidth;
+            var leftPx = (trimStart / audioDuration) * w;
+            var rightPx = ((audioDuration - trimEnd) / audioDuration) * w;
+
+            document.getElementById('trimOverlayLeft').style.width = leftPx + 'px';
+            document.getElementById('trimOverlayRight').style.width = rightPx + 'px';
+            document.getElementById('trimHandleLeft').style.left = leftPx + 'px';
+            document.getElementById('trimHandleRight').style.right = rightPx + 'px';
+        }
+
+        function updateTrimLabels() {
+            document.getElementById('trimStartLabel').textContent = trimStart.toFixed(1);
+            document.getElementById('trimEndLabel').textContent = trimEnd.toFixed(1);
+            document.getElementById('trimDurationLabel').textContent = (trimEnd - trimStart).toFixed(1);
+        }
+
+        // ===========================
+        // Live Spectrogram During Recording
+        // ===========================
+        function startLiveSpectrogram() {
+            if (!recorder || !recorder.analyserNode) return;
+            var analyser = recorder.analyserNode;
+            var canvas = document.getElementById('liveSpectroCanvas');
+            if (!canvas || !liveSpectroCtx) return;
+
+            var bufLen = analyser.frequencyBinCount;
+            var freqData = new Uint8Array(bufLen);
+            var h = canvas.height;
+
+            function drawColumn() {
+                if (!isRecording) return;
+                analyser.getByteFrequencyData(freqData);
+
+                // Draw one column of spectrogram
+                var maxBin = Math.min(Math.floor(bufLen * 12000 / (recorder.audioContext.sampleRate / 2)), bufLen);
+                for (var y = 0; y < h; y++) {
+                    var binIdx = Math.floor((1 - y / h) * maxBin);
+                    var val = freqData[Math.min(binIdx, bufLen - 1)] / 255;
+                    var r = Math.floor(val * val * 255);
+                    var g = Math.floor(val * 200 + 20);
+                    var b = Math.floor((1 - val) * 40 + 15);
+                    liveSpectroCtx.fillStyle = val > 0.1 ? 'rgb('+r+','+g+','+b+')' : '#1a1a2e';
+                    liveSpectroCtx.fillRect(liveSpectroX, y, 1, 1);
+                }
+                liveSpectroX++;
+                if (liveSpectroX >= canvas.width) {
+                    liveSpectroX = 0;
+                    liveSpectroCtx.fillStyle = '#1a1a2e';
+                    liveSpectroCtx.fillRect(0, 0, canvas.width, h);
+                }
+                // Draw position marker
+                liveSpectroCtx.fillStyle = '#fff';
+                liveSpectroCtx.fillRect(liveSpectroX, 0, 1, h);
+
+                requestAnimationFrame(drawColumn);
+            }
+            drawColumn();
+        }
+
+        // ===========================
         // Reset
         // ===========================
         function resetAll() {
@@ -1155,6 +1583,9 @@
 
             inputMode = null;
             isRecording = false;
+            audioDuration = 0;
+            trimStart = 0;
+            trimEnd = 0;
 
             document.getElementById('recordOption').classList.remove('active');
             document.getElementById('uploadOption').classList.remove('active');
@@ -1163,6 +1594,8 @@
             document.getElementById('qualitySection').classList.add('hidden');
             document.getElementById('progressSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('trimSection').classList.add('hidden');
+            document.getElementById('liveSpectroCanvas').classList.add('hidden');
             document.getElementById('identifyBtn').disabled = true;
             document.getElementById('recordTimer').textContent = '00:00';
             document.getElementById('recordTimer').style.color = '#e53935';
@@ -1172,6 +1605,8 @@
             document.getElementById('levelFill').style.width = '0%';
             document.getElementById('progressFill').style.width = '0%';
             document.getElementById('fileInput').value = '';
+            document.getElementById('freqHintLow').value = '';
+            document.getElementById('freqHintHigh').value = '';
         }
 
         // ===========================

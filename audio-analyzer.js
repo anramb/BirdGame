@@ -554,8 +554,25 @@ class BirdAudioAnalyzer {
     // STEP 3: FAST CANDIDATE SEARCH
     // ==========================================
 
-    fastSearch(userFeatures, candidates, topN = 20) {
+    fastSearch(userFeatures, candidates, topN = 20, freqHints = null) {
         if (!candidates || candidates.length === 0) return [];
+
+        // If user provided frequency hints, pre-filter candidates
+        if (freqHints && (freqHints.minFreq || freqHints.maxFreq)) {
+            const hintLow = freqHints.minFreq || 0;
+            const hintHigh = freqHints.maxFreq || 15000;
+            const margin = 500; // Hz tolerance
+            candidates = candidates.filter(bird => {
+                const bf = bird.features;
+                if (!bf) return false;
+                // Keep if reference dominant freq is within hint range (with margin)
+                return bf.dominantFreq >= (hintLow - margin) && bf.dominantFreq <= (hintHigh + margin);
+            });
+            // If too few remain, fall back to all
+            if (candidates.length < 5) {
+                candidates = [...(this.featuresDB ? this.featuresDB.birds : [])];
+            }
+        }
 
         const scored = candidates.map(bird => {
             const bf = bird.features;
@@ -564,59 +581,58 @@ class BirdAudioAnalyzer {
             let score = 0;
             let totalWeight = 0;
 
-            // 1. Dominant frequency similarity (weight: 20)
+            // 1. Dominant frequency similarity (weight: 25) — most reliable cross-platform
             const freqDiff = Math.abs(userFeatures.dominantFreq - bf.dominantFreq);
-            const maxFreqDiff = 3000; // Hz
-            const freqScore = Math.max(0, 1 - freqDiff / maxFreqDiff);
-            score += freqScore * 20;
-            totalWeight += 20;
+            const freqScore = Math.max(0, 1 - freqDiff / 2000);
+            score += freqScore * 25;
+            totalWeight += 25;
 
             // 2. Frequency range overlap (weight: 15)
             const overlapLow = Math.max(userFeatures.freqLow, bf.freqLow);
             const overlapHigh = Math.min(userFeatures.freqHigh, bf.freqHigh);
             const overlap = Math.max(0, overlapHigh - overlapLow);
-            const userRange = userFeatures.freqHigh - userFeatures.freqLow;
-            const birdRange = bf.freqHigh - bf.freqLow;
-            const maxRange = Math.max(userRange, birdRange, 1);
-            const rangeScore = overlap / maxRange;
+            const unionLow = Math.min(userFeatures.freqLow, bf.freqLow);
+            const unionHigh = Math.max(userFeatures.freqHigh, bf.freqHigh);
+            const unionRange = Math.max(unionHigh - unionLow, 1);
+            const rangeScore = overlap / unionRange; // IoU-style
             score += rangeScore * 15;
             totalWeight += 15;
 
             // 3. Spectral centroid similarity (weight: 10)
             const centroidDiff = Math.abs(userFeatures.spectralCentroid - bf.spectralCentroid);
-            const centroidScore = Math.max(0, 1 - centroidDiff / 3000);
+            const centroidScore = Math.max(0, 1 - centroidDiff / 2500);
             score += centroidScore * 10;
             totalWeight += 10;
 
-            // 4. MFCC similarity (weight: 25)
+            // 4. Band energy distribution (weight: 20) — very reliable shape comparison
+            if (userFeatures.bandEnergies && bf.bandEnergies) {
+                const bandCos = this._cosineSimilarity(userFeatures.bandEnergies, bf.bandEnergies);
+                score += Math.max(0, bandCos) * 20;
+            }
+            totalWeight += 20;
+
+            // 5. Spectral envelope shape (weight: 20) — detailed frequency profile
+            if (userFeatures.spectralEnvelope && bf.spectralEnvelope) {
+                const envScore = this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope);
+                score += Math.max(0, envScore) * 20;
+            }
+            totalWeight += 20;
+
+            // 6. MFCC similarity (weight: 5) — reduced because browser JS ≠ librosa
             if (userFeatures.mfccMean && bf.mfccMean) {
                 const mfccScore = this._cosineSimilarity(userFeatures.mfccMean, bf.mfccMean);
-                score += Math.max(0, mfccScore) * 25;
+                score += Math.max(0, mfccScore) * 5;
             }
-            totalWeight += 25;
+            totalWeight += 5;
 
-            // 5. Rhythm / repetition similarity (weight: 10)
+            // 7. Rhythm / tempo similarity (weight: 5)
             if (userFeatures.repetitionRate > 0 && bf.repetitionRate > 0) {
                 const rrDiff = Math.abs(userFeatures.repetitionRate - bf.repetitionRate);
                 const rrMax = Math.max(userFeatures.repetitionRate, bf.repetitionRate, 1);
                 const rrScore = Math.max(0, 1 - rrDiff / rrMax);
-                score += rrScore * 10;
+                score += rrScore * 5;
             }
-            totalWeight += 10;
-
-            // 6. Band energy distribution similarity (weight: 10)
-            if (userFeatures.bandEnergies && bf.bandEnergies) {
-                const bandScore = this._cosineSimilarity(userFeatures.bandEnergies, bf.bandEnergies);
-                score += Math.max(0, bandScore) * 10;
-            }
-            totalWeight += 10;
-
-            // 7. Spectral envelope similarity (weight: 10)
-            if (userFeatures.spectralEnvelope && bf.spectralEnvelope) {
-                const envScore = this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope);
-                score += Math.max(0, envScore) * 10;
-            }
-            totalWeight += 10;
+            totalWeight += 5;
 
             const finalScore = totalWeight > 0 ? (score / totalWeight) * 100 : 0;
 
@@ -741,13 +757,22 @@ class BirdAudioAnalyzer {
     // FULL IDENTIFICATION WORKFLOW
     // ==========================================
 
-    async identify(audioSource, filters = {}, progressCallback = null) {
+    async identify(audioSource, filters = {}, progressCallback = null, options = {}) {
         const progress = (msg, pct) => {
             if (progressCallback) progressCallback(msg, pct);
         };
 
         progress('Loading audio...', 5);
-        const { samples, sampleRate, duration } = await this.loadAudio(audioSource);
+        let { samples, sampleRate, duration } = await this.loadAudio(audioSource);
+
+        // Apply time trimming if specified
+        if (options.trimStart != null || options.trimEnd != null) {
+            const startSample = Math.floor((options.trimStart || 0) * sampleRate);
+            const endSample = Math.floor((options.trimEnd || duration) * sampleRate);
+            samples = samples.slice(startSample, endSample);
+            duration = samples.length / sampleRate;
+            progress(`Analyzing ${duration.toFixed(1)}s trimmed segment...`, 8);
+        }
 
         // Step 1: Quality Assessment
         progress('Assessing recording quality...', 10);
@@ -757,18 +782,31 @@ class BirdAudioAnalyzer {
         progress('Extracting audio features...', 20);
         const userFeatures = this.extractFeatures(samples, sampleRate);
 
+        // If user specified frequency hints, override detected range
+        const freqHints = options.freqHints || null;
+        if (freqHints) {
+            if (freqHints.minFreq) userFeatures.freqLow = Math.max(userFeatures.freqLow, freqHints.minFreq);
+            if (freqHints.maxFreq) userFeatures.freqHigh = Math.min(userFeatures.freqHigh, freqHints.maxFreq);
+            // Re-estimate dominant freq within the hinted range
+            if (freqHints.minFreq && userFeatures.dominantFreq < freqHints.minFreq) {
+                userFeatures.dominantFreq = (freqHints.minFreq + (freqHints.maxFreq || userFeatures.freqHigh)) / 2;
+            }
+            if (freqHints.maxFreq && userFeatures.dominantFreq > freqHints.maxFreq) {
+                userFeatures.dominantFreq = ((freqHints.minFreq || userFeatures.freqLow) + freqHints.maxFreq) / 2;
+            }
+        }
+
         // Step 3: Filter candidates
         progress('Filtering candidates...', 30);
         let candidates = this.filterCandidates(filters);
         if (candidates.length === 0) {
-            // Fall back to all birds if filter is too restrictive
             candidates = [...this.featuresDB.birds];
         }
         progress(`Searching ${candidates.length} recordings...`, 40);
 
         // Step 4: Fast candidate search
         progress('Running fast frequency analysis...', 50);
-        const fastResults = this.fastSearch(userFeatures, candidates, 10);
+        const fastResults = this.fastSearch(userFeatures, candidates, 10, freqHints);
 
         // Step 5: Detailed spectrogram comparison for top candidates
         progress('Comparing spectrograms (this may take a moment)...', 60);
@@ -794,8 +832,8 @@ class BirdAudioAnalyzer {
         let confidence = 'low';
         if (detailedResults.length > 0) {
             const topScore = detailedResults[0].score;
-            if (topScore >= 70) confidence = 'high';
-            else if (topScore >= 50) confidence = 'medium';
+            if (topScore >= 55) confidence = 'high';
+            else if (topScore >= 35) confidence = 'medium';
         }
 
         progress('Done!', 100);
