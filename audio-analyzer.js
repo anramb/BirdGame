@@ -10,6 +10,7 @@ class BirdAudioAnalyzer {
     constructor() {
         this.audioContext = null;
         this.featuresDB = null;       // Preprocessed bird features
+        this.annotationsDB = null;    // Bird call annotations (regions on spectrogram)
         this.isLoaded = false;
         this.SR = 22050;              // Target sample rate for analysis
         this.N_FFT = 2048;
@@ -26,6 +27,22 @@ class BirdAudioAnalyzer {
     async init() {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: this.SR });
         await this.loadFeaturesDB();
+        await this.loadAnnotations();
+    }
+
+    async loadAnnotations() {
+        try {
+            const response = await fetch('bird_annotations.json');
+            const data = await response.json();
+            this.annotationsDB = data.annotations || {};
+            const count = Object.keys(this.annotationsDB).length;
+            if (count > 0) {
+                console.log(`Loaded annotations for ${count} birds`);
+            }
+        } catch (e) {
+            console.warn('No annotations file found (optional):', e.message);
+            this.annotationsDB = {};
+        }
     }
 
     async loadFeaturesDB() {
@@ -661,31 +678,41 @@ class BirdAudioAnalyzer {
             const bird = candidate.bird;
             const bf = bird.features;
 
-            // Try detailed spectrogram comparison via reference audio
+            // Check if this bird has annotations
+            const audioKey = (bird.audio || '').replace('All birds/', '').replace('.mp3', '');
+            const birdAnnotations = this.annotationsDB ? this.annotationsDB[audioKey] : null;
+
             let refSpectroScore = 0;
             let usedFullComparison = false;
+
             try {
                 const refAudio = await this.loadAudio(bird.audio);
                 const refSpectro = this._generateSpectrogramData(refAudio.samples, refAudio.sampleRate);
-                refSpectroScore = this._compareSpectrograms(userSpectro, refSpectro);
-                usedFullComparison = true;
+
+                if (birdAnnotations && birdAnnotations.length > 0) {
+                    // ANNOTATION-BASED MATCHING: Extract templates from annotated regions
+                    // and find best match in user's recording
+                    refSpectroScore = this._annotationMatch(userSpectro, refSpectro, birdAnnotations, refAudio.duration);
+                    usedFullComparison = true;
+                } else {
+                    // Standard full spectrogram comparison
+                    refSpectroScore = this._compareSpectrograms(userSpectro, refSpectro);
+                    usedFullComparison = true;
+                }
             } catch (e) {
                 console.warn(`Could not load reference audio for ${bird.english}, using cached features`);
-                // Fallback: compare spectral + temporal envelopes from cached features
                 if (bf && userFeatures) {
                     const envScore = bf.spectralEnvelope && userFeatures.spectralEnvelope
                         ? this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope) : 0;
                     const tempScore = bf.temporalEnvelope && userFeatures.temporalEnvelope
                         ? this._cosineSimilarity(userFeatures.temporalEnvelope, bf.temporalEnvelope) : 0;
-                    const mfccScore = bf.mfccMean && userFeatures.mfccMean
-                        ? this._cosineSimilarity(userFeatures.mfccMean, bf.mfccMean) : 0;
-                    refSpectroScore = (Math.max(0, envScore) * 40 + Math.max(0, tempScore) * 30 + Math.max(0, mfccScore) * 30);
+                    refSpectroScore = (Math.max(0, envScore) * 50 + Math.max(0, tempScore) * 50);
                 }
             }
 
-            // Combine: fast search 60%, detailed comparison 40%
+            // Combine: fast search 50%, detailed comparison 50%
             const combinedScore = usedFullComparison
-                ? candidate.score * 0.6 + refSpectroScore * 0.4
+                ? candidate.score * 0.5 + refSpectroScore * 0.5
                 : candidate.score * 0.7 + refSpectroScore * 0.3;
 
             results.push({
@@ -699,6 +726,83 @@ class BirdAudioAnalyzer {
 
         results.sort((a, b) => b.combinedScore - a.combinedScore);
         return results.slice(0, topN);
+    }
+
+    _annotationMatch(userSpectro, refSpectro, annotations, refDuration) {
+        // Convert pixel annotations to spectrogram frame/bin coordinates
+        // The PNG image is generated with specific dimensions by generate_spectrograms.py
+        // Image width maps to refSpectro.numFrames, height maps to frequency bins
+
+        // PNG dimensions from generate_spectrograms.py (FIG_WIDTH=10, FIG_HEIGHT=3, DPI=100)
+        // Actual measured: 1011x311 pixels
+        const imgWidth = 1011;
+        const imgHeight = 311;
+
+        let bestScore = 0;
+        let templateScores = [];
+
+        for (const ann of annotations) {
+            // Convert pixel rect to spectrogram coordinates
+            const frameStart = Math.floor((ann.x / imgWidth) * refSpectro.numFrames);
+            const frameEnd = Math.floor(((ann.x + ann.w) / imgWidth) * refSpectro.numFrames);
+            // y is inverted: top of image = high freq, bottom = low freq
+            const binStart = Math.floor((1 - (ann.y + ann.h) / imgHeight) * refSpectro.numBins);
+            const binEnd = Math.floor((1 - ann.y / imgHeight) * refSpectro.numBins);
+
+            if (frameEnd <= frameStart || binEnd <= binStart) continue;
+
+            // Extract template from reference spectrogram
+            const templateFrames = frameEnd - frameStart;
+            const templateBins = binEnd - binStart;
+            const template = [];
+            for (let f = frameStart; f < frameEnd && f < refSpectro.data.length; f++) {
+                const frame = refSpectro.data[f];
+                const slice = [];
+                for (let b = binStart; b < binEnd && b < frame.length; b++) {
+                    slice.push(frame[b]);
+                }
+                template.push(slice);
+            }
+
+            if (template.length === 0) continue;
+
+            // Slide template across user spectrogram to find best match
+            const userFrames = userSpectro.data.length;
+            const slideLen = Math.max(1, userFrames - template.length + 1);
+            let maxCorr = 0;
+
+            for (let offset = 0; offset < slideLen; offset += 2) { // step by 2 for speed
+                let corr = 0;
+                let count = 0;
+                for (let tf = 0; tf < template.length && (offset + tf) < userFrames; tf++) {
+                    const userFrame = userSpectro.data[offset + tf];
+                    const tFrame = template[tf];
+                    // Compare the frequency bin range
+                    let dot = 0, normA = 0, normB = 0;
+                    for (let b = 0; b < tFrame.length && (binStart + b) < userFrame.length; b++) {
+                        const a = tFrame[b];
+                        const ub = userFrame[binStart + b] || 0;
+                        dot += a * ub;
+                        normA += a * a;
+                        normB += ub * ub;
+                    }
+                    const denom = Math.sqrt(normA) * Math.sqrt(normB);
+                    if (denom > 0) {
+                        corr += dot / denom;
+                        count++;
+                    }
+                }
+                const avgCorr = count > 0 ? corr / count : 0;
+                if (avgCorr > maxCorr) maxCorr = avgCorr;
+            }
+            templateScores.push(maxCorr);
+        }
+
+        if (templateScores.length === 0) return 0;
+
+        // Average of best matches for each annotated region
+        const avgScore = templateScores.reduce((a, b) => a + b, 0) / templateScores.length;
+        return avgScore * 100;
     }
 
     _generateSpectrogramData(samples, sampleRate) {

@@ -1,0 +1,16 @@
+{
+  "_description": "Bird call annotations. Each entry marks where the bird's call appears on the spectrogram.",
+  "_format": "Rectangles in pixel coordinates on the PNG (1011x311). x=time(left-right), y=frequency(top=high, bottom=low).",
+  "_how_to_annotate": "Use annotate.html to draw rectangles, or note pixel coords manually. Each rect={x, y, w, h}.",
+  "_image_size": {"width": 1011, "height": 311},
+  "annotations": {
+    "XC1067750_CapeRobin-Chat": [
+      {"x": 48, "y": 35, "w": 45, "h": 135},
+      {"x": 108, "y": 35, "w": 45, "h": 135},
+      {"x": 178, "y": 35, "w": 50, "h": 135},
+      {"x": 245, "y": 30, "w": 55, "h": 140},
+      {"x": 315, "y": 40, "w": 45, "h": 130},
+      {"x": 390, "y": 35, "w": 45, "h": 135}
+    ]
+  }
+}

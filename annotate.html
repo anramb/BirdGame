@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird Call Annotator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 16px;
+        }
+        h1 { font-size: 1.2em; margin-bottom: 8px; color: #4caf50; }
+        .instructions {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        select, button, input {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2a2a3e;
+            color: #eee;
+            font-size: 0.85em;
+        }
+        button { cursor: pointer; background: #1a8f4a; border-color: #1a8f4a; font-weight: 600; }
+        button:hover { background: #15773d; }
+        button.danger { background: #e53935; border-color: #e53935; }
+        button.secondary { background: #555; border-color: #555; }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+            background: #111;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        #spectroCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+        .annotation-list {
+            background: #2a2a3e;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+        .annotation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: #1a1a2e;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 0.8em;
+        }
+        .annotation-item .coords { color: #4caf50; }
+        .annotation-item button { padding: 4px 8px; font-size: 0.75em; }
+        .json-output {
+            background: #111;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.75em;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #4caf50;
+        }
+        .status { font-size: 0.8em; color: #888; margin: 4px 0; }
+        .bird-nav {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .bird-nav button { padding: 6px 10px; }
+        #birdSelect { max-width: 300px; }
+        .help-panel {
+            background: #2a2a3e;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.8em;
+            line-height: 1.6;
+            color: #ccc;
+        }
+        .help-panel b { color: #4caf50; }
+    </style>
+</head>
+<body>
+    <h1>🐦 Bird Call Annotator</h1>
+    <div class="instructions">
+        Draw rectangles on the spectrogram to mark where the bird's call appears.
+        Mark EACH occurrence of the call (including repeats).
+    </div>
+
+    <div class="help-panel">
+        <b>How to use:</b><br>
+        1. Select a bird from the dropdown<br>
+        2. Click and drag on the spectrogram to draw a rectangle around ONE call<br>
+        3. Repeat for each time the call appears (shows timing pattern)<br>
+        4. Click "Save Annotations" to save to the JSON file<br>
+        5. Move to the next bird<br><br>
+        <b>Tips:</b> Draw tight rectangles. Include the full frequency range of the call.
+        The x-axis is time, y-axis is frequency (low at bottom, high at top).
+    </div>
+
+    <div class="controls">
+        <div class="bird-nav">
+            <button class="secondary" onclick="prevBird()">◀</button>
+            <select id="birdSelect" onchange="loadSelectedBird()"></select>
+            <button class="secondary" onclick="nextBird()">▶</button>
+        </div>
+        <button onclick="undoLast()">Undo Last</button>
+        <button class="danger" onclick="clearAnnotations()">Clear All</button>
+        <button onclick="saveAnnotations()">💾 Save Annotations</button>
+        <button onclick="playAudio()">▶ Play Full</button>
+        <button onclick="playSelection()">▶ Play Last Selection</button>
+    </div>
+
+    <div class="status" id="statusBar">Select a bird to start annotating</div>
+
+    <div class="canvas-container">
+        <canvas id="spectroCanvas"></canvas>
+    </div>
+
+    <div class="annotation-list" id="annotationList">
+        <em style="color:#888;">No annotations yet. Draw rectangles on the spectrogram above.</em>
+    </div>
+
+    <h3 style="font-size:0.9em; margin: 8px 0; color: #888;">JSON Output:</h3>
+    <div class="json-output" id="jsonOutput">{}</div>
+
+    <script src="allbirds.js"></script>
+    <script>
+        // State
+        let currentBirdIdx = 0;
+        let currentBird = null;
+        let spectroImg = null;
+        let annotations = {};       // All birds' annotations
+        let currentAnnotations = []; // Current bird's rectangles
+        let isDrawing = false;
+        let startX = 0, startY = 0;
+        let currentRect = null;
+        let audioElement = null;
+        let imgWidth = 0, imgHeight = 0;
+
+        const canvas = document.getElementById('spectroCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Load annotations from server
+        async function loadAnnotationsFromFile() {
+            try {
+                const resp = await fetch('bird_annotations.json');
+                const data = await resp.json();
+                annotations = data.annotations || {};
+            } catch (e) {
+                console.warn('Could not load annotations:', e);
+                annotations = {};
+            }
+        }
+
+        // Populate bird selector (alphabetically sorted)
+        function populateBirdSelector() {
+            const select = document.getElementById('birdSelect');
+            select.innerHTML = '';
+            // Build sorted list with original indices
+            const sorted = allbirds
+                .map((bird, idx) => ({ bird, idx }))
+                .filter(item => !item.bird.exclude)
+                .sort((a, b) => a.bird.english.localeCompare(b.bird.english));
+
+            sorted.forEach(item => {
+                const bird = item.bird;
+                const opt = document.createElement('option');
+                opt.value = item.idx;
+                opt.textContent = `${bird.english} (${bird.afrikaans})`;
+                // Mark annotated birds
+                const audioKey = bird.audio.replace('All birds/', '').replace('.mp3', '');
+                if (annotations[audioKey] && annotations[audioKey].length > 0) {
+                    opt.textContent = '✓ ' + opt.textContent;
+                    opt.style.color = '#4caf50';
+                }
+                select.appendChild(opt);
+            });
+        }
+
+        function loadSelectedBird() {
+            currentBirdIdx = parseInt(document.getElementById('birdSelect').value);
+            loadBird(currentBirdIdx);
+        }
+
+        function prevBird() {
+            const select = document.getElementById('birdSelect');
+            if (select.selectedIndex > 0) {
+                select.selectedIndex--;
+                loadSelectedBird();
+            }
+        }
+
+        function nextBird() {
+            const select = document.getElementById('birdSelect');
+            if (select.selectedIndex < select.options.length - 1) {
+                select.selectedIndex++;
+                loadSelectedBird();
+            }
+        }
+
+        async function loadBird(idx) {
+            currentBird = allbirds[idx];
+            if (!currentBird) return;
+
+            const audioFile = currentBird.audio; // "All birds/XC123_Name.mp3"
+            const pngFile = audioFile.replace('.mp3', '.png');
+            const audioKey = audioFile.replace('All birds/', '').replace('.mp3', '');
+
+            // Load existing annotations for this bird
+            currentAnnotations = annotations[audioKey] ? [...annotations[audioKey]] : [];
+
+            // Load spectrogram image
+            document.getElementById('statusBar').textContent = 'Loading spectrogram...';
+            spectroImg = new Image();
+            spectroImg.onload = function() {
+                imgWidth = spectroImg.naturalWidth;
+                imgHeight = spectroImg.naturalHeight;
+                canvas.width = imgWidth;
+                canvas.height = imgHeight;
+                redraw();
+                document.getElementById('statusBar').textContent =
+                    `${currentBird.english} — ${imgWidth}x${imgHeight}px — ${currentAnnotations.length} annotations`;
+            };
+            spectroImg.onerror = function() {
+                document.getElementById('statusBar').textContent =
+                    `ERROR: Could not load ${pngFile}. Run generate_spectrograms.py first.`;
+            };
+            spectroImg.src = pngFile;
+
+            updateAnnotationList();
+        }
+
+        function redraw() {
+            if (!spectroImg || !spectroImg.complete) return;
+            ctx.drawImage(spectroImg, 0, 0);
+
+            // Draw existing annotations
+            currentAnnotations.forEach((rect, idx) => {
+                ctx.strokeStyle = '#ff5722';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                // Label
+                ctx.fillStyle = '#ff5722';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText(`#${idx + 1}`, rect.x + 3, rect.y + 12);
+            });
+
+            // Draw current drawing rect
+            if (currentRect) {
+                ctx.strokeStyle = '#ffeb3b';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+                ctx.setLineDash([]);
+            }
+        }
+
+        // Mouse/touch events for drawing
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            startX = (e.clientX - rect.left) * scaleX;
+            startY = (e.clientY - rect.top) * scaleY;
+            isDrawing = true;
+            currentRect = null;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            currentRect = {
+                x: Math.min(startX, mx),
+                y: Math.min(startY, my),
+                w: Math.abs(mx - startX),
+                h: Math.abs(my - startY)
+            };
+            redraw();
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            if (currentRect && currentRect.w > 5 && currentRect.h > 5) {
+                // Add annotation
+                currentAnnotations.push({
+                    x: Math.round(currentRect.x),
+                    y: Math.round(currentRect.y),
+                    w: Math.round(currentRect.w),
+                    h: Math.round(currentRect.h)
+                });
+                updateAnnotationList();
+                document.getElementById('statusBar').textContent =
+                    `Added annotation #${currentAnnotations.length}. Total: ${currentAnnotations.length}`;
+            }
+            currentRect = null;
+            redraw();
+        });
+
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            startX = (touch.clientX - rect.left) * scaleX;
+            startY = (touch.clientY - rect.top) * scaleY;
+            isDrawing = true;
+            currentRect = null;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDrawing) return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mx = (touch.clientX - rect.left) * scaleX;
+            const my = (touch.clientY - rect.top) * scaleY;
+
+            currentRect = {
+                x: Math.min(startX, mx),
+                y: Math.min(startY, my),
+                w: Math.abs(mx - startX),
+                h: Math.abs(my - startY)
+            };
+            redraw();
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            if (currentRect && currentRect.w > 5 && currentRect.h > 5) {
+                currentAnnotations.push({
+                    x: Math.round(currentRect.x),
+                    y: Math.round(currentRect.y),
+                    w: Math.round(currentRect.w),
+                    h: Math.round(currentRect.h)
+                });
+                updateAnnotationList();
+            }
+            currentRect = null;
+            redraw();
+        });
+
+        function undoLast() {
+            if (currentAnnotations.length > 0) {
+                currentAnnotations.pop();
+                updateAnnotationList();
+                redraw();
+            }
+        }
+
+        function clearAnnotations() {
+            if (confirm('Clear all annotations for this bird?')) {
+                currentAnnotations = [];
+                updateAnnotationList();
+                redraw();
+            }
+        }
+
+        function updateAnnotationList() {
+            const listEl = document.getElementById('annotationList');
+            if (currentAnnotations.length === 0) {
+                listEl.innerHTML = '<em style="color:#888;">No annotations yet. Draw rectangles on the spectrogram above.</em>';
+            } else {
+                listEl.innerHTML = currentAnnotations.map((r, idx) => `
+                    <div class="annotation-item">
+                        <span>#${idx + 1}</span>
+                        <span class="coords">x:${r.x} y:${r.y} w:${r.w} h:${r.h}</span>
+                        <button onclick="playSelection(${idx})">▶</button>
+                        <button class="danger" onclick="removeAnnotation(${idx})">✕</button>
+                    </div>
+                `).join('');
+            }
+
+            // Update stored annotations
+            if (currentBird) {
+                const audioKey = currentBird.audio.replace('All birds/', '').replace('.mp3', '');
+                annotations[audioKey] = [...currentAnnotations];
+            }
+
+            // Update JSON output
+            updateJsonOutput();
+        }
+
+        function removeAnnotation(idx) {
+            currentAnnotations.splice(idx, 1);
+            updateAnnotationList();
+            redraw();
+        }
+
+        function updateJsonOutput() {
+            const output = {
+                _description: "Bird call annotations",
+                _image_info: "Rectangles are in pixel coordinates on the spectrogram PNG. x=time(left-to-right), y=frequency(top=high, bottom=low).",
+                annotations: annotations
+            };
+            document.getElementById('jsonOutput').textContent = JSON.stringify(output, null, 2);
+        }
+
+        async function saveAnnotations() {
+            // Since we can't write files from browser, copy to clipboard
+            const output = {
+                _description: "Bird call annotations. Each entry marks where the bird's call appears on the spectrogram.",
+                _format: "Rectangles in pixel coordinates. x=time(left-right), y=frequency(top=high, bottom=low). Image size varies per bird.",
+                annotations: annotations
+            };
+            const json = JSON.stringify(output, null, 2);
+
+            try {
+                await navigator.clipboard.writeText(json);
+                document.getElementById('statusBar').textContent =
+                    '✓ JSON copied to clipboard! Paste into bird_annotations.json';
+                alert('Annotations copied to clipboard!\n\nPaste the contents into bird_annotations.json to save.');
+            } catch (e) {
+                // Fallback: select the json output
+                const el = document.getElementById('jsonOutput');
+                el.textContent = json;
+                document.getElementById('statusBar').textContent =
+                    'Copy the JSON below and paste into bird_annotations.json';
+                alert('Could not copy to clipboard. Please manually copy the JSON output below and paste into bird_annotations.json');
+            }
+        }
+
+        function playAudio() {
+            if (audioElement) {
+                audioElement.pause();
+                audioElement = null;
+                return;
+            }
+            if (!currentBird) return;
+            audioElement = new Audio(currentBird.audio);
+            audioElement.play();
+            audioElement.onended = () => { audioElement = null; };
+        }
+
+        function playSelection(idx) {
+            // Play only the time range of a specific annotation
+            if (!currentBird || !spectroImg) return;
+            var ann = (idx !== undefined) ? currentAnnotations[idx] : currentAnnotations[currentAnnotations.length - 1];
+            if (!ann) return;
+
+            // Convert pixel x to time (image width = full duration)
+            // Load audio to get duration, then seek
+            if (audioElement) { audioElement.pause(); audioElement = null; }
+
+            audioElement = new Audio(currentBird.audio);
+            audioElement.addEventListener('loadedmetadata', function() {
+                var duration = audioElement.duration;
+                var startTime = (ann.x / imgWidth) * duration;
+                var endTime = ((ann.x + ann.w) / imgWidth) * duration;
+                audioElement.currentTime = startTime;
+                audioElement.play();
+                // Stop at end of selection
+                var checkInterval = setInterval(function() {
+                    if (!audioElement || audioElement.currentTime >= endTime) {
+                        if (audioElement) audioElement.pause();
+                        audioElement = null;
+                        clearInterval(checkInterval);
+                    }
+                }, 50);
+            });
+            document.getElementById('statusBar').textContent =
+                'Playing selection #' + ((idx !== undefined ? idx : currentAnnotations.length - 1) + 1);
+        }
+
+        // Init
+        async function init() {
+            await loadAnnotationsFromFile();
+            populateBirdSelector();
+            if (allbirds.length > 0) {
+                loadBird(0);
+            }
+            updateJsonOutput();
+        }
+
+        init();
+    </script>
+</body>
+</html>
