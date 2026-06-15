@@ -48,22 +48,54 @@ class BirdAudioAnalyzer {
     async loadFeaturesDB() {
         try {
             const response = await fetch('bird_audio_features.json');
-            this.featuresDB = await response.json();
+            const data = await response.json();
+
+            if (data.version === 'js-browser-extracted') {
+                // New JS-extracted format: {features: {audioKey: featureObj}}
+                // Merge with allbirds array
+                this.featuresDB = this._buildDBFromJSFeatures(data);
+            } else {
+                // Old Python format: {birds: [{..., features: {...}}]}
+                this.featuresDB = data;
+            }
             this.isLoaded = true;
-            console.log(`Loaded features for ${this.featuresDB.totalProcessed} bird recordings`);
+            console.log(`Loaded features for ${this.featuresDB.totalProcessed || this.featuresDB.birds.length} bird recordings (${data.version || 'python'})`);
         } catch (e) {
             console.error('Failed to load bird audio features:', e);
-            // Try compact version
-            try {
-                const response = await fetch('bird_audio_features_compact.json');
-                this.featuresDB = await response.json();
-                this.isLoaded = true;
-                console.log(`Loaded compact features for ${this.featuresDB.totalProcessed} bird recordings`);
-            } catch (e2) {
-                console.error('Failed to load compact features:', e2);
-                this.isLoaded = false;
-            }
+            this.isLoaded = false;
         }
+    }
+
+    _buildDBFromJSFeatures(data) {
+        // Build birds array from allbirds global + JS-extracted features
+        const feats = data.features || {};
+        const birds = [];
+
+        if (typeof allbirds !== 'undefined') {
+            allbirds.forEach((bird, idx) => {
+                if (bird.exclude) return;
+                const audioKey = (bird.audio || '').replace('All birds/', '').replace('.mp3', '');
+                const f = feats[audioKey] || null;
+                birds.push({
+                    index: idx,
+                    english: bird.english,
+                    afrikaans: bird.afrikaans,
+                    audio: bird.audio,
+                    hotspot: bird.hotspot || '',
+                    habitat: bird.habitat || '',
+                    birdgroup: bird.birdgroup || '',
+                    image: bird.image || '',
+                    spectrogram: bird.spectrogram || '',
+                    features: f
+                });
+            });
+        }
+
+        return {
+            version: data.version,
+            totalProcessed: data.totalProcessed,
+            birds: birds
+        };
     }
 
     // ==========================================
@@ -89,9 +121,12 @@ class BirdAudioAnalyzer {
         // Convert to mono
         const channelData = audioBuffer.getChannelData(0);
 
+        console.log(`[AudioLoad] Buffer SR: ${audioBuffer.sampleRate}, Context SR: ${this.audioContext.sampleRate}, Target SR: ${this.SR}, Samples: ${channelData.length}, Duration: ${(channelData.length/audioBuffer.sampleRate).toFixed(2)}s`);
+
         // Resample to target SR if needed
         let samples;
         if (audioBuffer.sampleRate !== this.SR) {
+            console.log(`[AudioLoad] Resampling from ${audioBuffer.sampleRate} to ${this.SR}`);
             samples = this._resample(channelData, audioBuffer.sampleRate, this.SR);
         } else {
             samples = new Float32Array(channelData);
@@ -427,11 +462,9 @@ class BirdAudioAnalyzer {
         const mfccs = this._computeMFCC(spectrogram, sampleRate, numBins);
 
         // --- Band energies ---
-        const nBands = 8;
-        const bandEdges = [];
-        for (let i = 0; i <= nBands; i++) {
-            bandEdges.push(this.FREQ_MIN + (this.FREQ_MAX - this.FREQ_MIN) * i / nBands);
-        }
+        // MUST match the exact same band edges used in precompute_js_compatible.py
+        const bandEdges = [200, 500, 1000, 2000, 3000, 4000, 6000, 8000, 12000];
+        const nBands = bandEdges.length - 1;
         const bandEnergies = [];
         for (let i = 0; i < nBands; i++) {
             const bLow = Math.floor(bandEdges[i] * fftSize / sampleRate);
@@ -598,51 +631,64 @@ class BirdAudioAnalyzer {
             let score = 0;
             let totalWeight = 0;
 
-            // 1. Dominant frequency similarity (weight: 25) — most reliable cross-platform
+            // 1. Dominant frequency similarity (weight: 25) — most reliable feature
             const freqDiff = Math.abs(userFeatures.dominantFreq - bf.dominantFreq);
             const freqScore = Math.max(0, 1 - freqDiff / 2000);
             score += freqScore * 25;
             totalWeight += 25;
 
-            // 2. Frequency range overlap (weight: 15)
+            // 2. Frequency range overlap (weight: 10)
+            // Use containment: does user range cover the reference range?
+            const refRange = bf.freqHigh - bf.freqLow;
             const overlapLow = Math.max(userFeatures.freqLow, bf.freqLow);
             const overlapHigh = Math.min(userFeatures.freqHigh, bf.freqHigh);
             const overlap = Math.max(0, overlapHigh - overlapLow);
-            const unionLow = Math.min(userFeatures.freqLow, bf.freqLow);
-            const unionHigh = Math.max(userFeatures.freqHigh, bf.freqHigh);
-            const unionRange = Math.max(unionHigh - unionLow, 1);
-            const rangeScore = overlap / unionRange; // IoU-style
-            score += rangeScore * 15;
-            totalWeight += 15;
+            const rangeScore = refRange > 0 ? Math.min(overlap / refRange, 1) : 0;
+            score += rangeScore * 10;
+            totalWeight += 10;
 
             // 3. Spectral centroid similarity (weight: 10)
             const centroidDiff = Math.abs(userFeatures.spectralCentroid - bf.spectralCentroid);
-            const centroidScore = Math.max(0, 1 - centroidDiff / 2500);
+            const centroidScore = Math.max(0, 1 - centroidDiff / 2000);
             score += centroidScore * 10;
             totalWeight += 10;
 
-            // 4. Band energy distribution (weight: 20) — very reliable shape comparison
+            // 4. Band energy distribution (weight: 15) — compare only upper bands (1000+ Hz)
+            // Bands [200-500, 500-1000, 1000-2000, 2000-3000, 3000-4000, 4000-6000, 6000-8000, 8000-12000]
+            // Skip bands 0-1 (most affected by noise) and compare bands 2-7
             if (userFeatures.bandEnergies && bf.bandEnergies) {
-                const bandCos = this._cosineSimilarity(userFeatures.bandEnergies, bf.bandEnergies);
-                score += Math.max(0, bandCos) * 20;
+                const ub = userFeatures.bandEnergies.slice(2);
+                const rb = bf.bandEnergies.slice(2);
+                const bandCos = this._cosineSimilarity(ub, rb);
+                score += Math.max(0, bandCos) * 15;
             }
-            totalWeight += 20;
+            totalWeight += 15;
 
-            // 5. Spectral envelope shape (weight: 20) — detailed frequency profile
-            if (userFeatures.spectralEnvelope && bf.spectralEnvelope) {
-                const envScore = this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope);
-                score += Math.max(0, envScore) * 20;
-            }
-            totalWeight += 20;
-
-            // 6. MFCC similarity (weight: 5) — reduced because browser JS ≠ librosa
-            if (userFeatures.mfccMean && bf.mfccMean) {
-                const mfccScore = this._cosineSimilarity(userFeatures.mfccMean, bf.mfccMean);
-                score += Math.max(0, mfccScore) * 5;
+            // 5. Peak band agreement (weight: 5) — do both peak in the same band?
+            if (userFeatures.bandEnergies && bf.bandEnergies) {
+                const userPeak = userFeatures.bandEnergies.indexOf(Math.max(...userFeatures.bandEnergies));
+                const refPeak = bf.bandEnergies.indexOf(Math.max(...bf.bandEnergies));
+                const peakDist = Math.abs(userPeak - refPeak);
+                const peakScore = peakDist === 0 ? 1 : (peakDist === 1 ? 0.7 : 0.2);
+                score += peakScore * 5;
             }
             totalWeight += 5;
 
-            // 7. Rhythm / tempo similarity (weight: 5)
+            // 6. Spectral envelope shape (weight: 15) — detailed frequency profile
+            if (userFeatures.spectralEnvelope && bf.spectralEnvelope) {
+                const envScore = this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope);
+                score += Math.max(0, envScore) * 15;
+            }
+            totalWeight += 15;
+
+            // 7. MFCC similarity (weight: 15) — most robust cross-recording feature
+            if (userFeatures.mfccMean && bf.mfccMean) {
+                const mfccScore = this._cosineSimilarity(userFeatures.mfccMean, bf.mfccMean);
+                score += Math.max(0, mfccScore) * 15;
+            }
+            totalWeight += 15;
+
+            // 8. Rhythm / tempo similarity (weight: 5)
             if (userFeatures.repetitionRate > 0 && bf.repetitionRate > 0) {
                 const rrDiff = Math.abs(userFeatures.repetitionRate - bf.repetitionRate);
                 const rrMax = Math.max(userFeatures.repetitionRate, bf.repetitionRate, 1);
@@ -882,9 +928,38 @@ class BirdAudioAnalyzer {
         progress('Assessing recording quality...', 10);
         const quality = this.assessQuality(samples, sampleRate);
 
+        // Apply frequency focus filter if specified (bandpass to isolate target frequency range)
+        if (options.freqFocus) {
+            progress('Applying frequency focus filter...', 12);
+            const focusRanges = {
+                'low':  { low: 150, high: 1500 },   // pigeons, owls, cuckoos, nightjars
+                'mid':  { low: 500, high: 6000 },   // most songbirds, lapwings, shrikes
+                'high': { low: 2000, high: 11000 }  // warblers, cisticolas, white-eyes
+            };
+            const range = focusRanges[options.freqFocus];
+            if (range) {
+                samples = this._bandPassFilter(samples, sampleRate, range.low, range.high);
+            }
+        } else {
+            // Default: apply high-pass filter to remove low-frequency noise (mains hum, wind)
+            progress('Filtering noise...', 15);
+            samples = this._highPassFilter(samples, sampleRate, 300);
+        }
+
         // Step 2: Extract features
         progress('Extracting audio features...', 20);
         const userFeatures = this.extractFeatures(samples, sampleRate);
+
+        console.log('[Identify] User features:', JSON.stringify({
+            domFreq: userFeatures.dominantFreq,
+            freqLow: userFeatures.freqLow,
+            freqHigh: userFeatures.freqHigh,
+            centroid: userFeatures.spectralCentroid,
+            bandEnergies: userFeatures.bandEnergies,
+            tempo: userFeatures.tempo,
+            onsets: userFeatures.numOnsets,
+            duration: userFeatures.duration
+        }));
 
         // If user specified frequency hints, override detected range
         const freqHints = options.freqHints || null;
@@ -910,7 +985,29 @@ class BirdAudioAnalyzer {
 
         // Step 4: Fast candidate search
         progress('Running fast frequency analysis...', 50);
-        const fastResults = this.fastSearch(userFeatures, candidates, 10, freqHints);
+        const allFastScored = this.fastSearch(userFeatures, candidates, candidates.length, freqHints);
+        const fastResults = allFastScored.slice(0, 30);
+
+        // Debug: find Cape Robin-Chat rank
+        console.log('[FastSearch] Top 10:', fastResults.map((r,i) => `${i+1}. ${r.bird.english}: ${r.score}%`).join(', '));
+        const robinIdx = allFastScored.findIndex(r => r.bird.audio && r.bird.audio.includes('CapeRobin'));
+        if (robinIdx >= 0) {
+            const robin = allFastScored[robinIdx];
+            console.log(`[FastSearch] Cape Robin-Chat rank: #${robinIdx + 1} (${robin.score}%)`);
+            if (robin.bird.features) {
+                console.log('[FastSearch] Robin ref features:', JSON.stringify({
+                    domFreq: robin.bird.features.dominantFreq,
+                    freqLow: robin.bird.features.freqLow,
+                    freqHigh: robin.bird.features.freqHigh,
+                    centroid: robin.bird.features.spectralCentroid,
+                    bandEnergies: robin.bird.features.bandEnergies
+                }));
+            } else {
+                console.log('[FastSearch] Robin has NO FEATURES!');
+            }
+        } else {
+            console.log('[FastSearch] Cape Robin-Chat NOT FOUND in candidates!');
+        }
 
         // Step 5: Detailed spectrogram comparison for top candidates
         progress('Comparing spectrograms (this may take a moment)...', 60);
@@ -942,19 +1039,131 @@ class BirdAudioAnalyzer {
 
         progress('Done!', 100);
 
+        // Build debug info
+        const debugInfo = {
+            dbVersion: this.featuresDB ? this.featuresDB.version : 'unknown',
+            dbBirdCount: this.featuresDB && this.featuresDB.birds ? this.featuresDB.birds.length : 0,
+            dbWithFeatures: this.featuresDB && this.featuresDB.birds ? this.featuresDB.birds.filter(b => b.features).length : 0,
+            candidateCount: candidates.length,
+            fastTop15: allFastScored.slice(0, 15).map(r => ({
+                name: r.bird.english,
+                score: r.score
+            })),
+            robinRank: robinIdx >= 0 ? robinIdx + 1 : -1,
+            robinScore: robinIdx >= 0 ? allFastScored[robinIdx].score : 0,
+            robinHasFeatures: robinIdx >= 0 ? !!allFastScored[robinIdx].bird.features : false,
+            audioSampleRate: sampleRate,
+            actualContextSR: this.audioContext ? this.audioContext.sampleRate : '?',
+            freqFocus: options.freqFocus || null,
+            analyzedDuration: duration
+        };
+
         return {
             quality,
             userFeatures,
             results: detailedResults,
             confidence,
             totalCandidates: candidates.length,
-            duration: userFeatures.duration
+            duration: userFeatures.duration,
+            debugInfo
         };
     }
 
     // ==========================================
     // DSP UTILITIES
     // ==========================================
+
+    _bandPassFilter(samples, sampleRate, lowCut, highCut) {
+        // Apply high-pass then low-pass for bandpass filtering
+        let result = this._highPassFilter(samples, sampleRate, lowCut);
+        result = this._lowPassFilter(result, sampleRate, highCut);
+        return result;
+    }
+
+    _lowPassFilter(samples, sampleRate, cutoffHz) {
+        // 2nd-order Butterworth low-pass filter (forward + backward = zero-phase)
+        const w0 = 2 * Math.PI * cutoffHz / sampleRate;
+        const cosw0 = Math.cos(w0);
+        const alpha = Math.sin(w0) / (2 * 0.7071);
+
+        const b0 = (1 - cosw0) / 2;
+        const b1 = 1 - cosw0;
+        const b2 = (1 - cosw0) / 2;
+        const a0 = 1 + alpha;
+        const a1 = -2 * cosw0;
+        const a2 = 1 - alpha;
+
+        const nb0 = b0 / a0, nb1 = b1 / a0, nb2 = b2 / a0;
+        const na1 = a1 / a0, na2 = a2 / a0;
+
+        // Forward pass
+        let output = new Float32Array(samples.length);
+        let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        for (let i = 0; i < samples.length; i++) {
+            const x = samples[i];
+            const y = nb0 * x + nb1 * x1 + nb2 * x2 - na1 * y1 - na2 * y2;
+            output[i] = y;
+            x2 = x1; x1 = x;
+            y2 = y1; y1 = y;
+        }
+
+        // Backward pass
+        let output2 = new Float32Array(samples.length);
+        x1 = 0; x2 = 0; y1 = 0; y2 = 0;
+        for (let i = samples.length - 1; i >= 0; i--) {
+            const x = output[i];
+            const y = nb0 * x + nb1 * x1 + nb2 * x2 - na1 * y1 - na2 * y2;
+            output2[i] = y;
+            x2 = x1; x1 = x;
+            y2 = y1; y1 = y;
+        }
+
+        return output2;
+    }
+
+    _highPassFilter(samples, sampleRate, cutoffHz) {
+        // 2nd-order Butterworth high-pass filter (applied twice = 4th order)
+        // Using bilinear transform for IIR filter design
+        const w0 = 2 * Math.PI * cutoffHz / sampleRate;
+        const cosw0 = Math.cos(w0);
+        const alpha = Math.sin(w0) / (2 * 0.7071); // Q = 0.7071 for Butterworth
+
+        // High-pass coefficients
+        const b0 = (1 + cosw0) / 2;
+        const b1 = -(1 + cosw0);
+        const b2 = (1 + cosw0) / 2;
+        const a0 = 1 + alpha;
+        const a1 = -2 * cosw0;
+        const a2 = 1 - alpha;
+
+        // Normalize
+        const nb0 = b0 / a0, nb1 = b1 / a0, nb2 = b2 / a0;
+        const na1 = a1 / a0, na2 = a2 / a0;
+
+        // Apply filter (forward pass)
+        let output = new Float32Array(samples.length);
+        let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        for (let i = 0; i < samples.length; i++) {
+            const x = samples[i];
+            const y = nb0 * x + nb1 * x1 + nb2 * x2 - na1 * y1 - na2 * y2;
+            output[i] = y;
+            x2 = x1; x1 = x;
+            y2 = y1; y1 = y;
+        }
+
+        // Apply again (backward pass for zero-phase like filtfilt)
+        let output2 = new Float32Array(samples.length);
+        x1 = 0; x2 = 0; y1 = 0; y2 = 0;
+        for (let i = samples.length - 1; i >= 0; i--) {
+            const x = output[i];
+            const y = nb0 * x + nb1 * x1 + nb2 * x2 - na1 * y1 - na2 * y2;
+            output2[i] = y;
+            x2 = x1; x1 = x;
+            y2 = y1; y1 = y;
+        }
+
+        return output2;
+    }
 
     _fft(frame) {
         // Real FFT using the Cooley-Tukey algorithm

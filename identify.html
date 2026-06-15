@@ -437,6 +437,7 @@
         .waveform-container {
             position: relative;
             width: 100%;
+            min-width: 100%;
             height: 80px;
             background: #1a1a2e;
             border-radius: 6px;
@@ -445,7 +446,6 @@
             touch-action: none;
         }
         .waveform-canvas {
-            width: 100%;
             height: 100%;
             display: block;
         }
@@ -610,16 +610,25 @@
                 <div style="font-size:0.85em; color:#666; margin-bottom:4px; font-weight:600;">
                     Drag green handles to select the bird sound section:
                 </div>
-                <div class="waveform-container" id="waveformContainer">
-                    <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
-                    <div class="trim-overlay-left" id="trimOverlayLeft"></div>
-                    <div class="trim-overlay-right" id="trimOverlayRight"></div>
-                    <div class="trim-handle" id="trimHandleLeft" style="left:0px;"></div>
-                    <div class="trim-handle" id="trimHandleRight" style="right:0px;"></div>
+                <div style="overflow-x:auto; position:relative;" id="waveformScroll">
+                    <div class="waveform-container" id="waveformContainer">
+                        <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
+                        <div class="trim-overlay-left" id="trimOverlayLeft"></div>
+                        <div class="trim-overlay-right" id="trimOverlayRight"></div>
+                        <div class="trim-handle" id="trimHandleLeft" style="left:0px;"></div>
+                        <div class="trim-handle" id="trimHandleRight" style="right:0px;"></div>
+                    </div>
                 </div>
-                <div class="trim-info" id="trimInfo">
-                    Selected: <span id="trimStartLabel">0.0</span>s — <span id="trimEndLabel">0.0</span>s
-                    (<span id="trimDurationLabel">0.0</span>s)
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
+                    <div class="trim-info" id="trimInfo">
+                        Selected: <span id="trimStartLabel">0.0</span>s — <span id="trimEndLabel">0.0</span>s
+                        (<span id="trimDurationLabel">0.0</span>s)
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button onclick="zoomWaveform(-1)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.85em; cursor:pointer;">−</button>
+                        <button onclick="zoomWaveform(1)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.85em; cursor:pointer;">+</button>
+                        <button onclick="zoomWaveform(0)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.75em; cursor:pointer;">Fit</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -662,6 +671,17 @@
                     </select>
                 </div>
             </div>
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #333;">
+                <label style="font-size: 0.85em; color: #aaa; margin-bottom: 4px; display: block;">
+                    🎯 Frequency focus (use when background birds mask the target)
+                </label>
+                <select id="freqFocus" style="width: 100%;">
+                    <option value="">Auto (full spectrum — best for most birds)</option>
+                    <option value="low">Low (pigeons, owls, cuckoos, nightjars)</option>
+                    <option value="mid">Mid (lapwings, shrikes, bulbuls, robin-chats)</option>
+                    <option value="high">High (warblers, cisticolas, white-eyes, sunbirds)</option>
+                </select>
+            </div>
         </div>
 
         <!-- IDENTIFY BUTTON -->
@@ -697,10 +717,40 @@
                     <canvas class="spectro-canvas" id="userSpectroCanvas"></canvas>
                     <div class="detail-row">
                         <button class="play-btn" id="playUserBtn" onclick="playUserRecording()">&#9654; Play Your Recording</button>
+                        <button class="play-btn" onclick="showSaveDialog()" style="margin-left:8px;">💾 Save Recording</button>
                     </div>
                 </div>
 
                 <div id="resultsList"></div>
+
+                <!-- Save dialog -->
+                <div id="saveDialog" style="display:none; margin:10px 0; background:#1a1a2e; border:1px solid #4caf50; border-radius:8px; padding:12px;">
+                    <div style="font-size:0.85em; color:#4caf50; font-weight:bold; margin-bottom:8px;">Save Recording</div>
+                    <input type="text" id="saveFileName" placeholder="Enter filename (e.g. crowned-lapwing-flight)" style="width:100%; padding:8px; border-radius:4px; border:1px solid #444; background:#222; color:#fff; font-size:0.85em; margin-bottom:8px;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <label style="color:#aaa; font-size:0.8em;">Format:</label>
+                        <select id="saveFormat" style="padding:4px 8px; border-radius:4px; border:1px solid #444; background:#222; color:#fff; font-size:0.8em;">
+                            <option value="wav">.wav (best for eBird/Xeno-Canto)</option>
+                            <option value="original">Original format</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <label style="color:#aaa; font-size:0.8em;"><input type="checkbox" id="saveTrimmed" checked> Save only trimmed section</label>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button onclick="doSaveRecording()" style="background:#4caf50; color:#fff; border:none; border-radius:4px; padding:6px 16px; cursor:pointer; font-size:0.85em;">Download</button>
+                        <button onclick="document.getElementById('saveDialog').style.display='none'" style="background:#555; color:#fff; border:none; border-radius:4px; padding:6px 16px; cursor:pointer; font-size:0.85em;">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Debug panel -->
+                <div id="debugPanel" style="margin-top:16px; background:#111; border:1px solid #333; border-radius:8px; padding:12px; font-family:monospace; font-size:0.7em; color:#888; max-height:300px; overflow-y:auto; display:none;">
+                    <div style="color:#4caf50; font-weight:bold; margin-bottom:8px;">Debug Info</div>
+                    <pre id="debugContent" style="white-space:pre-wrap;"></pre>
+                </div>
+                <button onclick="document.getElementById('debugPanel').style.display=document.getElementById('debugPanel').style.display==='none'?'block':'none'" style="font-size:0.7em; color:#666; background:none; border:1px solid #333; border-radius:4px; padding:4px 8px; margin-top:8px; cursor:pointer;">
+                    Toggle Debug Info
+                </button>
             </div>
 
             <button class="identify-btn" onclick="resetAll()" style="margin-top: 10px; background: linear-gradient(135deg, #555, #333);">
@@ -975,6 +1025,12 @@
                     if (fHigh > 0) options.freqHints.maxFreq = fHigh;
                 }
 
+                // Frequency focus (bandpass filter to isolate target bird)
+                const freqFocus = document.getElementById('freqFocus').value;
+                if (freqFocus) {
+                    options.freqFocus = freqFocus;
+                }
+
                 const result = await analyzer.identify(userAudioSource, filters, (msg, pct) => {
                     document.getElementById('progressMessage').innerHTML =
                         '<span class="progress-spinner"></span> ' + msg;
@@ -986,6 +1042,9 @@
 
                 // Show results
                 showResults(result);
+
+                // Populate debug panel
+                populateDebug(result);
 
                 // Generate user spectrogram
                 generateUserSpectrogram();
@@ -1042,14 +1101,29 @@
             // Show detected features so user can refine
             if (result.userFeatures) {
                 var uf = result.userFeatures;
+                var freqSuggest = '';
+                var domF = Math.round(uf.dominantFreq);
+                if (domF < 1000) {
+                    freqSuggest = 'Detected low frequency — if wrong results, try <b>Low</b> frequency focus.';
+                } else if (domF > 4000) {
+                    freqSuggest = 'Detected high frequency — if wrong results, try <b>High</b> frequency focus.';
+                } else if (result.confidence === 'low') {
+                    freqSuggest = 'Try <b>Mid</b> or <b>Low</b> frequency focus if a background bird is masking the target.';
+                }
                 document.getElementById('confidenceBar').innerHTML += `
                     <div style="font-size:0.78em; color:#888; margin-top:6px; line-height:1.6;">
-                        <b>Detected:</b> dominant ${Math.round(uf.dominantFreq)} Hz,
+                        <b>Detected:</b> dominant ${domF} Hz,
                         range ${Math.round(uf.freqLow)}–${Math.round(uf.freqHigh)} Hz,
                         centroid ${Math.round(uf.spectralCentroid)} Hz,
                         ${uf.numOnsets || 0} onsets,
                         tempo ~${Math.round(uf.tempo || 0)} BPM
                     </div>`;
+                if (freqSuggest) {
+                    document.getElementById('confidenceBar').innerHTML += `
+                        <div style="font-size:0.78em; color:#e8a735; margin-top:4px;">
+                            💡 ${freqSuggest}
+                        </div>`;
+                }
             }
 
             document.getElementById('resultsSummary').textContent =
@@ -1107,6 +1181,73 @@
 
             // Auto-expand first result
             toggleResultDetails(0);
+        }
+
+        function populateDebug(result) {
+            var lines = [];
+            var di = result.debugInfo || {};
+
+            lines.push('=== DATABASE ===');
+            lines.push('Version: ' + (di.dbVersion || '?'));
+            lines.push('Birds in DB: ' + di.dbBirdCount + ', with features: ' + di.dbWithFeatures);
+            lines.push('Candidates searched: ' + di.candidateCount);
+            lines.push('Audio sample rate: ' + di.audioSampleRate + ' Hz (context: ' + di.actualContextSR + ' Hz)');
+            lines.push('Freq focus: ' + (di.freqFocus || 'auto'));
+            lines.push('Analyzed duration: ' + (di.analyzedDuration || 0).toFixed(1) + 's');
+
+            lines.push('\n=== USER RECORDING FEATURES ===');
+            if (result.userFeatures) {
+                var uf = result.userFeatures;
+                lines.push('Dominant Freq: ' + uf.dominantFreq + ' Hz');
+                lines.push('Freq Range: ' + uf.freqLow + ' - ' + uf.freqHigh + ' Hz');
+                lines.push('Centroid: ' + uf.spectralCentroid + ' Hz');
+                lines.push('Tempo: ' + uf.tempo + ' BPM, Onsets: ' + uf.numOnsets);
+                lines.push('Band Energies: [' + (uf.bandEnergies || []).map(function(v){return v.toFixed(3)}).join(', ') + ']');
+                lines.push('Spectral Env: [' + (uf.spectralEnvelope || []).slice(0, 8).map(function(v){return v.toFixed(3)}).join(', ') + '...]');
+            }
+
+            lines.push('\n=== CAPE ROBIN-CHAT TRACKING ===');
+            if (di.robinRank > 0) {
+                lines.push('FastSearch Rank: #' + di.robinRank + ' (score: ' + di.robinScore + '%)');
+                lines.push('Has features: ' + di.robinHasFeatures);
+            } else {
+                lines.push('NOT FOUND in candidates!');
+            }
+
+            // Show Robin-Chat reference features for comparison
+            if (analyzer.featuresDB && analyzer.featuresDB.birds) {
+                var robins = analyzer.featuresDB.birds.filter(function(b) {
+                    return b.audio && b.audio.indexOf('CapeRobin') >= 0;
+                });
+                robins.forEach(function(b) {
+                    if (b.features) {
+                        var bf = b.features;
+                        lines.push('\nRef: ' + b.english + ' (' + (b.audio || '').replace('All birds/','') + ')');
+                        lines.push('  Dom: ' + bf.dominantFreq + ' Hz, Range: ' + bf.freqLow + '-' + bf.freqHigh + ' Hz');
+                        lines.push('  Centroid: ' + bf.spectralCentroid + ', Tempo: ' + bf.tempo);
+                        lines.push('  Band: [' + (bf.bandEnergies || []).map(function(v){return v.toFixed(3)}).join(', ') + ']');
+                    } else {
+                        lines.push('\nRef: ' + b.english + ' — NO FEATURES!');
+                    }
+                });
+            }
+
+            lines.push('\n=== FAST SEARCH TOP 15 ===');
+            if (di.fastTop15) {
+                di.fastTop15.forEach(function(r, i) {
+                    var marker = r.name && r.name.indexOf('Robin-chat Cape') >= 0 ? ' ***' : '';
+                    lines.push((i + 1) + '. ' + r.name + ': ' + r.score + '%' + marker);
+                });
+            }
+
+            lines.push('\n=== FINAL TOP 5 ===');
+            result.results.forEach(function(r, i) {
+                lines.push((i + 1) + '. ' + r.bird.english + ' — fast:' + r.fastScore + '% spectro:' + r.spectrogramScore + '% total:' + r.score + '%');
+            });
+
+            document.getElementById('debugContent').textContent = lines.join('\n');
+            // Also auto-show debug panel since we're debugging
+            document.getElementById('debugPanel').style.display = 'block';
         }
 
         function toggleResultDetails(idx) {
@@ -1232,8 +1373,171 @@
         }
 
         // ===========================
-        // Playback
+        // Waveform Zoom
         // ===========================
+        let waveformZoom = 1;
+        let waveformChannelData = null;
+
+        function zoomWaveform(direction) {
+            if (direction === 0) {
+                waveformZoom = 1;
+            } else if (direction > 0) {
+                waveformZoom = Math.min(waveformZoom * 1.5, 10);
+            } else {
+                waveformZoom = Math.max(waveformZoom / 1.5, 1);
+            }
+            redrawWaveform();
+        }
+
+        function redrawWaveform() {
+            if (!waveformChannelData) return;
+            var canvas = document.getElementById('waveformCanvas');
+            var scroll = document.getElementById('waveformScroll');
+            var baseWidth = scroll.clientWidth || 400;
+            var totalWidth = Math.round(baseWidth * waveformZoom);
+            canvas.width = totalWidth;
+            canvas.height = 80;
+
+            var container = document.getElementById('waveformContainer');
+            container.style.width = totalWidth + 'px';
+
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            var samplesPerPixel = Math.floor(waveformChannelData.length / canvas.width);
+            ctx.strokeStyle = '#4caf50';
+            ctx.lineWidth = 1;
+            var mid = canvas.height / 2;
+
+            for (var x = 0; x < canvas.width; x++) {
+                var start = x * samplesPerPixel;
+                var min = 0, max = 0;
+                for (var s = 0; s < samplesPerPixel && (start + s) < waveformChannelData.length; s++) {
+                    var val = waveformChannelData[start + s] || 0;
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                }
+                ctx.beginPath();
+                ctx.moveTo(x, mid + min * mid);
+                ctx.lineTo(x, mid + max * mid);
+                ctx.stroke();
+            }
+
+            // Time markers every second when zoomed
+            if (waveformZoom >= 2 && audioDuration > 0) {
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.font = '9px sans-serif';
+                var pxPerSec = totalWidth / audioDuration;
+                for (var t = 1; t < audioDuration; t++) {
+                    var tx = Math.round(t * pxPerSec);
+                    ctx.fillRect(tx, 0, 1, canvas.height);
+                    ctx.fillText(t + 's', tx + 2, 10);
+                }
+            }
+
+            updateTrimOverlays();
+        }
+
+        // ===========================
+        // Save Recording
+        // ===========================
+        function showSaveDialog() {
+            var dialog = document.getElementById('saveDialog');
+            dialog.style.display = 'block';
+            var nameInput = document.getElementById('saveFileName');
+            if (!nameInput.value) {
+                nameInput.value = 'bird_recording';
+            }
+            dialog.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function doSaveRecording() {
+            var source = userAudioSource || audioBlob || audioFile;
+            if (!source) { alert('No recording to save'); return; }
+
+            var fileName = document.getElementById('saveFileName').value.trim() || 'bird_recording';
+            fileName = fileName.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_');
+            var format = document.getElementById('saveFormat').value;
+            var useTrim = document.getElementById('saveTrimmed').checked;
+
+            if (format === 'wav') {
+                try {
+                    // Decode audio, optionally trim, export as WAV
+                    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    var response = await fetch(userAudioURL);
+                    var arrayBuf = await response.arrayBuffer();
+                    var audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+
+                    var sr = audioBuffer.sampleRate;
+                    var startSample = useTrim ? Math.floor(trimStart * sr) : 0;
+                    var endSample = useTrim ? Math.floor(trimEnd * sr) : audioBuffer.length;
+                    var numSamples = endSample - startSample;
+                    var numChannels = audioBuffer.numberOfChannels;
+
+                    // Build WAV file
+                    var dataSize = numSamples * numChannels * 2; // 16-bit PCM
+                    var buffer = new ArrayBuffer(44 + dataSize);
+                    var view = new DataView(buffer);
+
+                    // RIFF header
+                    writeString(view, 0, 'RIFF');
+                    view.setUint32(4, 36 + dataSize, true);
+                    writeString(view, 8, 'WAVE');
+                    writeString(view, 12, 'fmt ');
+                    view.setUint32(16, 16, true); // chunk size
+                    view.setUint16(20, 1, true);  // PCM
+                    view.setUint16(22, numChannels, true);
+                    view.setUint32(24, sr, true);
+                    view.setUint32(28, sr * numChannels * 2, true);
+                    view.setUint16(32, numChannels * 2, true);
+                    view.setUint16(34, 16, true); // bits per sample
+                    writeString(view, 36, 'data');
+                    view.setUint32(40, dataSize, true);
+
+                    // Interleave channels and write PCM data
+                    var offset = 44;
+                    for (var i = 0; i < numSamples; i++) {
+                        for (var ch = 0; ch < numChannels; ch++) {
+                            var sample = audioBuffer.getChannelData(ch)[startSample + i];
+                            sample = Math.max(-1, Math.min(1, sample));
+                            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                            offset += 2;
+                        }
+                    }
+
+                    var wavBlob = new Blob([buffer], { type: 'audio/wav' });
+                    var url = URL.createObjectURL(wavBlob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName + '.wav';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    audioCtx.close();
+
+                    document.getElementById('saveDialog').style.display = 'none';
+                } catch (e) {
+                    console.error('WAV export failed:', e);
+                    alert('WAV export failed: ' + e.message);
+                }
+            } else {
+                // Save in original format
+                var url = userAudioURL || URL.createObjectURL(source);
+                var a = document.createElement('a');
+                a.href = url;
+                var ext = (source instanceof File) ? source.name.split('.').pop() : 'webm';
+                a.download = fileName + '.' + ext;
+                a.click();
+                document.getElementById('saveDialog').style.display = 'none';
+            }
+        }
+
+        function writeString(view, offset, string) {
+            for (var i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
         function playUserRecording() {
             if (!userAudioURL) return;
             const btn = document.getElementById('playUserBtn');
@@ -1396,43 +1700,15 @@
                 var response = await fetch(audioURL);
                 var arrayBuffer = await response.arrayBuffer();
                 var audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                var channelData = audioBuffer.getChannelData(0);
+                waveformChannelData = audioBuffer.getChannelData(0);
                 audioDuration = audioBuffer.duration;
                 trimStart = 0;
                 trimEnd = audioDuration;
+                waveformZoom = 1;
                 audioCtx.close();
 
-                // Draw waveform
-                var canvas = document.getElementById('waveformCanvas');
-                var container = document.getElementById('waveformContainer');
-                canvas.width = container.clientWidth || 400;
-                canvas.height = 80;
-                var ctx = canvas.getContext('2d');
-
-                ctx.fillStyle = '#1a1a2e';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                var samplesPerPixel = Math.floor(channelData.length / canvas.width);
-                ctx.strokeStyle = '#4caf50';
-                ctx.lineWidth = 1;
-                var mid = canvas.height / 2;
-
-                for (var x = 0; x < canvas.width; x++) {
-                    var start = x * samplesPerPixel;
-                    var min = 0, max = 0;
-                    for (var s = 0; s < samplesPerPixel; s++) {
-                        var val = channelData[start + s] || 0;
-                        if (val < min) min = val;
-                        if (val > max) max = val;
-                    }
-                    ctx.beginPath();
-                    ctx.moveTo(x, mid + min * mid);
-                    ctx.lineTo(x, mid + max * mid);
-                    ctx.stroke();
-                }
-
-                // Reset trim overlays
-                updateTrimOverlays();
+                // Draw waveform using shared function
+                redrawWaveform();
                 updateTrimLabels();
 
                 // Set up drag handlers
