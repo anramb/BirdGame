@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Python
+__pycache__/
+*.pyc
+
+# Test recordings (large files)
+test_*.wav
+test_*.webm
+test_*.mp3
+
+# Temp folders
+/AwaitingPNG/
+/Spectrogram Work/
