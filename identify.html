@@ -242,6 +242,80 @@
             width: 16px;
             height: 16px;
         }
+        /* Multi-select dropdown */
+        .multi-select {
+            position: relative;
+            flex: 1;
+            min-width: 120px;
+        }
+        .multi-select-btn {
+            width: 100%;
+            padding: 8px 28px 8px 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.85em;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+        .multi-select-btn::after {
+            content: '\25BC';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7em;
+            color: #999;
+        }
+        .multi-select-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 100;
+            margin-top: 2px;
+        }
+        .multi-select-dropdown.open {
+            display: block;
+        }
+        .multi-select-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            font-size: 0.82em;
+            color: #333;
+            cursor: pointer;
+        }
+        .multi-select-item:hover {
+            background: #f0f0f0;
+        }
+        .multi-select-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+        }
+        .multi-select-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            padding: 0 6px;
+            font-size: 0.75em;
+            margin-left: 4px;
+        }
 
         /* --- Progress --- */
         .progress-area {
@@ -662,14 +736,16 @@
             </label>
             <div class="hidden" id="filterControls" style="margin-top: 8px;">
                 <div class="filter-row">
-                    <select id="filterHotspot">
-                        <option value="">All Locations</option>
-                    </select>
+                    <div class="multi-select" id="hotspotMultiSelect">
+                        <button type="button" class="multi-select-btn" onclick="toggleMultiDrop('hotspotDrop')">All Locations</button>
+                        <div class="multi-select-dropdown" id="hotspotDrop"></div>
+                    </div>
                 </div>
                 <div class="filter-row">
-                    <select id="filterHabitat">
-                        <option value="">All Habitats</option>
-                    </select>
+                    <div class="multi-select" id="habitatMultiSelect">
+                        <button type="button" class="multi-select-btn" onclick="toggleMultiDrop('habitatDrop')">All Habitats</button>
+                        <div class="multi-select-dropdown" id="habitatDrop"></div>
+                    </div>
                 </div>
                 <div class="filter-row">
                     <select id="filterBirdgroup">
@@ -827,20 +903,24 @@
         function populateFilters() {
             if (!analyzer || !analyzer.isLoaded) return;
 
-            const hotspotSelect = document.getElementById('filterHotspot');
+            // Hotspot multi-select
+            const hotspotDrop = document.getElementById('hotspotDrop');
+            hotspotDrop.innerHTML = '';
             analyzer.getUniqueHotspots().forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h;
-                opt.textContent = h;
-                hotspotSelect.appendChild(opt);
+                const label = document.createElement('label');
+                label.className = 'multi-select-item';
+                label.innerHTML = `<input type="checkbox" value="${h}" onchange="updateMultiBtn('hotspotMultiSelect','All Locations')"> ${h}`;
+                hotspotDrop.appendChild(label);
             });
 
-            const habitatSelect = document.getElementById('filterHabitat');
+            // Habitat multi-select
+            const habitatDrop = document.getElementById('habitatDrop');
+            habitatDrop.innerHTML = '';
             analyzer.getUniqueHabitats().forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h;
-                opt.textContent = h;
-                habitatSelect.appendChild(opt);
+                const label = document.createElement('label');
+                label.className = 'multi-select-item';
+                label.innerHTML = `<input type="checkbox" value="${h}" onchange="updateMultiBtn('habitatMultiSelect','All Habitats')"> ${h}`;
+                habitatDrop.appendChild(label);
             });
 
             const groupSelect = document.getElementById('filterBirdgroup');
@@ -851,6 +931,41 @@
                 groupSelect.appendChild(opt);
             });
         }
+
+        // Multi-select dropdown helpers
+        function toggleMultiDrop(dropId) {
+            // Close all other dropdowns first
+            document.querySelectorAll('.multi-select-dropdown.open').forEach(d => {
+                if (d.id !== dropId) d.classList.remove('open');
+            });
+            document.getElementById(dropId).classList.toggle('open');
+        }
+
+        function updateMultiBtn(containerId, defaultText) {
+            const container = document.getElementById(containerId);
+            const btn = container.querySelector('.multi-select-btn');
+            const checked = container.querySelectorAll('input[type="checkbox"]:checked');
+            if (checked.length === 0) {
+                btn.textContent = defaultText;
+            } else if (checked.length === 1) {
+                btn.textContent = checked[0].value;
+            } else {
+                btn.textContent = checked[0].value + ' +' + (checked.length - 1);
+            }
+        }
+
+        function getMultiSelectValues(containerId) {
+            const container = document.getElementById(containerId);
+            const checked = container.querySelectorAll('input[type="checkbox"]:checked');
+            return Array.from(checked).map(cb => cb.value);
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.multi-select')) {
+                document.querySelectorAll('.multi-select-dropdown.open').forEach(d => d.classList.remove('open'));
+            }
+        });
 
         // ===========================
         // Input Mode Selection
@@ -1008,9 +1123,11 @@
 
         function getFilters() {
             if (!document.getElementById('useFilters').checked) return {};
+            const hotspots = getMultiSelectValues('hotspotMultiSelect');
+            const habitats = getMultiSelectValues('habitatMultiSelect');
             return {
-                hotspot: document.getElementById('filterHotspot').value,
-                habitat: document.getElementById('filterHabitat').value,
+                hotspots: hotspots.length > 0 ? hotspots : null,
+                habitats: habitats.length > 0 ? habitats : null,
                 birdgroup: document.getElementById('filterBirdgroup').value
             };
         }

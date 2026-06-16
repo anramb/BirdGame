@@ -534,19 +534,22 @@ class BirdAudioAnalyzer {
         if (!this.isLoaded) return [];
         let candidates = [...this.featuresDB.birds];
 
-        if (filters.hotspot) {
-            const hotspotLower = filters.hotspot.toLowerCase();
+        // Support both single string (legacy) and array (multi-select)
+        const hotspotList = filters.hotspots || (filters.hotspot ? [filters.hotspot] : null);
+        if (hotspotList && hotspotList.length > 0) {
+            const hotspotLowers = hotspotList.map(h => h.toLowerCase());
             candidates = candidates.filter(bird => {
                 const h = (bird.hotspot || '').toLowerCase();
-                return h.includes(hotspotLower);
+                return hotspotLowers.some(hl => h.includes(hl));
             });
         }
 
-        if (filters.habitat) {
-            const habitatLower = filters.habitat.toLowerCase();
+        const habitatList = filters.habitats || (filters.habitat ? [filters.habitat] : null);
+        if (habitatList && habitatList.length > 0) {
+            const habitatLowers = habitatList.map(h => h.toLowerCase());
             candidates = candidates.filter(bird => {
                 const h = (bird.habitat || '').toLowerCase();
-                return h.includes(habitatLower);
+                return habitatLowers.some(hl => h.includes(hl));
             });
         }
 
