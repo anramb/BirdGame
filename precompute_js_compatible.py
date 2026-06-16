@@ -312,6 +312,8 @@ def extract_features(y, sr):
 
 
 def main():
+    force_all = '--force' in sys.argv
+
     if not os.path.isdir(AUDIO_DIR):
         print(f"Error: '{AUDIO_DIR}' not found. Run from BestRunDay project root.")
         sys.exit(1)
@@ -330,14 +332,49 @@ def main():
     audio_paths = re.findall(r'audio:\s*"([^"]+)"', content)
     print(f"Found {len(audio_paths)} audio entries in allbirds.js")
     
-    features = {}
+    # Load existing features (if any) to avoid reprocessing
+    output_file = 'bird_audio_features.json'
+    existing_features = {}
+    if not force_all and os.path.exists(output_file):
+        try:
+            with open(output_file, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+            existing_features = existing_data.get('features', {})
+            print(f"Loaded {len(existing_features)} existing features from {output_file}")
+        except Exception as e:
+            print(f"Warning: Could not load existing features ({e}), will reprocess all")
+    
+    # Find which entries are new/missing
+    to_process = []
+    for audio_path in audio_paths:
+        audio_key = audio_path.replace('All birds/', '').replace('.mp3', '')
+        if audio_key not in existing_features:
+            to_process.append((audio_key, audio_path))
+    
+    if len(to_process) == 0 and not force_all:
+        print(f"\nAll {len(audio_paths)} entries already have features. Nothing to do.")
+        print(f"  (Use --force to reprocess everything)")
+        return
+    
+    if force_all:
+        to_process = [(ap.replace('All birds/', '').replace('.mp3', ''), ap) for ap in audio_paths]
+        existing_features = {}
+        print(f"\n--force: Reprocessing all {len(to_process)} entries...")
+    else:
+        print(f"\n{len(to_process)} new entries to process (skipping {len(existing_features)} existing):")
+        for key, _ in to_process:
+            print(f"  + {key}")
+    
+    features = dict(existing_features)  # start with existing
     errors = 0
     
-    for i, audio_path in enumerate(audio_paths):
-        audio_key = audio_path.replace('All birds/', '').replace('.mp3', '')
+    from scipy import signal as sig
+    
+    for i, (audio_key, audio_path) in enumerate(to_process):
         full_path = audio_path  # relative to project root
         
         if not os.path.exists(full_path):
+            print(f"  NOT FOUND: {full_path}")
             errors += 1
             continue
         
@@ -351,21 +388,24 @@ def main():
                 continue
             
             # Apply high-pass filter at 300 Hz (same as browser code)
-            # Removes mains hum and wind but preserves low-freq bird calls
-            from scipy import signal as sig
             b_hp, a_hp = sig.butter(2, 300 / (SR/2), 'high')
             y = sig.filtfilt(b_hp, a_hp, y)
             
             f = extract_features(y, sr)
             if f:
                 features[audio_key] = f
-            
-            if (i + 1) % 50 == 0 or i == 0:
-                print(f"  [{i+1}/{len(audio_paths)}] {audio_key} — dom:{f['dominantFreq']}Hz")
+                print(f"  [{i+1}/{len(to_process)}] {audio_key} — dom:{f['dominantFreq']}Hz")
                 
         except Exception as e:
             print(f"  ERROR: {audio_key} — {e}")
             errors += 1
+    
+    # Also remove features for entries no longer in allbirds.js
+    all_keys = set(ap.replace('All birds/', '').replace('.mp3', '') for ap in audio_paths)
+    removed = [k for k in features if k not in all_keys]
+    for k in removed:
+        del features[k]
+        print(f"  Removed stale entry: {k}")
     
     # Save in JS-compatible format
     output = {
@@ -379,33 +419,17 @@ def main():
         'features': features
     }
     
-    # Backup old file
-    old_file = 'bird_audio_features.json'
-    if os.path.exists(old_file):
-        backup = 'bird_audio_features_python_backup.json'
-        if not os.path.exists(backup):
-            os.rename(old_file, backup)
-            print(f"\nBacked up old features to {backup}")
-        else:
-            os.remove(old_file)
-    
-    with open(old_file, 'w', encoding='utf-8') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(output, f, separators=(',', ':'))
     
-    file_size = os.path.getsize(old_file) / 1024
+    file_size = os.path.getsize(output_file) / 1024
     print(f"\nDone!")
-    print(f"  Processed: {len(features)}")
+    print(f"  Total features: {len(features)}")
+    print(f"  New processed: {len(to_process) - errors}")
     print(f"  Errors: {errors}")
-    print(f"  Output: {old_file} ({file_size:.0f} KB)")
-    
-    # Quick verification
-    robin = features.get('XC1067750_CapeRobin-Chat')
-    if robin:
-        print(f"\n  Cape Robin-Chat verification:")
-        print(f"    Dom freq: {robin['dominantFreq']} Hz")
-        print(f"    Range: {robin['freqLow']}-{robin['freqHigh']} Hz")
-        print(f"    Centroid: {robin['spectralCentroid']} Hz")
-        print(f"    Band energies: {robin['bandEnergies']}")
+    if removed:
+        print(f"  Removed stale: {len(removed)}")
+    print(f"  Output: {output_file} ({file_size:.0f} KB)")
 
 
 if __name__ == '__main__':
