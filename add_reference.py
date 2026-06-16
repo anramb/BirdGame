@@ -37,10 +37,19 @@ def find_existing_entry(allbirds_content, bird_name):
 
 
 def sanitize_filename(name):
-    """Convert bird name to a valid filename component."""
-    # Remove special chars, replace spaces
+    """Convert bird name to filename format matching existing convention.
+    e.g. 'Lapwing Crowned Flight call' -> 'CrownedLapwing'
+    e.g. 'Lesser Masked Weaver' -> 'LesserMaskedWeaver'
+    Removes Latin names, keeps hyphens, removes spaces."""
+    # Remove anything after ' - ' (Latin name from Xeno-Canto)
+    if ' - ' in name:
+        name = name.split(' - ')[0].strip()
+    # Remove special chars except hyphens
     clean = re.sub(r'[^a-zA-Z0-9\s-]', '', name)
-    clean = re.sub(r'\s+', '', clean.title())
+    # Remove spaces but keep hyphens (e.g. Black-winged stays)
+    parts = clean.split()
+    # Capitalize each word and join without spaces
+    clean = ''.join(p.capitalize() if not '-' in p else '-'.join(w.capitalize() for w in p.split('-')) for p in parts)
     return clean
 
 
@@ -87,15 +96,22 @@ def main():
         print("ERROR: 'All birds' directory not found.")
         sys.exit(1)
 
-    # Generate XC ID or user ID
+    # Determine XC ID
     if args.xc_id:
         xc_id = args.xc_id if args.xc_id.startswith('XC') else f'XC{args.xc_id}'
     else:
-        # Generate a unique user ID
-        existing = os.listdir('All birds')
-        user_ids = [int(re.search(r'USER(\d+)', f).group(1)) for f in existing if 'USER' in f]
-        next_id = max(user_ids, default=0) + 1
-        xc_id = f'USER{next_id:05d}'
+        # Try to detect XC ID from the source filename
+        src_basename = os.path.basename(args.audio_path)
+        xc_match = re.search(r'(XC\d+)', src_basename)
+        if xc_match:
+            xc_id = xc_match.group(1)
+            print(f"  Auto-detected XC ID from filename: {xc_id}")
+        else:
+            # Generate a unique user ID
+            existing = os.listdir('All birds')
+            user_ids = [int(re.search(r'USER(\d+)', f).group(1)) for f in existing if re.search(r'USER(\d+)', f)]
+            next_id = max(user_ids, default=0) + 1
+            xc_id = f'USER{next_id:05d}'
 
     # Create filename
     clean_name = sanitize_filename(args.bird_name)

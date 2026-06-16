@@ -517,7 +517,13 @@ const originalNextBird = nextBird;
 nextBird = function() {
     originalNextBird();
     if (currentBird && currentBird.audio) {
-        generateGameSpectrogram(currentBird.audio);
+        try {
+            generateGameSpectrogram(currentBird.audio).catch(e => {
+                console.warn('Game spectrogram failed (non-blocking):', e);
+            });
+        } catch(e) {
+            console.warn('Game spectrogram error (non-blocking):', e);
+        }
     }
 };
 </script>

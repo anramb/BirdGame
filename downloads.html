@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chirp Coach — Offline Packs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+        .header { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; padding: 15px 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 1.3em; margin-bottom: 2px; }
+        .header p { font-size: 0.8em; opacity: 0.8; }
+        .back-btn { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+        .container { max-width: 600px; margin: 0 auto; padding: 12px; }
+
+        .storage-bar { background: #fff; border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .storage-bar .label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
+        .storage-bar .bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+        .storage-bar .bar-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); border-radius: 4px; transition: width 0.5s; }
+        .storage-bar .info { font-size: 0.75em; color: #888; margin-top: 4px; display: flex; justify-content: space-between; }
+
+        .section-title { font-size: 0.85em; font-weight: 700; color: #555; padding: 8px 4px 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .pack-card { background: #fff; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .pack-header { display: flex; justify-content: space-between; align-items: center; }
+        .pack-name { font-weight: 700; font-size: 1em; color: #2c3e50; }
+        .pack-badge { font-size: 0.7em; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+        .pack-badge.installed { background: #d5f5e3; color: #27ae60; }
+        .pack-badge.not-installed { background: #f0f0f0; color: #888; }
+        .pack-meta { font-size: 0.75em; color: #888; margin: 4px 0 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .pack-meta span { display: flex; align-items: center; gap: 3px; }
+        .pack-hotspots { font-size: 0.7em; color: #999; margin-bottom: 8px; }
+
+        .pack-actions { display: flex; gap: 6px; }
+        .btn-download { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; flex: 1; }
+        .btn-download:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; }
+        .btn-delete:disabled { background: #ccc; cursor: not-allowed; }
+
+        .progress-container { margin-top: 8px; }
+        .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); border-radius: 3px; transition: width 0.3s; width: 0%; }
+        .progress-text { font-size: 0.7em; color: #888; margin-top: 2px; }
+
+        .offline-info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.8em; color: #856404; line-height: 1.5; }
+        .offline-info strong { display: block; margin-bottom: 2px; }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .status-dot.online { background: #27ae60; }
+        .status-dot.offline { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="start.html" class="back-btn">← Back</a>
+        <h1>📦 Offline Bird Packs</h1>
+        <p>Download bird sounds for offline use</p>
+    </div>
+
+    <div class="container">
+        <!-- Connection status -->
+        <div style="text-align: center; padding: 6px; font-size: 0.8em; color: #666;">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="connectionStatus">Checking...</span>
+        </div>
+
+        <!-- Info box -->
+        <div class="offline-info">
+            <strong>How it works:</strong>
+            Download bird sound packs for specific regions. Once downloaded, you can use the app 
+            (learn, quiz, identify) without internet. The app shell and bird data are cached automatically.
+        </div>
+
+        <!-- Storage usage -->
+        <div class="storage-bar">
+            <div class="label">Device Storage Used</div>
+            <div class="bar"><div class="bar-fill" id="storageBarFill" style="width: 0%"></div></div>
+            <div class="info">
+                <span id="storageUsed">Calculating...</span>
+                <span id="storageQuota"></span>
+            </div>
+        </div>
+
+        <!-- Installed packs -->
+        <div id="installedSection" style="display: none;">
+            <div class="section-title">✅ Installed Packs</div>
+            <div id="installedList"></div>
+        </div>
+
+        <!-- Available packs -->
+        <div class="section-title">📥 Available Packs</div>
+        <div id="packsList">
+            <div style="text-align: center; padding: 20px; color: #999;">Loading pack information...</div>
+        </div>
+    </div>
+
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
+
+    <script src="allbirds.js"></script>
+    <script src="offline-manager.js"></script>
+    <script>
+    (function() {
+        var packDefs = [];
+        var installedPacks = {};
+        var downloading = {};
+
+        // =================== Init ===================
+        async function init() {
+            // Check connection
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+
+            // Build pack definitions from allbirds data
+            packDefs = buildPackDefinitions(allbirds);
+
+            // Load installed packs
+            try {
+                var db = await openOfflineDB();
+                installedPacks = await getAllPacks(db);
+            } catch(e) {
+                console.warn('Could not read installed packs:', e);
+            }
+
+            renderPacks();
+            updateStorageInfo();
+        }
+
+        function updateConnectionStatus() {
+            var dot = document.getElementById('statusDot');
+            var text = document.getElementById('connectionStatus');
+            if (navigator.onLine) {
+                dot.className = 'status-dot online';
+                text.textContent = 'Online — you can download packs';
+            } else {
+                dot.className = 'status-dot offline';
+                text.textContent = 'Offline — using downloaded packs';
+            }
+        }
+
+        async function updateStorageInfo() {
+            var usage = await getStorageUsage();
+            document.getElementById('storageUsed').textContent = usage.usedMB + ' MB used';
+            document.getElementById('storageQuota').textContent = usage.quotaMB + ' MB available';
+            var pct = usage.quota > 0 ? Math.min(100, (usage.used / usage.quota) * 100) : 0;
+            document.getElementById('storageBarFill').style.width = pct + '%';
+        }
+
+        // =================== Render ===================
+        function renderPacks() {
+            var installedHTML = '';
+            var availableHTML = '';
+            var hasInstalled = false;
+
+            packDefs.forEach(function(pack) {
+                var isInstalled = !!installedPacks[pack.id];
+                var info = installedPacks[pack.id];
+                var isDownloading = !!downloading[pack.id];
+
+                // Estimate size (~0.8 MB per audio file average for MP3s)
+                var estimatedMB = Math.round(pack.audioCount * 0.8);
+
+                var card = '<div class="pack-card" id="pack_' + pack.id + '">';
+                card += '<div class="pack-header">';
+                card += '<div class="pack-name">' + pack.name + '</div>';
+                if (isInstalled) {
+                    card += '<span class="pack-badge installed">Installed</span>';
+                } else {
+                    card += '<span class="pack-badge not-installed">Not installed</span>';
+                }
+                card += '</div>';
+
+                card += '<div class="pack-meta">';
+                card += '<span>🐦 ' + pack.speciesCount + ' species</span>';
+                card += '<span>🎵 ' + pack.audioCount + ' audio files</span>';
+                card += '<span>💾 ~' + estimatedMB + ' MB</span>';
+                card += '</div>';
+
+                card += '<div class="pack-hotspots">Hotspots: ' + pack.hotspots.join(', ') + '</div>';
+
+                card += '<div class="pack-actions">';
+                if (isInstalled) {
+                    card += '<button class="btn-download" onclick="window._redownloadPack(\'' + pack.id + '\')" ' + (isDownloading ? 'disabled' : '') + '>🔄 Update</button>';
+                    card += '<button class="btn-delete" onclick="window._deletePack(\'' + pack.id + '\')" ' + (isDownloading ? 'disabled' : '') + '>🗑️ Remove</button>';
+                } else {
+                    card += '<button class="btn-download" onclick="window._downloadPack(\'' + pack.id + '\')" ' + (isDownloading || !navigator.onLine ? 'disabled' : '') + '>📥 Download</button>';
+                }
+                card += '</div>';
+
+                // Progress bar (hidden by default)
+                card += '<div class="progress-container" id="progress_' + pack.id + '" style="display:none;">';
+                card += '<div class="progress-bar"><div class="progress-fill" id="progressFill_' + pack.id + '"></div></div>';
+                card += '<div class="progress-text" id="progressText_' + pack.id + '"></div>';
+                card += '</div>';
+
+                if (isInstalled && info) {
+                    card += '<div style="font-size:0.7em; color:#999; margin-top:6px;">';
+                    card += 'Installed: ' + new Date(info.installedDate).toLocaleDateString();
+                    if (info.failedFiles > 0) {
+                        card += ' | ' + info.failedFiles + ' files failed';
+                    }
+                    card += '</div>';
+                }
+
+                card += '</div>';
+
+                if (isInstalled) {
+                    installedHTML += card;
+                    hasInstalled = true;
+                } else {
+                    availableHTML += card;
+                }
+            });
+
+            if (hasInstalled) {
+                document.getElementById('installedSection').style.display = 'block';
+                document.getElementById('installedList').innerHTML = installedHTML;
+            } else {
+                document.getElementById('installedSection').style.display = 'none';
+            }
+
+            document.getElementById('packsList').innerHTML = availableHTML || '<div style="text-align:center; padding:20px; color:#999;">All packs are installed!</div>';
+        }
+
+        // =================== Actions ===================
+        window._downloadPack = async function(packId) {
+            var pack = packDefs.find(function(p) { return p.id === packId; });
+            if (!pack) return;
+            if (!navigator.onLine) {
+                alert('You need an internet connection to download packs.');
+                return;
+            }
+
+            downloading[packId] = true;
+            renderPacks();
+
+            var progressDiv = document.getElementById('progress_' + packId);
+            var progressFill = document.getElementById('progressFill_' + packId);
+            var progressText = document.getElementById('progressText_' + packId);
+            if (progressDiv) progressDiv.style.display = 'block';
+
+            try {
+                var result = await downloadPack(pack, function(done, total, failed) {
+                    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                    if (progressFill) progressFill.style.width = pct + '%';
+                    if (progressText) {
+                        progressText.textContent = done + ' / ' + total + ' files downloaded' + (failed > 0 ? ' (' + failed + ' failed)' : '');
+                    }
+                });
+
+                installedPacks[packId] = {
+                    name: pack.name,
+                    installedDate: new Date().toISOString(),
+                    downloadedFiles: result.downloaded,
+                    failedFiles: result.failed
+                };
+
+                if (progressText) {
+                    progressText.textContent = '✅ Complete! ' + result.downloaded + ' files downloaded' + (result.failed > 0 ? ', ' + result.failed + ' failed' : '');
+                }
+
+            } catch(e) {
+                if (progressText) {
+                    progressText.textContent = '❌ Download failed: ' + e.message;
+                }
+            }
+
+            delete downloading[packId];
+            setTimeout(function() {
+                renderPacks();
+                updateStorageInfo();
+            }, 1500);
+        };
+
+        window._redownloadPack = window._downloadPack;
+
+        window._deletePack = async function(packId) {
+            var pack = packDefs.find(function(p) { return p.id === packId; });
+            if (!pack) return;
+
+            if (!confirm('Remove "' + pack.name + '" offline pack? (' + pack.audioCount + ' audio files will be deleted)')) {
+                return;
+            }
+
+            try {
+                await deletePack(pack);
+                delete installedPacks[packId];
+                renderPacks();
+                updateStorageInfo();
+            } catch(e) {
+                alert('Error removing pack: ' + e.message);
+            }
+        };
+
+        // =================== Start ===================
+        init();
+    })();
+    </script>
+</body>
+</html>

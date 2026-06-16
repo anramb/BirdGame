@@ -710,7 +710,7 @@ class BirdAudioAnalyzer {
     // STEP 4: DETAILED SPECTROGRAM COMPARISON
     // ==========================================
 
-    async detailedComparison(userSamples, userSampleRate, topCandidates, topN = 5, userFeatures = null) {
+    async detailedComparison(userSamples, userSampleRate, topCandidates, topN = 5, userFeatures = null, enhance = false) {
         // Generate user spectrogram data
         const userSpectro = this._generateSpectrogramData(userSamples, userSampleRate);
 
@@ -733,7 +733,27 @@ class BirdAudioAnalyzer {
 
             try {
                 const refAudio = await this.loadAudio(bird.audio);
-                const refSpectro = this._generateSpectrogramData(refAudio.samples, refAudio.sampleRate);
+                let refSamples = refAudio.samples;
+                let refSR = refAudio.sampleRate;
+
+                // If enhance is on, apply same enhancement to reference audio for fair comparison
+                if (enhance) {
+                    refSamples = this._highPassFilter(refSamples, refSR, 500);
+                    refSamples = this._boostFreqRange(refSamples, refSR, 1000, 8000, 2.0);
+                    let maxAmp = 0;
+                    for (let i = 0; i < refSamples.length; i++) {
+                        const a = Math.abs(refSamples[i]);
+                        if (a > maxAmp) maxAmp = a;
+                    }
+                    if (maxAmp > 0) {
+                        const gain = 0.5 / maxAmp;
+                        for (let i = 0; i < refSamples.length; i++) {
+                            refSamples[i] *= gain;
+                        }
+                    }
+                }
+
+                const refSpectro = this._generateSpectrogramData(refSamples, refSR);
 
                 if (birdAnnotations && birdAnnotations.length > 0) {
                     // ANNOTATION-BASED MATCHING: Extract templates from annotated regions
@@ -946,6 +966,28 @@ class BirdAudioAnalyzer {
             samples = this._highPassFilter(samples, sampleRate, 300);
         }
 
+        // Apply enhance if requested (boost bird frequencies, normalize)
+        if (options.enhance) {
+            progress('Enhancing bird sounds...', 17);
+            // 1. Additional HP filter at 500 Hz to cut more noise
+            samples = this._highPassFilter(samples, sampleRate, 500);
+            // 2. Boost 1-8 kHz range (where most bird calls are)
+            samples = this._boostFreqRange(samples, sampleRate, 1000, 8000, 2.0);
+            // 3. Normalize to -6 dB peak
+            let maxAmp = 0;
+            for (let i = 0; i < samples.length; i++) {
+                const a = Math.abs(samples[i]);
+                if (a > maxAmp) maxAmp = a;
+            }
+            if (maxAmp > 0) {
+                const targetAmp = 0.5; // -6 dB
+                const gain = targetAmp / maxAmp;
+                for (let i = 0; i < samples.length; i++) {
+                    samples[i] *= gain;
+                }
+            }
+        }
+
         // Step 2: Extract features
         progress('Extracting audio features...', 20);
         const userFeatures = this.extractFeatures(samples, sampleRate);
@@ -1014,11 +1056,11 @@ class BirdAudioAnalyzer {
         let detailedResults;
         try {
             detailedResults = await this.detailedComparison(
-                samples, sampleRate, fastResults, 5, userFeatures
+                samples, sampleRate, fastResults, 10, userFeatures, options.enhance
             );
         } catch (e) {
             console.warn('Detailed comparison failed, using fast results:', e);
-            detailedResults = fastResults.slice(0, 5).map(r => ({
+            detailedResults = fastResults.slice(0, 10).map(r => ({
                 ...r,
                 fastScore: r.score,
                 spectrogramScore: 0,
@@ -1045,7 +1087,7 @@ class BirdAudioAnalyzer {
             dbBirdCount: this.featuresDB && this.featuresDB.birds ? this.featuresDB.birds.length : 0,
             dbWithFeatures: this.featuresDB && this.featuresDB.birds ? this.featuresDB.birds.filter(b => b.features).length : 0,
             candidateCount: candidates.length,
-            fastTop15: allFastScored.slice(0, 15).map(r => ({
+            fastTop30: allFastScored.slice(0, 30).map(r => ({
                 name: r.bird.english,
                 score: r.score
             })),
@@ -1055,6 +1097,7 @@ class BirdAudioAnalyzer {
             audioSampleRate: sampleRate,
             actualContextSR: this.audioContext ? this.audioContext.sampleRate : '?',
             freqFocus: options.freqFocus || null,
+            enhance: options.enhance || false,
             analyzedDuration: duration
         };
 
@@ -1072,6 +1115,17 @@ class BirdAudioAnalyzer {
     // ==========================================
     // DSP UTILITIES
     // ==========================================
+
+    _boostFreqRange(samples, sampleRate, lowHz, highHz, gainFactor) {
+        // Extract the target frequency range, amplify it, and mix back
+        const bandSignal = this._bandPassFilter(samples, sampleRate, lowHz, highHz);
+        const output = new Float32Array(samples.length);
+        const boostAmount = gainFactor - 1; // how much extra to add
+        for (let i = 0; i < samples.length; i++) {
+            output[i] = samples[i] + bandSignal[i] * boostAmount;
+        }
+        return output;
+    }
 
     _bandPassFilter(samples, sampleRate, lowCut, highCut) {
         // Apply high-pass then low-pass for bandpass filtering

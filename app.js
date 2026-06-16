@@ -96,9 +96,16 @@ function changeCategory() {
 
 function playAudio(file) {
   if (!file) return;
-  audio.pause();
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+  } catch(e) {}
   audio.src = file;
-  audio.play().catch(e => console.log("Audio play failed:", e));
+  audio.play().catch(e => {
+    console.log("Audio play failed, retrying:", e);
+    // Retry once after a brief delay (mobile browser workaround)
+    setTimeout(() => audio.play().catch(() => {}), 300);
+  });
 }
 
 function startOrPlay() {
@@ -190,11 +197,15 @@ function startGame() {
   nextBird();
 }
 
+let _nextBirdBusy = false;
 function nextBird() {
+  if (_nextBirdBusy) return; // prevent rapid-fire calls
   if (!filtered || filtered.length === 0) {
     console.log("No birds available");
     return;
   }
+  _nextBirdBusy = true;
+  setTimeout(() => { _nextBirdBusy = false; }, 500); // debounce 500ms
 
   if (queue.length === 0) {
     console.log("Reshuffling queue...");

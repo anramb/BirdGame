@@ -605,13 +605,26 @@
                 <div class="file-name" id="fileName"></div>
             </div>
 
-            <!-- Waveform Trimmer (appears after record/upload) -->
+            <!-- Spectrogram Trimmer (appears after record/upload) -->
             <div class="hidden" id="trimSection">
-                <div style="font-size:0.85em; color:#666; margin-bottom:4px; font-weight:600;">
-                    Drag green handles to select the bird sound section:
+                <!-- Play button + audio info -->
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <button id="previewPlayBtn" onclick="togglePreviewPlayback()" style="background:#1a8f4a; color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:1.1em; cursor:pointer; display:flex; align-items:center; justify-content:center;">&#9654;</button>
+                    <div style="flex:1;">
+                        <div style="font-size:0.85em; color:#666; font-weight:600;">
+                            Drag green handles to trim:
+                        </div>
+                        <div id="previewAudioInfo" style="font-size:0.75em; color:#999;"></div>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button onclick="zoomWaveform(-1)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.85em; cursor:pointer;">−</button>
+                        <button onclick="zoomWaveform(1)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.85em; cursor:pointer;">+</button>
+                        <button onclick="zoomWaveform(0)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.75em; cursor:pointer;">Fit</button>
+                    </div>
                 </div>
+                <!-- Spectrogram with trim handles -->
                 <div style="overflow-x:auto; position:relative;" id="waveformScroll">
-                    <div class="waveform-container" id="waveformContainer">
+                    <div class="waveform-container" id="waveformContainer" style="height:100px;">
                         <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
                         <div class="trim-overlay-left" id="trimOverlayLeft"></div>
                         <div class="trim-overlay-right" id="trimOverlayRight"></div>
@@ -619,16 +632,9 @@
                         <div class="trim-handle" id="trimHandleRight" style="right:0px;"></div>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
-                    <div class="trim-info" id="trimInfo">
-                        Selected: <span id="trimStartLabel">0.0</span>s — <span id="trimEndLabel">0.0</span>s
-                        (<span id="trimDurationLabel">0.0</span>s)
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button onclick="zoomWaveform(-1)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.85em; cursor:pointer;">−</button>
-                        <button onclick="zoomWaveform(1)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.85em; cursor:pointer;">+</button>
-                        <button onclick="zoomWaveform(0)" style="background:#333; color:#fff; border:none; border-radius:4px; padding:2px 8px; font-size:0.75em; cursor:pointer;">Fit</button>
-                    </div>
+                <div class="trim-info" id="trimInfo" style="margin-top:4px;">
+                    Selected: <span id="trimStartLabel">0.0</span>s — <span id="trimEndLabel">0.0</span>s
+                    (<span id="trimDurationLabel">0.0</span>s)
                 </div>
             </div>
         </div>
@@ -651,9 +657,9 @@
                 <span class="step-badge">3</span> Optional Filters
                 <span style="font-weight: normal; font-size: 0.8em; color: #888;">(narrow results)</span>
             </div>
-            <div class="filter-toggle" onclick="toggleFilters()">
-                <input type="checkbox" id="useFilters"> Use location/habitat filters
-            </div>
+            <label class="filter-toggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="useFilters" onchange="toggleFilters(this.checked)"> Use location/habitat filters
+            </label>
             <div class="hidden" id="filterControls" style="margin-top: 8px;">
                 <div class="filter-row">
                     <select id="filterHotspot">
@@ -681,6 +687,14 @@
                     <option value="mid">Mid (lapwings, shrikes, bulbuls, robin-chats)</option>
                     <option value="high">High (warblers, cisticolas, white-eyes, sunbirds)</option>
                 </select>
+            </div>
+            <div style="margin-top: 8px;">
+                <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.85em; color:#aaa;">
+                    <input type="checkbox" id="enhanceBird"> 🔊 Enhance bird sounds (boost signal for better ID)
+                </label>
+                <div style="font-size:0.7em; color:#666; margin-top:2px; margin-left:22px;">
+                    Boosts bird frequencies and filters noise. Original recording is not changed.
+                </div>
             </div>
         </div>
 
@@ -852,7 +866,12 @@
         // ===========================
         // Recording
         // ===========================
+        let _recordToggleBusy = false;
         async function toggleRecording() {
+            if (_recordToggleBusy) return; // prevent double-tap (touch + click)
+            _recordToggleBusy = true;
+            setTimeout(() => { _recordToggleBusy = false; }, 600);
+
             if (!isRecording) {
                 await startRecording();
             } else {
@@ -978,10 +997,13 @@
         // ===========================
         // Filters
         // ===========================
-        function toggleFilters() {
-            const cb = document.getElementById('useFilters');
-            cb.checked = !cb.checked;
-            document.getElementById('filterControls').classList.toggle('hidden', !cb.checked);
+        function toggleFilters(isChecked) {
+            if (typeof isChecked === 'undefined') {
+                var cb = document.getElementById('useFilters');
+                cb.checked = !cb.checked;
+                isChecked = cb.checked;
+            }
+            document.getElementById('filterControls').classList.toggle('hidden', !isChecked);
         }
 
         function getFilters() {
@@ -1029,6 +1051,11 @@
                 const freqFocus = document.getElementById('freqFocus').value;
                 if (freqFocus) {
                     options.freqFocus = freqFocus;
+                }
+
+                // Enhance bird sounds (boost + noise filter)
+                if (document.getElementById('enhanceBird').checked) {
+                    options.enhance = true;
                 }
 
                 const result = await analyzer.identify(userAudioSource, filters, (msg, pct) => {
@@ -1232,15 +1259,14 @@
                 });
             }
 
-            lines.push('\n=== FAST SEARCH TOP 15 ===');
-            if (di.fastTop15) {
-                di.fastTop15.forEach(function(r, i) {
-                    var marker = r.name && r.name.indexOf('Robin-chat Cape') >= 0 ? ' ***' : '';
-                    lines.push((i + 1) + '. ' + r.name + ': ' + r.score + '%' + marker);
+            lines.push('\n=== FAST SEARCH TOP 30 ===');
+            if (di.fastTop30) {
+                di.fastTop30.forEach(function(r, i) {
+                    lines.push((i + 1) + '. ' + r.name + ': ' + r.score + '%');
                 });
             }
 
-            lines.push('\n=== FINAL TOP 5 ===');
+            lines.push('\n=== FINAL TOP ' + result.results.length + ' ===');
             result.results.forEach(function(r, i) {
                 lines.push((i + 1) + '. ' + r.bird.english + ' — fast:' + r.fastScore + '% spectro:' + r.spectrogramScore + '% total:' + r.score + '%');
             });
@@ -1386,7 +1412,7 @@
             } else {
                 waveformZoom = Math.max(waveformZoom / 1.5, 1);
             }
-            redrawWaveform();
+            drawPreviewSpectrogram();
         }
 
         function redrawWaveform() {
@@ -1689,8 +1715,10 @@
         }
 
         // ===========================
-        // Waveform Trimmer
+        // Spectrogram Trimmer
         // ===========================
+        let previewAudioEl = null;
+
         async function showWaveformTrimmer(audioURL) {
             var section = document.getElementById('trimSection');
             section.classList.remove('hidden');
@@ -1705,18 +1733,167 @@
                 trimStart = 0;
                 trimEnd = audioDuration;
                 waveformZoom = 1;
+                var sampleRate = audioBuffer.sampleRate;
+
+                // Quick frequency analysis for info display
+                var peakFreq = estimatePeakFrequency(waveformChannelData, sampleRate);
+                var infoEl = document.getElementById('previewAudioInfo');
+                infoEl.textContent = audioDuration.toFixed(1) + 's | ' + sampleRate + ' Hz | Peak ~' + peakFreq + ' Hz';
+
                 audioCtx.close();
 
-                // Draw waveform using shared function
-                redrawWaveform();
+                // Draw spectrogram
+                drawPreviewSpectrogram();
                 updateTrimLabels();
 
                 // Set up drag handlers
                 setupTrimHandles();
 
             } catch (e) {
-                console.warn('Waveform generation failed:', e);
+                console.warn('Spectrogram generation failed:', e);
+                // Fallback to waveform
+                redrawWaveform();
+                updateTrimLabels();
+                setupTrimHandles();
             }
+        }
+
+        function estimatePeakFrequency(samples, sr) {
+            // Quick FFT to find peak frequency
+            var fftSize = 2048;
+            var bestMag = 0, bestBin = 0;
+            var numFrames = Math.floor(samples.length / fftSize);
+            var avgMags = new Float32Array(fftSize / 2);
+
+            for (var f = 0; f < Math.min(numFrames, 20); f++) {
+                var offset = f * fftSize;
+                var re = new Float32Array(fftSize);
+                var im = new Float32Array(fftSize);
+                for (var i = 0; i < fftSize; i++) {
+                    re[i] = (samples[offset + i] || 0) * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / fftSize));
+                }
+                spectrogramFFT(re, im);
+                for (var b = 1; b < fftSize / 2; b++) {
+                    avgMags[b] += Math.sqrt(re[b] * re[b] + im[b] * im[b]);
+                }
+            }
+            // Find peak above 200 Hz
+            var minBin = Math.floor(200 * fftSize / sr);
+            for (var b = minBin; b < fftSize / 2; b++) {
+                if (avgMags[b] > bestMag) { bestMag = avgMags[b]; bestBin = b; }
+            }
+            return Math.round(bestBin * sr / fftSize);
+        }
+
+        function drawPreviewSpectrogram() {
+            if (!waveformChannelData) return;
+            var canvas = document.getElementById('waveformCanvas');
+            var scroll = document.getElementById('waveformScroll');
+            var baseWidth = scroll.clientWidth || 400;
+            var totalWidth = Math.round(baseWidth * waveformZoom);
+            var canvasHeight = 100;
+            canvas.width = totalWidth;
+            canvas.height = canvasHeight;
+
+            var container = document.getElementById('waveformContainer');
+            container.style.width = totalWidth + 'px';
+
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, totalWidth, canvasHeight);
+
+            var samples = waveformChannelData;
+            var fftSize = 1024;
+            var hopSize = Math.max(1, Math.floor(samples.length / totalWidth));
+            var numFrames = totalWidth;
+
+            // Generate spectrogram data
+            var maxFreqBin = Math.floor(10000 * fftSize / 22050); // up to 10kHz
+            var minFreqBin = Math.floor(200 * fftSize / 22050);
+            var freqBins = maxFreqBin - minFreqBin;
+
+            var spectroData = [];
+            var globalMax = 0;
+
+            for (var x = 0; x < numFrames; x++) {
+                var offset = x * hopSize;
+                var re = new Float32Array(fftSize);
+                var im = new Float32Array(fftSize);
+                for (var i = 0; i < fftSize && (offset + i) < samples.length; i++) {
+                    re[i] = samples[offset + i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / fftSize));
+                }
+                spectrogramFFT(re, im);
+                var mags = new Float32Array(freqBins);
+                for (var b = 0; b < freqBins; b++) {
+                    var bin = minFreqBin + b;
+                    var mag = Math.sqrt(re[bin] * re[bin] + im[bin] * im[bin]);
+                    var db = 20 * Math.log10(Math.max(mag, 1e-10));
+                    mags[b] = db;
+                    if (db > globalMax) globalMax = db;
+                }
+                spectroData.push(mags);
+            }
+
+            // Draw
+            var imgData = ctx.createImageData(totalWidth, canvasHeight);
+            var noiseFloor = globalMax - 60; // 60 dB dynamic range
+
+            for (var x = 0; x < numFrames; x++) {
+                var mags = spectroData[x];
+                for (var y = 0; y < canvasHeight; y++) {
+                    var freqIdx = Math.floor((1 - y / canvasHeight) * freqBins);
+                    freqIdx = Math.max(0, Math.min(freqBins - 1, freqIdx));
+                    var val = (mags[freqIdx] - noiseFloor) / (globalMax - noiseFloor);
+                    val = Math.max(0, Math.min(1, val));
+                    // Inverted greyscale: loud = dark
+                    var grey = Math.floor((1 - val) * 255);
+                    var idx = (y * totalWidth + x) * 4;
+                    imgData.data[idx] = grey;
+                    imgData.data[idx + 1] = grey;
+                    imgData.data[idx + 2] = grey;
+                    imgData.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            // Draw frequency axis labels on left
+            ctx.fillStyle = 'rgba(0,200,0,0.6)';
+            ctx.font = '9px sans-serif';
+            var freqs = [1000, 2000, 4000, 6000, 8000];
+            for (var i = 0; i < freqs.length; i++) {
+                var fy = canvasHeight * (1 - (freqs[i] - 200) / (10000 - 200));
+                if (fy > 5 && fy < canvasHeight - 5) {
+                    ctx.fillText(freqs[i] / 1000 + 'k', 2, fy + 3);
+                    ctx.fillRect(0, fy, totalWidth, 0.5);
+                }
+            }
+
+            // Time markers when zoomed
+            if (waveformZoom >= 2 && audioDuration > 0) {
+                ctx.fillStyle = 'rgba(0,200,0,0.4)';
+                var pxPerSec = totalWidth / audioDuration;
+                for (var t = 1; t < audioDuration; t++) {
+                    var tx = Math.round(t * pxPerSec);
+                    ctx.fillRect(tx, 0, 1, canvasHeight);
+                    ctx.fillText(t + 's', tx + 2, canvasHeight - 3);
+                }
+            }
+
+            updateTrimOverlays();
+        }
+
+        function togglePreviewPlayback() {
+            var btn = document.getElementById('previewPlayBtn');
+            if (previewAudioEl && !previewAudioEl.paused) {
+                previewAudioEl.pause();
+                btn.innerHTML = '&#9654;';
+                return;
+            }
+            if (!userAudioURL) return;
+            previewAudioEl = new Audio(userAudioURL);
+            previewAudioEl.play();
+            btn.innerHTML = '&#9646;&#9646;';
+            previewAudioEl.onended = function() { btn.innerHTML = '&#9654;'; };
         }
 
         function setupTrimHandles() {

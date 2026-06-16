@@ -336,9 +336,18 @@
                 <div class="bird-name" id="birdName"></div>
                 <div class="bird-name-afr" id="birdNameAfr"></div>
                 <div id="callSelector" class="call-selector" style="display: none;"></div>
-                <div class="bird-credit" id="birdCredit"></div>
             </div>
-            
+
+            <!-- Controls above spectrogram -->
+            <div style="margin-bottom: 8px; text-align: center;">
+                <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 6px;">
+                    <button id="prevBirdBtn" onclick="prevBird()" class="btn" style="flex: 1; padding: 8px;">◀ Previous</button>
+                    <button id="playPauseBtn" onclick="togglePlayPause()" class="btn" style="flex: 0.8; padding: 8px; background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%); color: #333;">⏸ Pause</button>
+                    <button id="nextBirdBtn" onclick="nextBird()" class="btn" style="flex: 1; padding: 8px;">Next Bird ▶</button>
+                </div>
+            </div>
+
+            <!-- Spectrogram -->
             <div class="spectrogram-outer" id="spectrogramOuter" style="display: none;">
                 <div class="spectrogram-scroll" id="spectrogramScroll">
                     <canvas id="spectrogramCanvas"></canvas>
@@ -348,15 +357,11 @@
             </div>
             
             <audio id="audioPlayer" controls></audio>
+
+            <!-- Credit below spectrogram -->
+            <div class="bird-credit" id="birdCredit" style="font-size: 0.8em; color: #888; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; line-height: 1.5;"></div>
             
-            <div style="margin-top: 15px; text-align: center;">
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 10px;">
-                    <button id="prevBirdBtn" onclick="prevBird()" class="btn" style="flex: 1;">◀ Previous</button>
-                    <button id="nextBirdBtn" onclick="nextBird()" class="btn" style="flex: 1;">Next Bird ▶</button>
-                </div>
-                <button id="playPauseBtn" onclick="togglePlayPause()" class="btn" style="background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%); color: #333; width: 100%;">⏸ Pause</button>
-            </div>
-            
+            <!-- Photo at bottom -->
             <div class="bird-photo-container" id="birdPhotoContainer" style="display: none;">
                 <img id="birdPhoto" alt="Bird photo">
                 <div class="bird-photo-credit" id="birdPhotoCredit"></div>

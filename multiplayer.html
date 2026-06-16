@@ -823,6 +823,14 @@
             usedBirds.clear();
             pool = getAvailableBirds();
         }
+        if (pool.length === 0) {
+            // Ultimate fallback: use all non-excluded birds
+            pool = allbirds.filter(b => !b.exclude && b.audio);
+        }
+        if (pool.length === 0) {
+            alert(lang === 'af' ? 'Geen voëls beskikbaar nie!' : 'No birds available!');
+            return;
+        }
 
         const correctBird = pickRandom(pool, 1)[0];
         usedBirds.add(correctBird.english);
