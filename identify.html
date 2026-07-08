@@ -1310,7 +1310,7 @@
                             <button class="play-btn" onclick="playReferenceAudio('${bird.audio}', this, event)">&#9654; Play Reference</button>
                         </div>
                         <div style="font-size:0.75em; color:#888; margin: 4px 0;">
-                            Score: Fast ${r.fastScore || '—'}% | Spectro ${r.spectrogramScore || '—'}% |
+                            Score: Fast ${r.fastScore || '—'}% | DTW ${r.dtwScore || '—'}% | Pitch ${r.pitchScore || '—'}% | Spectro ${r.spectrogramScore || '—'}% |
                             Ref: ${Math.round(bird.features ? bird.features.dominantFreq : 0)} Hz
                             (${Math.round(bird.features ? bird.features.freqLow : 0)}–${Math.round(bird.features ? bird.features.freqHigh : 0)} Hz)
                         </div>
@@ -1385,7 +1385,7 @@
 
             lines.push('\n=== FINAL TOP ' + result.results.length + ' ===');
             result.results.forEach(function(r, i) {
-                lines.push((i + 1) + '. ' + r.bird.english + ' — fast:' + r.fastScore + '% spectro:' + r.spectrogramScore + '% total:' + r.score + '%');
+                lines.push((i + 1) + '. ' + r.bird.english + ' — fast:' + r.fastScore + '% dtw:' + (r.dtwScore||0) + '% pitch:' + (r.pitchScore||0) + '% spectro:' + r.spectrogramScore + '% total:' + r.score + '%');
             });
 
             document.getElementById('debugContent').textContent = lines.join('\n');

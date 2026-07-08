@@ -298,6 +298,232 @@ class BirdAudioAnalyzer {
     }
 
     // ==========================================
+    // NOISE SUBTRACTION & SEGMENTATION
+    // ==========================================
+
+    /**
+     * Estimate the noise floor by averaging the quietest frames' spectra.
+     * Returns a Float32Array representing the noise magnitude spectrum.
+     */
+    _estimateNoiseFloor(spectrogram, numBins) {
+        const numFrames = spectrogram.length;
+        if (numFrames === 0) return new Float32Array(numBins);
+
+        // Compute total energy per frame
+        const frameEnergies = [];
+        for (let f = 0; f < numFrames; f++) {
+            let energy = 0;
+            for (let i = 0; i < numBins; i++) {
+                energy += spectrogram[f][i] * spectrogram[f][i];
+            }
+            frameEnergies.push({ idx: f, energy });
+        }
+
+        // Sort by energy, take quietest 20% as noise estimate
+        frameEnergies.sort((a, b) => a.energy - b.energy);
+        const noiseFrameCount = Math.max(3, Math.floor(numFrames * 0.2));
+
+        const noiseFloor = new Float32Array(numBins);
+        for (let i = 0; i < noiseFrameCount; i++) {
+            const frame = spectrogram[frameEnergies[i].idx];
+            for (let j = 0; j < numBins; j++) {
+                noiseFloor[j] += frame[j];
+            }
+        }
+        for (let j = 0; j < numBins; j++) {
+            noiseFloor[j] /= noiseFrameCount;
+        }
+
+        return noiseFloor;
+    }
+
+    /**
+     * Subtract noise floor from spectrogram (spectral gating).
+     * Returns a new spectrogram with noise reduced.
+     */
+    _subtractNoise(spectrogram, noiseFloor, numBins, gain = 2.0) {
+        const result = [];
+        for (let f = 0; f < spectrogram.length; f++) {
+            const frame = new Float32Array(numBins);
+            for (let i = 0; i < numBins; i++) {
+                // Subtract scaled noise floor, clamp to 0
+                frame[i] = Math.max(0, spectrogram[f][i] - noiseFloor[i] * gain);
+            }
+            result.push(frame);
+        }
+        return result;
+    }
+
+    /**
+     * Segment the recording into active vocalization regions.
+     * Returns array of {startFrame, endFrame} objects indicating where bird sounds are.
+     * Features should be extracted ONLY from these regions.
+     */
+    _segmentVocalizations(spectrogram, noiseFloor, sampleRate, numBins) {
+        const fftSize = this.N_FFT;
+        const hopLength = this.HOP_LENGTH;
+        const numFrames = spectrogram.length;
+
+        // Bird frequency range bins
+        const birdBinLow = Math.floor(500 * fftSize / sampleRate);
+        const birdBinHigh = Math.min(Math.floor(10000 * fftSize / sampleRate), numBins - 1);
+
+        // Compute bird-band energy and noise-band energy per frame
+        const birdEnergies = [];
+        let noiseBaseEnergy = 0;
+        for (let i = birdBinLow; i <= birdBinHigh; i++) {
+            noiseBaseEnergy += noiseFloor[i] * noiseFloor[i];
+        }
+        noiseBaseEnergy = Math.max(noiseBaseEnergy, 1e-10);
+
+        for (let f = 0; f < numFrames; f++) {
+            let birdE = 0;
+            for (let i = birdBinLow; i <= birdBinHigh; i++) {
+                birdE += spectrogram[f][i] * spectrogram[f][i];
+            }
+            birdEnergies.push(birdE);
+        }
+
+        // Threshold: frame is "active" if bird energy exceeds noise energy by 6 dB (factor of 4)
+        const threshold = noiseBaseEnergy * 4.0;
+
+        // Also use adaptive threshold: mean + 1.0*std of bird energies
+        const meanBirdE = this._mean(birdEnergies);
+        const stdBirdE = this._std(birdEnergies);
+        const adaptiveThreshold = meanBirdE + stdBirdE * 0.5;
+
+        // A frame is active if it exceeds BOTH thresholds
+        const activeFrames = [];
+        for (let f = 0; f < numFrames; f++) {
+            activeFrames.push(birdEnergies[f] > threshold && birdEnergies[f] > adaptiveThreshold);
+        }
+
+        // Morphological operations: dilate (fill short gaps) then erode (remove short spikes)
+        // Dilate: fill gaps up to 3 frames (~ 70ms)
+        const dilated = [...activeFrames];
+        for (let f = 1; f < numFrames - 1; f++) {
+            if (!dilated[f] && dilated[f - 1] && f + 1 < numFrames && dilated[f + 1]) {
+                dilated[f] = true;
+            }
+        }
+        // Fill gaps up to 3 frames
+        for (let f = 0; f < numFrames - 3; f++) {
+            if (dilated[f] && !dilated[f + 1] && !dilated[f + 2] && dilated[f + 3]) {
+                dilated[f + 1] = true;
+                dilated[f + 2] = true;
+            }
+        }
+
+        // Group adjacent active frames into segments
+        const segments = [];
+        let segStart = -1;
+        for (let f = 0; f <= numFrames; f++) {
+            const active = f < numFrames ? dilated[f] : false;
+            if (active && segStart < 0) {
+                segStart = f;
+            } else if (!active && segStart >= 0) {
+                // Minimum segment length: 4 frames (~90ms) to filter tiny clicks
+                if (f - segStart >= 4) {
+                    segments.push({ startFrame: segStart, endFrame: f });
+                }
+                segStart = -1;
+            }
+        }
+
+        // If no segments found, or very little active audio, use entire recording
+        const totalActiveFrames = segments.reduce((sum, s) => sum + (s.endFrame - s.startFrame), 0);
+        if (segments.length === 0 || totalActiveFrames < 8) {
+            return [{ startFrame: 0, endFrame: numFrames }];
+        }
+
+        return segments;
+    }
+
+    /**
+     * Extract frames from spectrogram corresponding to active segments only.
+     * Concatenates active frames into a single spectrogram.
+     */
+    _extractActiveFrames(spectrogram, segments) {
+        const active = [];
+        for (const seg of segments) {
+            for (let f = seg.startFrame; f < seg.endFrame && f < spectrogram.length; f++) {
+                active.push(spectrogram[f]);
+            }
+        }
+        return active;
+    }
+
+    /**
+     * Extract pitch contour (fundamental frequency track) from active spectrogram frames.
+     * Uses peak-picking in the bird frequency range of each frame.
+     * Returns array of F0 values (Hz) per frame, downsampled to ~50 points.
+     */
+    _extractPitchContour(activeSpectrogram, sampleRate, numBins) {
+        const fftSize = this.N_FFT;
+        const numFrames = activeSpectrogram.length;
+        if (numFrames === 0) return null;
+
+        // Bird frequency bins (focus on 300-8000 Hz for pitch)
+        const pitchMinBin = Math.floor(300 * fftSize / sampleRate);
+        const pitchMaxBin = Math.min(Math.floor(8000 * fftSize / sampleRate), numBins - 1);
+
+        // Extract peak frequency per frame (simple but effective for tonal birds)
+        const rawPitch = [];
+        for (let f = 0; f < numFrames; f++) {
+            const frame = activeSpectrogram[f];
+            let maxVal = 0;
+            let maxBin = pitchMinBin;
+
+            for (let i = pitchMinBin; i <= pitchMaxBin && i < frame.length; i++) {
+                if (frame[i] > maxVal) {
+                    maxVal = frame[i];
+                    maxBin = i;
+                }
+            }
+
+            // Parabolic interpolation for sub-bin accuracy
+            let peakFreq = maxBin * sampleRate / fftSize;
+            if (maxBin > 0 && maxBin < frame.length - 1) {
+                const alpha = frame[maxBin - 1];
+                const beta = frame[maxBin];
+                const gamma = frame[maxBin + 1];
+                const denom = alpha - 2 * beta + gamma;
+                if (Math.abs(denom) > 1e-10) {
+                    const p = 0.5 * (alpha - gamma) / denom;
+                    peakFreq = (maxBin + p) * sampleRate / fftSize;
+                }
+            }
+
+            rawPitch.push(peakFreq);
+        }
+
+        // Median filter to smooth out spurious jumps (window size 3)
+        const smoothed = [];
+        for (let i = 0; i < rawPitch.length; i++) {
+            const vals = [];
+            for (let j = Math.max(0, i - 1); j <= Math.min(rawPitch.length - 1, i + 1); j++) {
+                vals.push(rawPitch[j]);
+            }
+            vals.sort((a, b) => a - b);
+            smoothed.push(vals[Math.floor(vals.length / 2)]);
+        }
+
+        // Downsample to target length (~50 points)
+        const targetLen = 50;
+        const contour = this._resampleArray(smoothed, Math.min(targetLen, smoothed.length));
+
+        // Normalize: convert to semitone scale relative to minimum frequency
+        // This makes the contour shape-invariant to absolute pitch
+        const minFreq = Math.max(200, Math.min(...contour));
+        const normalizedContour = contour.map(f => {
+            if (f <= 0 || minFreq <= 0) return 0;
+            return 12 * Math.log2(f / minFreq); // semitones above minimum
+        });
+
+        return normalizedContour.map(x => Math.round(x * 100) / 100);
+    }
+
+    // ==========================================
     // FEATURE EXTRACTION (Browser-side)
     // ==========================================
 
@@ -322,24 +548,35 @@ class BirdAudioAnalyzer {
             freqs[i] = i * sampleRate / fftSize;
         }
 
-        // Compute spectrogram
-        const spectrogram = [];
+        // Compute raw spectrogram
+        const rawSpectrogram = [];
         for (let f = 0; f < numFrames; f++) {
             const start = f * hopLength;
             const frame = samples.slice(start, start + fftSize);
             const spectrum = this._fft(frame);
-            spectrogram.push(spectrum);
+            rawSpectrogram.push(spectrum);
         }
 
-        // Mean spectrum
+        // --- NOISE SUBTRACTION ---
+        // Estimate noise floor from quietest frames, then subtract
+        const noiseFloor = this._estimateNoiseFloor(rawSpectrogram, numBins);
+        const spectrogram = this._subtractNoise(rawSpectrogram, noiseFloor, numBins, 1.5);
+
+        // --- VOCALIZATION SEGMENTATION ---
+        // Find frames where bird is actually vocalizing
+        const segments = this._segmentVocalizations(rawSpectrogram, noiseFloor, sampleRate, numBins);
+        const activeSpectrogram = this._extractActiveFrames(spectrogram, segments);
+        const activeNumFrames = activeSpectrogram.length;
+
+        // Compute mean spectrum from ACTIVE DENOISED frames only
         const meanSpectrum = new Float32Array(numBins);
-        for (let f = 0; f < numFrames; f++) {
+        for (let f = 0; f < activeNumFrames; f++) {
             for (let i = 0; i < numBins; i++) {
-                meanSpectrum[i] += spectrogram[f][i];
+                meanSpectrum[i] += activeSpectrogram[f][i];
             }
         }
         for (let i = 0; i < numBins; i++) {
-            meanSpectrum[i] /= numFrames;
+            meanSpectrum[i] /= (activeNumFrames || 1);
         }
 
         // Bird frequency range mask
@@ -459,7 +696,8 @@ class BirdAudioAnalyzer {
         const tempo = this._estimateTempo(onsetStrength, sampleRate);
 
         // --- MFCC (simplified browser implementation) ---
-        const mfccs = this._computeMFCC(spectrogram, sampleRate, numBins);
+        // Use active (denoised) spectrogram for cleaner MFCC
+        const mfccs = this._computeMFCC(activeSpectrogram, sampleRate, numBins);
 
         // --- Band energies ---
         // MUST match the exact same band edges used in precompute_js_compatible.py
@@ -503,8 +741,30 @@ class BirdAudioAnalyzer {
         const tempMax = Math.max(...temporalEnvelope, 0.0001);
         const normTemporalEnvelope = temporalEnvelope.map(x => x / tempMax);
 
+        // --- MFCC Sequence (for DTW comparison) ---
+        // Downsample MFCC sequence to ~50 frames for storage/comparison
+        const targetMfccFrames = 50;
+        let mfccSeq = null;
+        if (mfccs.allFrames && mfccs.allFrames.length > 0) {
+            const step = Math.max(1, Math.floor(mfccs.allFrames.length / targetMfccFrames));
+            mfccSeq = [];
+            for (let i = 0; i < mfccs.allFrames.length && mfccSeq.length < targetMfccFrames; i += step) {
+                mfccSeq.push(mfccs.allFrames[i].map(x => Math.round(x * 100) / 100));
+            }
+        }
+
+        // --- Pitch contour (melodic shape) ---
+        const pitchContour = this._extractPitchContour(activeSpectrogram, sampleRate, numBins);
+
+        // --- Segmentation summary ---
+        const totalActiveFrames = segments.reduce((sum, s) => sum + (s.endFrame - s.startFrame), 0);
+        const activeDuration = totalActiveFrames * hopLength / sampleRate;
+        const noteCount = segments.length;
+
         return {
             duration: Math.round(duration * 1000) / 1000,
+            activeDuration: Math.round(activeDuration * 1000) / 1000,
+            noteCount: noteCount,
             dominantFreq: Math.round(dominantFreq * 10) / 10,
             freqLow: Math.round(freqLow * 10) / 10,
             freqHigh: Math.round(freqHigh * 10) / 10,
@@ -520,6 +780,8 @@ class BirdAudioAnalyzer {
             repetitionRate: Math.round(repetitionRate * 1000) / 1000,
             mfccMean: mfccs.mean,
             mfccStd: mfccs.std,
+            mfccSeq: mfccSeq,
+            pitchContour: pitchContour,
             bandEnergies: normBandEnergies.map(x => Math.round(x * 10000) / 10000),
             spectralEnvelope: normSpectralEnvelope.map(x => Math.round(x * 10000) / 10000),
             temporalEnvelope: normTemporalEnvelope.map(x => Math.round(x * 10000) / 10000)
@@ -722,6 +984,9 @@ class BirdAudioAnalyzer {
             userFeatures = this.extractFeatures(userSamples, userSampleRate);
         }
 
+        // User MFCC sequence for DTW
+        const userMfccSeq = userFeatures.mfccSeq || null;
+
         const results = [];
         for (const candidate of topCandidates) {
             const bird = candidate.bird;
@@ -731,9 +996,28 @@ class BirdAudioAnalyzer {
             const audioKey = (bird.audio || '').replace('All birds/', '').replace('.mp3', '');
             const birdAnnotations = this.annotationsDB ? this.annotationsDB[audioKey] : null;
 
-            let refSpectroScore = 0;
-            let usedFullComparison = false;
+            let spectroScore = 0;
+            let dtwScore = 0;
+            let usedDTW = false;
+            let usedSpectro = false;
 
+            // --- A) MFCC-DTW comparison (from precomputed or live-extracted sequences) ---
+            const refMfccSeq = bf ? bf.mfccSeq : null;
+            if (userMfccSeq && refMfccSeq && userMfccSeq.length >= 5 && refMfccSeq.length >= 5) {
+                // Use subsequence DTW if lengths differ significantly
+                let dtwDist;
+                if (userMfccSeq.length > refMfccSeq.length * 1.5) {
+                    dtwDist = this._subsequenceDTW(userMfccSeq, refMfccSeq);
+                } else if (refMfccSeq.length > userMfccSeq.length * 1.5) {
+                    dtwDist = this._subsequenceDTW(refMfccSeq, userMfccSeq);
+                } else {
+                    dtwDist = this._dtwDistance(userMfccSeq, refMfccSeq);
+                }
+                dtwScore = this._dtwToScore(dtwDist);
+                usedDTW = true;
+            }
+
+            // --- B) Spectrogram comparison (load reference audio) ---
             try {
                 const refAudio = await this.loadAudio(bird.audio);
                 let refSamples = refAudio.samples;
@@ -759,14 +1043,27 @@ class BirdAudioAnalyzer {
                 const refSpectro = this._generateSpectrogramData(refSamples, refSR);
 
                 if (birdAnnotations && birdAnnotations.length > 0) {
-                    // ANNOTATION-BASED MATCHING: Extract templates from annotated regions
-                    // and find best match in user's recording
-                    refSpectroScore = this._annotationMatch(userSpectro, refSpectro, birdAnnotations, refAudio.duration);
-                    usedFullComparison = true;
+                    spectroScore = this._annotationMatch(userSpectro, refSpectro, birdAnnotations, refAudio.duration);
                 } else {
-                    // Standard full spectrogram comparison
-                    refSpectroScore = this._compareSpectrograms(userSpectro, refSpectro);
-                    usedFullComparison = true;
+                    spectroScore = this._compareSpectrograms(userSpectro, refSpectro);
+                }
+                usedSpectro = true;
+
+                // If we didn't have precomputed MFCC seq, extract it live from reference
+                if (!usedDTW && userMfccSeq && userMfccSeq.length >= 5) {
+                    const refFeatures = this.extractFeatures(refSamples, refSR);
+                    if (refFeatures.mfccSeq && refFeatures.mfccSeq.length >= 5) {
+                        let dtwDist;
+                        if (userMfccSeq.length > refFeatures.mfccSeq.length * 1.5) {
+                            dtwDist = this._subsequenceDTW(userMfccSeq, refFeatures.mfccSeq);
+                        } else if (refFeatures.mfccSeq.length > userMfccSeq.length * 1.5) {
+                            dtwDist = this._subsequenceDTW(refFeatures.mfccSeq, userMfccSeq);
+                        } else {
+                            dtwDist = this._dtwDistance(userMfccSeq, refFeatures.mfccSeq);
+                        }
+                        dtwScore = this._dtwToScore(dtwDist);
+                        usedDTW = true;
+                    }
                 }
             } catch (e) {
                 console.warn(`Could not load reference audio for ${bird.english}, using cached features`);
@@ -775,19 +1072,57 @@ class BirdAudioAnalyzer {
                         ? this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope) : 0;
                     const tempScore = bf.temporalEnvelope && userFeatures.temporalEnvelope
                         ? this._cosineSimilarity(userFeatures.temporalEnvelope, bf.temporalEnvelope) : 0;
-                    refSpectroScore = (Math.max(0, envScore) * 50 + Math.max(0, tempScore) * 50);
+                    spectroScore = (Math.max(0, envScore) * 50 + Math.max(0, tempScore) * 50);
+                    usedSpectro = true;
                 }
             }
 
-            // Combine: fast search 50%, detailed comparison 50%
-            const combinedScore = usedFullComparison
-                ? candidate.score * 0.5 + refSpectroScore * 0.5
-                : candidate.score * 0.7 + refSpectroScore * 0.3;
+            // --- C) Pitch contour DTW (melodic shape comparison) ---
+            let pitchScore = 0;
+            let usedPitch = false;
+            const userPitch = userFeatures.pitchContour;
+            const refPitch = bf ? bf.pitchContour : null;
+            if (userPitch && refPitch && userPitch.length >= 5 && refPitch.length >= 5) {
+                // Wrap pitch arrays as single-element frame arrays for DTW
+                const userPitchFrames = userPitch.map(v => [v]);
+                const refPitchFrames = refPitch.map(v => [v]);
+                let pitchDist;
+                if (userPitchFrames.length > refPitchFrames.length * 1.5) {
+                    pitchDist = this._subsequenceDTW(userPitchFrames, refPitchFrames);
+                } else if (refPitchFrames.length > userPitchFrames.length * 1.5) {
+                    pitchDist = this._subsequenceDTW(refPitchFrames, userPitchFrames);
+                } else {
+                    pitchDist = this._dtwDistance(userPitchFrames, refPitchFrames);
+                }
+                // Pitch distances are in semitones, typically 0-5 for similar, 5-20 for different
+                pitchScore = 100 * Math.exp(-pitchDist * 0.4);
+                pitchScore = Math.max(0, Math.min(100, pitchScore));
+                usedPitch = true;
+            }
+
+            // --- D) Combined scoring ---
+            // Weights: Fast 25%, MFCC-DTW 30%, Pitch-DTW 20%, Spectrogram 25%
+            let combinedScore;
+            if (usedDTW && usedPitch && usedSpectro) {
+                combinedScore = candidate.score * 0.25 + dtwScore * 0.30 + pitchScore * 0.20 + spectroScore * 0.25;
+            } else if (usedDTW && usedPitch) {
+                combinedScore = candidate.score * 0.30 + dtwScore * 0.40 + pitchScore * 0.30;
+            } else if (usedDTW && usedSpectro) {
+                combinedScore = candidate.score * 0.30 + dtwScore * 0.40 + spectroScore * 0.30;
+            } else if (usedDTW) {
+                combinedScore = candidate.score * 0.35 + dtwScore * 0.65;
+            } else if (usedSpectro) {
+                combinedScore = candidate.score * 0.45 + spectroScore * 0.55;
+            } else {
+                combinedScore = candidate.score;
+            }
 
             results.push({
                 bird: bird,
                 fastScore: candidate.score,
-                spectrogramScore: Math.round(refSpectroScore * 10) / 10,
+                dtwScore: Math.round(dtwScore * 10) / 10,
+                pitchScore: Math.round(pitchScore * 10) / 10,
+                spectrogramScore: Math.round(spectroScore * 10) / 10,
                 combinedScore: Math.round(combinedScore * 10) / 10,
                 score: Math.round(combinedScore * 10) / 10
             });
@@ -1003,7 +1338,10 @@ class BirdAudioAnalyzer {
             bandEnergies: userFeatures.bandEnergies,
             tempo: userFeatures.tempo,
             onsets: userFeatures.numOnsets,
-            duration: userFeatures.duration
+            duration: userFeatures.duration,
+            activeDuration: userFeatures.activeDuration,
+            noteCount: userFeatures.noteCount,
+            mfccSeqLen: userFeatures.mfccSeq ? userFeatures.mfccSeq.length : 0
         }));
 
         // If user specified frequency hints, override detected range
@@ -1338,9 +1676,13 @@ class BirdAudioAnalyzer {
             std[i] = Math.sqrt(sum / numFrames);
         }
 
+        // Convert allFrames to plain arrays for sequence storage
+        const allFrames = mfccAll.map(f => Array.from(f));
+
         return {
             mean: Array.from(mean).map(x => Math.round(x * 10000) / 10000),
-            std: Array.from(std).map(x => Math.round(x * 10000) / 10000)
+            std: Array.from(std).map(x => Math.round(x * 10000) / 10000),
+            allFrames: allFrames
         };
     }
 
@@ -1446,6 +1788,104 @@ class BirdAudioAnalyzer {
             result.push(arr[low] * (1 - frac) + arr[high] * frac);
         }
         return result;
+    }
+
+    // ==========================================
+    // DTW (Dynamic Time Warping)
+    // ==========================================
+
+    /**
+     * Compute Euclidean distance between two MFCC frames.
+     */
+    _mfccFrameDistance(a, b) {
+        let sum = 0;
+        const len = Math.min(a.length, b.length);
+        for (let i = 0; i < len; i++) {
+            const d = a[i] - b[i];
+            sum += d * d;
+        }
+        return Math.sqrt(sum);
+    }
+
+    /**
+     * Standard DTW between two MFCC sequences.
+     * Returns normalized distance (lower = more similar).
+     * Uses Sakoe-Chiba band to constrain warping and improve speed.
+     */
+    _dtwDistance(seqA, seqB, bandWidth = null) {
+        const n = seqA.length;
+        const m = seqB.length;
+        if (n === 0 || m === 0) return Infinity;
+
+        // Default band: 20% of longer sequence
+        const band = bandWidth || Math.max(5, Math.floor(Math.max(n, m) * 0.2));
+
+        // Cost matrix (only keep two rows for memory efficiency)
+        let prev = new Float32Array(m + 1).fill(Infinity);
+        let curr = new Float32Array(m + 1).fill(Infinity);
+        prev[0] = 0;
+
+        for (let i = 1; i <= n; i++) {
+            curr.fill(Infinity);
+            const jStart = Math.max(1, i - band);
+            const jEnd = Math.min(m, i + band);
+
+            for (let j = jStart; j <= jEnd; j++) {
+                const cost = this._mfccFrameDistance(seqA[i - 1], seqB[j - 1]);
+                curr[j] = cost + Math.min(prev[j], curr[j - 1], prev[j - 1]);
+            }
+
+            // Swap rows
+            [prev, curr] = [curr, prev];
+        }
+
+        // Normalize by path length
+        const pathLen = n + m;
+        return prev[m] / pathLen;
+    }
+
+    /**
+     * Subsequence DTW: Find the best matching subsequence of seqB within seqA.
+     * Useful when the user's recording is longer and the reference is a short phrase.
+     * Returns normalized distance of best alignment.
+     */
+    _subsequenceDTW(seqLong, seqShort) {
+        const n = seqLong.length;
+        const m = seqShort.length;
+        if (n === 0 || m === 0) return Infinity;
+
+        // If sequences are similar length, use standard DTW
+        if (n <= m * 1.5) {
+            return this._dtwDistance(seqLong, seqShort);
+        }
+
+        // Slide window: try different starting positions in the long sequence
+        const windowSize = Math.min(n, Math.floor(m * 2.0)); // Look at up to 2x the short length
+        const step = Math.max(1, Math.floor(m * 0.3)); // Step by 30% of short length
+        let bestDist = Infinity;
+
+        for (let offset = 0; offset <= n - Math.min(m, windowSize); offset += step) {
+            const endIdx = Math.min(offset + windowSize, n);
+            const subSeq = seqLong.slice(offset, endIdx);
+            const dist = this._dtwDistance(subSeq, seqShort);
+            if (dist < bestDist) {
+                bestDist = dist;
+            }
+        }
+
+        return bestDist;
+    }
+
+    /**
+     * Convert DTW distance to a similarity score (0-100).
+     * Uses exponential mapping with calibrated scale.
+     */
+    _dtwToScore(distance) {
+        if (!isFinite(distance)) return 0;
+        // Typical MFCC DTW distances range from ~2 (very similar) to ~15 (very different)
+        // Map: distance 0 → score 100, distance 5 → score 60, distance 10 → score 25
+        const score = 100 * Math.exp(-distance * 0.25);
+        return Math.max(0, Math.min(100, score));
     }
 }
 

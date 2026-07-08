@@ -102,10 +102,10 @@ def compute_mel_filterbank(sr, n_fft, n_mels=40, fmin=0, fmax=None):
 
 
 def compute_mfcc(spectrogram_frames, sr, n_mfcc=13):
-    """Same MFCC as JS _computeMFCC"""
-    n_mels = 40
+    """Same MFCC as JS _computeMFCC — uses 26 mel filters from FREQ_MIN to FREQ_MAX"""
+    n_mels = 26  # MUST match JS: const nMelFilters = 26
     num_bins = len(spectrogram_frames[0]) if spectrogram_frames else 0
-    filterbank = compute_mel_filterbank(sr, N_FFT, n_mels, 0, sr / 2)
+    filterbank = compute_mel_filterbank(sr, N_FFT, n_mels, FREQ_MIN, min(FREQ_MAX, sr / 2))
     
     n_frames = len(spectrogram_frames)
     mfcc_frames = []
@@ -125,13 +125,162 @@ def compute_mfcc(spectrogram_frames, sr, n_mfcc=13):
         mfcc_frames.append(mfcc)
     
     if not mfcc_frames:
-        return {'mean': [0.0] * n_mfcc, 'std': [0.0] * n_mfcc}
+        return {'mean': [0.0] * n_mfcc, 'std': [0.0] * n_mfcc, 'allFrames': []}
     
     mfcc_arr = np.array(mfcc_frames)
     return {
         'mean': [round(float(x), 6) for x in np.mean(mfcc_arr, axis=0)],
-        'std': [round(float(x), 6) for x in np.std(mfcc_arr, axis=0)]
+        'std': [round(float(x), 6) for x in np.std(mfcc_arr, axis=0)],
+        'allFrames': mfcc_frames  # list of numpy arrays
     }
+
+
+def estimate_noise_floor(spectrogram, num_bins):
+    """Same as JS _estimateNoiseFloor: average of quietest 20% of frames."""
+    num_frames = len(spectrogram)
+    if num_frames == 0:
+        return np.zeros(num_bins)
+    
+    # Compute energy per frame
+    frame_energies = []
+    for f in range(num_frames):
+        energy = np.sum(np.array(spectrogram[f]) ** 2)
+        frame_energies.append((f, energy))
+    
+    # Sort by energy, take quietest 20%
+    frame_energies.sort(key=lambda x: x[1])
+    noise_count = max(3, int(num_frames * 0.2))
+    
+    noise_floor = np.zeros(num_bins)
+    for i in range(noise_count):
+        noise_floor += np.array(spectrogram[frame_energies[i][0]])
+    noise_floor /= noise_count
+    
+    return noise_floor
+
+
+def subtract_noise(spectrogram, noise_floor, num_bins, gain=1.5):
+    """Same as JS _subtractNoise: spectral gating."""
+    result = []
+    for frame in spectrogram:
+        denoised = np.maximum(0, np.array(frame) - noise_floor * gain)
+        result.append(denoised)
+    return result
+
+
+def segment_vocalizations(spectrogram, noise_floor, sr, num_bins):
+    """Same as JS _segmentVocalizations: find active bird frames."""
+    fft_size = N_FFT
+    num_frames = len(spectrogram)
+    
+    bird_bin_low = int(500 * fft_size / sr)
+    bird_bin_high = min(int(10000 * fft_size / sr), num_bins - 1)
+    
+    # Noise base energy in bird band
+    noise_base = np.sum(noise_floor[bird_bin_low:bird_bin_high+1] ** 2)
+    noise_base = max(noise_base, 1e-10)
+    
+    # Bird band energy per frame
+    bird_energies = []
+    for f in range(num_frames):
+        bird_e = np.sum(np.array(spectrogram[f][bird_bin_low:bird_bin_high+1]) ** 2)
+        bird_energies.append(bird_e)
+    
+    # Thresholds (same as JS)
+    threshold = noise_base * 4.0
+    mean_bird_e = np.mean(bird_energies) if bird_energies else 0
+    std_bird_e = np.std(bird_energies) if bird_energies else 0
+    adaptive_threshold = mean_bird_e + std_bird_e * 0.5
+    
+    # Active frames
+    active = [bird_energies[f] > threshold and bird_energies[f] > adaptive_threshold for f in range(num_frames)]
+    
+    # Dilate: fill gaps up to 3 frames
+    dilated = list(active)
+    for f in range(1, num_frames - 1):
+        if not dilated[f] and dilated[f-1] and f+1 < num_frames and dilated[f+1]:
+            dilated[f] = True
+    for f in range(num_frames - 3):
+        if dilated[f] and not dilated[f+1] and not dilated[f+2] and dilated[f+3]:
+            dilated[f+1] = True
+            dilated[f+2] = True
+    
+    # Group into segments
+    segments = []
+    seg_start = -1
+    for f in range(num_frames + 1):
+        is_active = dilated[f] if f < num_frames else False
+        if is_active and seg_start < 0:
+            seg_start = f
+        elif not is_active and seg_start >= 0:
+            if f - seg_start >= 4:  # Minimum 4 frames
+                segments.append((seg_start, f))
+            seg_start = -1
+    
+    # Fallback: use entire recording if too little active
+    total_active = sum(e - s for s, e in segments)
+    if len(segments) == 0 or total_active < 8:
+        return [(0, num_frames)]
+    
+    return segments
+
+
+def extract_pitch_contour(active_spectrogram, sr, num_bins):
+    """Same as JS _extractPitchContour: peak frequency per frame, median smoothed, semitone normalized."""
+    fft_size = N_FFT
+    num_frames = len(active_spectrogram)
+    if num_frames == 0:
+        return None
+    
+    # Bird frequency bins for pitch (300-8000 Hz)
+    pitch_min_bin = int(300 * fft_size / sr)
+    pitch_max_bin = min(int(8000 * fft_size / sr), num_bins - 1)
+    
+    # Peak frequency per frame with parabolic interpolation
+    raw_pitch = []
+    for f in range(num_frames):
+        frame = active_spectrogram[f]
+        max_val = 0
+        max_bin = pitch_min_bin
+        
+        for i in range(pitch_min_bin, min(pitch_max_bin + 1, len(frame))):
+            if frame[i] > max_val:
+                max_val = frame[i]
+                max_bin = i
+        
+        # Parabolic interpolation
+        peak_freq = max_bin * sr / fft_size
+        if max_bin > 0 and max_bin < len(frame) - 1:
+            alpha = float(frame[max_bin - 1])
+            beta = float(frame[max_bin])
+            gamma = float(frame[max_bin + 1])
+            denom = alpha - 2 * beta + gamma
+            if abs(denom) > 1e-10:
+                p = 0.5 * (alpha - gamma) / denom
+                peak_freq = (max_bin + p) * sr / fft_size
+        
+        raw_pitch.append(peak_freq)
+    
+    # Median filter (window size 3)
+    smoothed = []
+    for i in range(len(raw_pitch)):
+        vals = sorted(raw_pitch[max(0, i-1):min(len(raw_pitch), i+2)])
+        smoothed.append(vals[len(vals) // 2])
+    
+    # Downsample to ~50 points
+    target_len = 50
+    contour = resample_array(smoothed, min(target_len, len(smoothed)))
+    
+    # Normalize to semitones relative to minimum frequency
+    min_freq = max(200.0, min(contour))
+    normalized = []
+    for f in contour:
+        if f <= 0 or min_freq <= 0:
+            normalized.append(0.0)
+        else:
+            normalized.append(12 * np.log2(f / min_freq))
+    
+    return [round(x, 2) for x in normalized]
 
 
 def extract_features(y, sr):
@@ -143,12 +292,12 @@ def extract_features(y, sr):
     num_bins = fft_size // 2 + 1
     freqs = np.array([i * sr / fft_size for i in range(num_bins)])
     
-    # Compute spectrogram frames
+    # Compute raw spectrogram frames
     num_frames = (len(y) - fft_size) // hop_length
     if num_frames <= 0:
         return None
     
-    spectrogram = []
+    raw_spectrogram = []
     rms_values = []
     zcr_values = []
     
@@ -159,7 +308,7 @@ def extract_features(y, sr):
             frame = np.pad(frame, (0, fft_size - len(frame)))
         
         spectrum = compute_fft_magnitude(frame)
-        spectrogram.append(spectrum)
+        raw_spectrogram.append(spectrum)
         
         # RMS
         rms = np.sqrt(np.mean(frame ** 2))
@@ -170,8 +319,26 @@ def extract_features(y, sr):
         zcr_count = np.sum(np.abs(np.diff(signs)) > 0)
         zcr_values.append(zcr_count / (2 * fft_size))
     
-    # Mean spectrum
-    mean_spectrum = np.mean(spectrogram, axis=0)
+    # --- NOISE SUBTRACTION ---
+    noise_floor = estimate_noise_floor(raw_spectrogram, num_bins)
+    spectrogram = subtract_noise(raw_spectrogram, noise_floor, num_bins, gain=1.5)
+    
+    # --- VOCALIZATION SEGMENTATION ---
+    segments = segment_vocalizations(raw_spectrogram, noise_floor, sr, num_bins)
+    
+    # Extract active frames from denoised spectrogram
+    active_spectrogram = []
+    for seg_start, seg_end in segments:
+        for f in range(seg_start, min(seg_end, len(spectrogram))):
+            active_spectrogram.append(spectrogram[f])
+    
+    active_num_frames = len(active_spectrogram)
+    
+    # Mean spectrum from ACTIVE DENOISED frames only
+    if active_num_frames > 0:
+        mean_spectrum = np.mean(active_spectrogram, axis=0)
+    else:
+        mean_spectrum = np.mean(spectrogram, axis=0)
     
     # Bird frequency range
     bird_bin_low = int(FREQ_MIN * fft_size / sr)
@@ -252,8 +419,28 @@ def extract_features(y, sr):
     # Repetition rate
     repetition_rate = num_onsets / duration if duration > 0 else 0
     
-    # MFCC
-    mfccs = compute_mfcc(spectrogram, sr, N_MFCC)
+    # MFCC — compute from active (denoised) spectrogram
+    mfccs = compute_mfcc(active_spectrogram, sr, N_MFCC)
+    
+    # MFCC Sequence (downsampled to ~50 frames for DTW)
+    target_mfcc_frames = 50
+    mfcc_seq = None
+    if mfccs['allFrames'] and len(mfccs['allFrames']) > 0:
+        all_frames = mfccs['allFrames']
+        step = max(1, len(all_frames) // target_mfcc_frames)
+        mfcc_seq = []
+        for i in range(0, len(all_frames), step):
+            if len(mfcc_seq) >= target_mfcc_frames:
+                break
+            mfcc_seq.append([round(float(x), 2) for x in all_frames[i]])
+    
+    # Pitch contour (melodic shape) — same as JS _extractPitchContour
+    pitch_contour = extract_pitch_contour(active_spectrogram, sr, num_bins)
+    
+    # Segmentation summary
+    total_active_frames = sum(e - s for s, e in segments)
+    active_duration = total_active_frames * hop_length / sr
+    note_count = len(segments)
     
     # Band energies (8 bands)
     band_edges = [200, 500, 1000, 2000, 3000, 4000, 6000, 8000, 12000]
@@ -290,6 +477,8 @@ def extract_features(y, sr):
     
     return {
         'duration': round(duration, 3),
+        'activeDuration': round(active_duration, 3),
+        'noteCount': note_count,
         'dominantFreq': round(dominant_freq, 1),
         'freqLow': round(freq_low, 1),
         'freqHigh': round(freq_high, 1),
@@ -305,6 +494,8 @@ def extract_features(y, sr):
         'repetitionRate': round(repetition_rate, 3),
         'mfccMean': [round(x, 6) for x in mfccs['mean']],
         'mfccStd': [round(x, 6) for x in mfccs['std']],
+        'mfccSeq': mfcc_seq,
+        'pitchContour': pitch_contour,
         'bandEnergies': [round(x, 4) for x in norm_band],
         'spectralEnvelope': [round(x, 4) for x in norm_spectral_envelope],
         'temporalEnvelope': [round(x, 4) for x in norm_temporal_envelope]
