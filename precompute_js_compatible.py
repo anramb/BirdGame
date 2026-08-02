@@ -159,17 +159,25 @@ def estimate_noise_floor(spectrogram, num_bins):
     return noise_floor
 
 
-def subtract_noise(spectrogram, noise_floor, num_bins, gain=1.5):
-    """Same as JS _subtractNoise: spectral gating."""
+def subtract_noise(spectrogram, noise_floor, num_bins, gain=1.5, high_freq_extra=0.0):
+    """Spectral gating with optional extra suppression in high-frequency bands.
+    high_freq_extra boosts the gain linearly toward Nyquist to reduce hiss."""
     result = []
+    num_frames = len(spectrogram)
+    if num_frames == 0:
+        return result
     for frame in spectrogram:
-        denoised = np.maximum(0, np.array(frame) - noise_floor * gain)
+        frame_arr = np.array(frame)
+        # Frequency-dependent gain: extra suppression at high frequencies
+        bins = np.arange(num_bins)
+        freq_gains = gain + high_freq_extra * (bins / max(num_bins - 1, 1))
+        denoised = np.maximum(0, frame_arr - noise_floor * freq_gains)
         result.append(denoised)
     return result
 
 
-def segment_vocalizations(spectrogram, noise_floor, sr, num_bins):
-    """Same as JS _segmentVocalizations: find active bird frames."""
+def segment_vocalizations(spectrogram, noise_floor, sr, num_bins, energy_factor=4.0, std_factor=0.5, min_segment=4, min_gap=3):
+    """Find active bird frames, with configurable thresholds for noisy recordings."""
     fft_size = N_FFT
     num_frames = len(spectrogram)
     
@@ -181,39 +189,39 @@ def segment_vocalizations(spectrogram, noise_floor, sr, num_bins):
     noise_base = max(noise_base, 1e-10)
     
     # Bird band energy per frame
-    bird_energies = []
-    for f in range(num_frames):
-        bird_e = np.sum(np.array(spectrogram[f][bird_bin_low:bird_bin_high+1]) ** 2)
-        bird_energies.append(bird_e)
+    bird_energies = np.array([np.sum(np.array(spectrogram[f][bird_bin_low:bird_bin_high+1]) ** 2) for f in range(num_frames)])
     
-    # Thresholds (same as JS)
-    threshold = noise_base * 4.0
-    mean_bird_e = np.mean(bird_energies) if bird_energies else 0
-    std_bird_e = np.std(bird_energies) if bird_energies else 0
-    adaptive_threshold = mean_bird_e + std_bird_e * 0.5
+    # Robust adaptive threshold: median + std_factor * median absolute deviation
+    # (Mean is skewed by loud bird calls and can be too low on long noisy recordings)
+    median_e = np.median(bird_energies)
+    mad = np.median(np.abs(bird_energies - median_e))
+    adaptive_threshold = median_e + std_factor * (1.4826 * mad)
     
-    # Active frames
-    active = [bird_energies[f] > threshold and bird_energies[f] > adaptive_threshold for f in range(num_frames)]
+    # Absolute threshold above noise floor
+    threshold = noise_base * energy_factor
     
-    # Dilate: fill gaps up to 3 frames
-    dilated = list(active)
+    # Active frames must exceed both thresholds
+    active = (bird_energies > threshold) & (bird_energies > adaptive_threshold)
+    
+    # Morphological dilation: fill short gaps
+    dilated = active.copy()
     for f in range(1, num_frames - 1):
-        if not dilated[f] and dilated[f-1] and f+1 < num_frames and dilated[f+1]:
+        if not dilated[f] and dilated[f-1] and dilated[f+1]:
             dilated[f] = True
-    for f in range(num_frames - 3):
-        if dilated[f] and not dilated[f+1] and not dilated[f+2] and dilated[f+3]:
-            dilated[f+1] = True
-            dilated[f+2] = True
+    for f in range(num_frames - min_gap):
+        if dilated[f] and not dilated[f+1] and not dilated[f+2] and dilated[f + min_gap]:
+            for g in range(1, min_gap):
+                dilated[f + g] = True
     
     # Group into segments
     segments = []
     seg_start = -1
     for f in range(num_frames + 1):
-        is_active = dilated[f] if f < num_frames else False
+        is_active = bool(dilated[f]) if f < num_frames else False
         if is_active and seg_start < 0:
             seg_start = f
         elif not is_active and seg_start >= 0:
-            if f - seg_start >= 4:  # Minimum 4 frames
+            if f - seg_start >= min_segment:
                 segments.append((seg_start, f))
             seg_start = -1
     
@@ -223,6 +231,63 @@ def segment_vocalizations(spectrogram, noise_floor, sr, num_bins):
         return [(0, num_frames)]
     
     return segments
+
+
+def select_best_segments(denoised_spectrogram, raw_spectrogram, segments, noise_floor, sr, num_bins, max_keep_ratio=0.85, max_segments=8, min_snr_db=3.0):
+    """For noisy phone recordings, keep only the strongest vocalization segments.
+    Removes weak noise spikes that passed the initial threshold."""
+    if not segments or not denoised_spectrogram:
+        return segments
+    
+    # Compute per-segment signal and noise energy
+    seg_info = []
+    for seg_start, seg_end in segments:
+        start = max(0, seg_start)
+        end = min(seg_end, len(denoised_spectrogram))
+        if end <= start:
+            continue
+        seg_energy = 0.0
+        noise_energy = 0.0
+        for f in range(start, end):
+            frame = denoised_spectrogram[f]
+            seg_energy += float(np.sum(np.array(frame) ** 2))
+            noise_energy += float(np.sum(np.array(noise_floor) ** 2))
+        duration = end - start
+        seg_info.append({
+            'start': seg_start,
+            'end': seg_end,
+            'duration': duration,
+            'energy': seg_energy,
+            'noise_energy': noise_energy,
+            'snr': 10 * np.log10(max(seg_energy, 1e-10) / max(noise_energy, 1e-10))
+        })
+    
+    if not seg_info:
+        return segments
+    
+    # Sort by energy descending
+    seg_info.sort(key=lambda x: x['energy'], reverse=True)
+    
+    # Keep segments until we reach max_keep_ratio of total energy, or max_segments
+    total_energy = sum(s['energy'] for s in seg_info)
+    kept = []
+    cumulative = 0.0
+    max_energy = seg_info[0]['energy']
+    
+    for s in seg_info:
+        # Drop very weak segments (less than 10% of strongest, or below min SNR)
+        if s['energy'] < max_energy * 0.05 or s['snr'] < min_snr_db:
+            continue
+        if cumulative >= max_keep_ratio * total_energy and len(kept) >= 2:
+            break
+        kept.append((s['start'], s['end']))
+        cumulative += s['energy']
+        if len(kept) >= max_segments:
+            break
+    
+    # Preserve original order
+    kept_set = set(kept)
+    return sorted([s for s in segments if (s[0], s[1]) in kept_set], key=lambda x: x[0]) or segments
 
 
 def extract_pitch_contour(active_spectrogram, sr, num_bins):
@@ -319,12 +384,29 @@ def extract_features(y, sr):
         zcr_count = np.sum(np.abs(np.diff(signs)) > 0)
         zcr_values.append(zcr_count / (2 * fft_size))
     
-    # --- NOISE SUBTRACTION ---
+    # --- NOISE SUBTRACTION (adaptive for phone recordings) ---
     noise_floor = estimate_noise_floor(raw_spectrogram, num_bins)
-    spectrogram = subtract_noise(raw_spectrogram, noise_floor, num_bins, gain=1.5)
     
-    # --- VOCALIZATION SEGMENTATION ---
+    # Initial pass: standard denoising and segmentation
+    spectrogram = subtract_noise(raw_spectrogram, noise_floor, num_bins, gain=1.5)
     segments = segment_vocalizations(raw_spectrogram, noise_floor, sr, num_bins)
+    
+    # Determine how much of the recording is actually active
+    total_frames = len(raw_spectrogram)
+    active_frames = sum(e - s for s, e in segments)
+    active_ratio = active_frames / total_frames if total_frames > 0 else 1.0
+    
+    # If very little is active (typical of noisy phone recordings with road noise),
+    # use stronger noise suppression and a higher detection threshold
+    if active_ratio < 0.15:
+        extra_gain = 2.0 + max(0, (0.15 - active_ratio) * 10)  # up to +3.5 extra
+        energy_factor = 6.0 + max(0, (0.15 - active_ratio) * 20)  # up to 9.0
+        std_factor = 1.0 + max(0, (0.15 - active_ratio) * 5)  # up to 1.5
+        spectrogram = subtract_noise(raw_spectrogram, noise_floor, num_bins, gain=1.5, high_freq_extra=extra_gain)
+        segments = segment_vocalizations(raw_spectrogram, noise_floor, sr, num_bins, energy_factor=energy_factor, std_factor=std_factor)
+    
+    # Keep only the strongest segments (removes residual noise spikes from phone recordings)
+    segments = select_best_segments(spectrogram, raw_spectrogram, segments, noise_floor, sr, num_bins)
     
     # Extract active frames from denoised spectrogram
     active_spectrogram = []
@@ -523,6 +605,24 @@ def main():
     audio_paths = re.findall(r'audio:\s*"([^"]+)"', content)
     print(f"Found {len(audio_paths)} audio entries in allbirds.js")
     
+    # Load reference clips if available
+    ref_clips = {}
+    ref_clips_file = 'reference_clips.json'
+    if os.path.exists(ref_clips_file):
+        try:
+            with open(ref_clips_file, 'r', encoding='utf-8') as f:
+                ref_data = json.load(f)
+            for entry in ref_data.get('entries', []):
+                key = entry.get('audioKey', '')
+                # Only use entries that have approved clips
+                approved = [c for c in entry.get('clips', []) if c.get('clipStatus') == 'approved']
+                if approved:
+                    ref_clips[key] = approved
+            if ref_clips:
+                print(f"Loaded {len(ref_clips)} entries with approved reference clips")
+        except Exception as e:
+            print(f"Warning: Could not load reference clips ({e})")
+    
     # Load existing features (if any) to avoid reprocessing
     output_file = 'bird_audio_features.json'
     existing_features = {}
@@ -536,9 +636,15 @@ def main():
             print(f"Warning: Could not load existing features ({e}), will reprocess all")
     
     # Find which entries are new/missing
+    def strip_audio_key(path):
+        key = path.replace('All birds/', '')
+        for ext in ['.mp3', '.wav', '.ogg', '.flac']:
+            key = key.replace(ext, '')
+        return key
+    
     to_process = []
     for audio_path in audio_paths:
-        audio_key = audio_path.replace('All birds/', '').replace('.mp3', '')
+        audio_key = strip_audio_key(audio_path)
         if audio_key not in existing_features:
             to_process.append((audio_key, audio_path))
     
@@ -548,7 +654,7 @@ def main():
         return
     
     if force_all:
-        to_process = [(ap.replace('All birds/', '').replace('.mp3', ''), ap) for ap in audio_paths]
+        to_process = [(strip_audio_key(ap), ap) for ap in audio_paths]
         existing_features = {}
         print(f"\n--force: Reprocessing all {len(to_process)} entries...")
     else:
@@ -583,16 +689,22 @@ def main():
             y = sig.filtfilt(b_hp, a_hp, y)
             
             f = extract_features(y, sr)
+            
             if f:
                 features[audio_key] = f
-                print(f"  [{i+1}/{len(to_process)}] {audio_key} — dom:{f['dominantFreq']}Hz")
+                print(f"  [{i+1}/{len(to_process)}] {audio_key} -- dom:{f['dominantFreq']}Hz")
                 
         except Exception as e:
-            print(f"  ERROR: {audio_key} — {e}")
+            print(f"  ERROR: {audio_key} -- {e}")
             errors += 1
     
     # Also remove features for entries no longer in allbirds.js
-    all_keys = set(ap.replace('All birds/', '').replace('.mp3', '') for ap in audio_paths)
+    all_keys = set()
+    for ap in audio_paths:
+        key = ap.replace('All birds/', '')
+        for ext in ['.mp3', '.wav', '.ogg', '.flac']:
+            key = key.replace(ext, '')
+        all_keys.add(key)
     removed = [k for k in features if k not in all_keys]
     for k in removed:
         del features[k]

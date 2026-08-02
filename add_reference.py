@@ -53,26 +53,49 @@ def sanitize_filename(name):
     return clean
 
 
-def convert_to_mp3(input_path, output_path):
-    """Convert audio file to MP3 format."""
+def convert_audio(input_path, output_path):
+    """Convert or copy audio file to the target audio path.
+    If input is already MP3, just copy. If ffmpeg is available via pydub,
+    convert to MP3. Otherwise, copy the original file (e.g. WAV) as-is."""
+    import shutil
+    ext = os.path.splitext(input_path)[1].lower()
+    out_ext = os.path.splitext(output_path)[1].lower()
+
+    # If already MP3, just copy
+    if ext == '.mp3' and out_ext == '.mp3':
+        shutil.copy2(input_path, output_path)
+        return True
+
+    # Try pydub (requires ffmpeg installed)
     try:
         from pydub import AudioSegment
         audio = AudioSegment.from_file(input_path)
         audio.export(output_path, format="mp3", bitrate="192k")
         return True
-    except ImportError:
-        print("pydub not installed. Trying ffmpeg directly...")
-    
+    except Exception:
+        pass
+
+    # Try ffmpeg directly
     try:
         import subprocess
         result = subprocess.run(
             ['ffmpeg', '-y', '-i', input_path, '-b:a', '192k', output_path],
             capture_output=True, text=True
         )
-        return result.returncode == 0
+        if result.returncode == 0:
+            return True
     except FileNotFoundError:
-        print("ERROR: Neither pydub nor ffmpeg found. Install one of them.")
-        return False
+        pass
+
+    # Fallback: copy original file as-is (e.g. WAV) if target extension matches
+    if ext == out_ext:
+        shutil.copy2(input_path, output_path)
+        print(f"  No ffmpeg found — copied original {ext} file")
+        return True
+
+    # Cannot convert — would need to change target extension to match input
+    print("ERROR: Cannot convert to MP3 (no ffmpeg). For WAV files, the output extension should also be .wav")
+    return False
 
 
 def main():
@@ -115,26 +138,30 @@ def main():
 
     # Create filename
     clean_name = sanitize_filename(args.bird_name)
-    mp3_filename = f'{xc_id}_{clean_name}.mp3'
-    mp3_path = os.path.join('All birds', mp3_filename)
+    source_ext = os.path.splitext(args.audio_path)[1].lower()
+    # Default to MP3 if we can convert, otherwise keep source extension
+    output_ext = source_ext if source_ext not in ('.mp3', '.wav', '.ogg', '.flac') else '.mp3'
+    audio_filename = f'{xc_id}_{clean_name}{output_ext}'
+    audio_path = os.path.join('All birds', audio_filename)
 
     print(f"\n=== Adding new reference ===")
     print(f"  Bird name: {args.bird_name}")
     print(f"  Source: {args.audio_path}")
-    print(f"  Target: {mp3_path}")
+    print(f"  Target: {audio_path}")
 
     # Step 1: Convert and copy audio
-    print(f"\n[1/3] Converting audio to MP3...")
-    ext = os.path.splitext(args.audio_path)[1].lower()
-    if ext == '.mp3':
-        shutil.copy2(args.audio_path, mp3_path)
+    print(f"\n[1/3] Converting audio...")
+    if source_ext == '.mp3':
+        shutil.copy2(args.audio_path, audio_path)
         print(f"  Copied (already MP3)")
     else:
-        if convert_to_mp3(args.audio_path, mp3_path):
-            print(f"  Converted to: {mp3_path}")
+        if convert_audio(args.audio_path, audio_path):
+            print(f"  Output: {audio_path}")
         else:
-            print("  ERROR: Conversion failed!")
-            sys.exit(1)
+            # If conversion failed, fall back to WAV copy
+            audio_path = os.path.join('All birds', f'{xc_id}_{clean_name}.wav')
+            shutil.copy2(args.audio_path, audio_path)
+            print(f"  No ffmpeg — copied as WAV: {audio_path}")
 
     # Step 2: Add entry to allbirds.js
     print(f"\n[2/3] Adding entry to allbirds.js...")
@@ -150,9 +177,10 @@ def main():
         search = ' '.join(words[:2]) if len(words) >= 2 else words[0]
         existing_entry, existing_name = find_existing_entry(content, search)
 
-    audio_rel_path = f'All birds/{mp3_filename}'
-    png_filename = mp3_filename.replace('.mp3', '.png')
-    jpg_filename = mp3_filename.replace('.mp3', '.jpg')
+    audio_rel_path = f'All birds/{os.path.basename(audio_path)}'
+    base_filename = os.path.splitext(audio_rel_path)[0]
+    png_filename = f'{base_filename}.png'
+    jpg_filename = f'{base_filename}.jpg'
 
     if existing_entry:
         print(f"  Copying metadata from: {existing_name}")
@@ -160,8 +188,8 @@ def main():
         new_entry = existing_entry
         new_entry = re.sub(r'english:\s*"[^"]*"', f'english: "{args.bird_name}"', new_entry)
         new_entry = re.sub(r'audio:\s*"[^"]*"', f'audio: "{audio_rel_path}"', new_entry)
-        new_entry = re.sub(r'spectrogram:\s*"[^"]*"', f'spectrogram: "All birds/{png_filename}"', new_entry)
-        new_entry = re.sub(r'image:\s*"[^"]*"', f'image: "All birds/{jpg_filename}"', new_entry)
+        new_entry = re.sub(r'spectrogram:\s*"[^"]*"', f'spectrogram: "{png_filename}"', new_entry)
+        new_entry = re.sub(r'image:\s*"[^"]*"', f'image: "{jpg_filename}"', new_entry)
         new_entry = re.sub(r'credit:\s*"[^"]*"', f'credit: "User recording, {xc_id}"', new_entry)
     else:
         print(f"  No existing entry found — creating basic entry")
@@ -210,7 +238,7 @@ def main():
     if result.returncode == 0:
         print(f"\n=== SUCCESS ===")
         print(f"  Added: {args.bird_name}")
-        print(f"  Audio: {mp3_path}")
+        print(f"  Audio: {audio_path}")
         print(f"  Features: bird_audio_features.json (updated)")
         print(f"\n  Refresh the browser to use the new reference!")
     else:

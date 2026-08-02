@@ -74,7 +74,7 @@ class BirdAudioAnalyzer {
         if (typeof allbirds !== 'undefined') {
             allbirds.forEach((bird, idx) => {
                 if (bird.exclude) return;
-                const audioKey = (bird.audio || '').replace('All birds/', '').replace('.mp3', '');
+                const audioKey = (bird.audio || '').replace('All birds/', '').replace('.mp3', '').replace('.wav', '');
                 const f = feats[audioKey] || null;
                 birds.push({
                     index: idx,
@@ -86,6 +86,7 @@ class BirdAudioAnalyzer {
                     birdgroup: bird.birdgroup || '',
                     image: bird.image || '',
                     spectrogram: bird.spectrogram || '',
+                    identifyOnly: bird.identifyOnly || false,
                     features: f
                 });
             });
@@ -340,14 +341,17 @@ class BirdAudioAnalyzer {
     /**
      * Subtract noise floor from spectrogram (spectral gating).
      * Returns a new spectrogram with noise reduced.
+     * highFreqExtra adds extra gain at high frequencies to reduce hiss.
      */
-    _subtractNoise(spectrogram, noiseFloor, numBins, gain = 2.0) {
+    _subtractNoise(spectrogram, noiseFloor, numBins, gain = 2.0, highFreqExtra = 0.0) {
         const result = [];
-        for (let f = 0; f < spectrogram.length; f++) {
+        const numFrames = spectrogram.length;
+        if (numFrames === 0) return result;
+        for (let f = 0; f < numFrames; f++) {
             const frame = new Float32Array(numBins);
             for (let i = 0; i < numBins; i++) {
-                // Subtract scaled noise floor, clamp to 0
-                frame[i] = Math.max(0, spectrogram[f][i] - noiseFloor[i] * gain);
+                const freqGain = gain + highFreqExtra * (i / Math.max(numBins - 1, 1));
+                frame[i] = Math.max(0, spectrogram[f][i] - noiseFloor[i] * freqGain);
             }
             result.push(frame);
         }
@@ -359,7 +363,7 @@ class BirdAudioAnalyzer {
      * Returns array of {startFrame, endFrame} objects indicating where bird sounds are.
      * Features should be extracted ONLY from these regions.
      */
-    _segmentVocalizations(spectrogram, noiseFloor, sampleRate, numBins) {
+    _segmentVocalizations(spectrogram, noiseFloor, sampleRate, numBins, energyFactor = 4.0, stdFactor = 0.5, minGap = 3, minSegment = 4) {
         const fftSize = this.N_FFT;
         const hopLength = this.HOP_LENGTH;
         const numFrames = spectrogram.length;
@@ -384,13 +388,14 @@ class BirdAudioAnalyzer {
             birdEnergies.push(birdE);
         }
 
-        // Threshold: frame is "active" if bird energy exceeds noise energy by 6 dB (factor of 4)
-        const threshold = noiseBaseEnergy * 4.0;
+        // Robust adaptive threshold: median + stdFactor * (1.4826 * MAD)
+        const sortedE = [...birdEnergies].sort((a, b) => a - b);
+        const medianE = sortedE[Math.floor(sortedE.length / 2)];
+        const mad = sortedE.reduce((sum, v) => sum + Math.abs(v - medianE), 0) / sortedE.length;
+        const adaptiveThreshold = medianE + stdFactor * (1.4826 * mad);
 
-        // Also use adaptive threshold: mean + 1.0*std of bird energies
-        const meanBirdE = this._mean(birdEnergies);
-        const stdBirdE = this._std(birdEnergies);
-        const adaptiveThreshold = meanBirdE + stdBirdE * 0.5;
+        // Absolute threshold above noise floor
+        const threshold = noiseBaseEnergy * energyFactor;
 
         // A frame is active if it exceeds BOTH thresholds
         const activeFrames = [];
@@ -398,19 +403,18 @@ class BirdAudioAnalyzer {
             activeFrames.push(birdEnergies[f] > threshold && birdEnergies[f] > adaptiveThreshold);
         }
 
-        // Morphological operations: dilate (fill short gaps) then erode (remove short spikes)
-        // Dilate: fill gaps up to 3 frames (~ 70ms)
+        // Morphological dilation: fill short gaps
         const dilated = [...activeFrames];
         for (let f = 1; f < numFrames - 1; f++) {
-            if (!dilated[f] && dilated[f - 1] && f + 1 < numFrames && dilated[f + 1]) {
+            if (!dilated[f] && dilated[f - 1] && dilated[f + 1]) {
                 dilated[f] = true;
             }
         }
-        // Fill gaps up to 3 frames
-        for (let f = 0; f < numFrames - 3; f++) {
-            if (dilated[f] && !dilated[f + 1] && !dilated[f + 2] && dilated[f + 3]) {
-                dilated[f + 1] = true;
-                dilated[f + 2] = true;
+        for (let f = 0; f < numFrames - minGap; f++) {
+            if (dilated[f] && !dilated[f + 1] && !dilated[f + 2] && dilated[f + minGap]) {
+                for (let g = 1; g < minGap; g++) {
+                    dilated[f + g] = true;
+                }
             }
         }
 
@@ -422,8 +426,7 @@ class BirdAudioAnalyzer {
             if (active && segStart < 0) {
                 segStart = f;
             } else if (!active && segStart >= 0) {
-                // Minimum segment length: 4 frames (~90ms) to filter tiny clicks
-                if (f - segStart >= 4) {
+                if (f - segStart >= minSegment) {
                     segments.push({ startFrame: segStart, endFrame: f });
                 }
                 segStart = -1;
@@ -451,6 +454,127 @@ class BirdAudioAnalyzer {
             }
         }
         return active;
+    }
+
+    /**
+     * For noisy phone recordings, keep only the strongest vocalization segments.
+     * Removes weak noise spikes that passed the initial threshold.
+     */
+    _selectBestSegments(denoisedSpectrogram, segments, noiseFloor, maxKeepRatio = 0.85, maxSegments = 8, minSnrDb = 3.0) {
+        if (!segments || segments.length === 0 || !denoisedSpectrogram || denoisedSpectrogram.length === 0) {
+            return segments;
+        }
+
+        const noiseEnergy = noiseFloor.reduce((sum, v) => sum + v * v, 0);
+        const segInfo = [];
+        for (const seg of segments) {
+            const start = Math.max(0, seg.startFrame);
+            const end = Math.min(seg.endFrame, denoisedSpectrogram.length);
+            if (end <= start) continue;
+
+            let segEnergy = 0;
+            for (let f = start; f < end; f++) {
+                const frame = denoisedSpectrogram[f];
+                for (let i = 0; i < frame.length; i++) {
+                    segEnergy += frame[i] * frame[i];
+                }
+            }
+            const duration = end - start;
+            const snr = 10 * Math.log10(Math.max(segEnergy, 1e-10) / Math.max(noiseEnergy * duration, 1e-10));
+            segInfo.push({
+                start: seg.startFrame,
+                end: seg.endFrame,
+                duration,
+                energy: segEnergy,
+                snr
+            });
+        }
+
+        if (segInfo.length === 0) return segments;
+
+        segInfo.sort((a, b) => b.energy - a.energy);
+        const totalEnergy = segInfo.reduce((sum, s) => sum + s.energy, 0);
+        const maxEnergy = segInfo[0].energy;
+        const kept = [];
+        let cumulative = 0;
+
+        for (const s of segInfo) {
+            if (s.energy < maxEnergy * 0.05 || s.snr < minSnrDb) continue;
+            if (cumulative >= maxKeepRatio * totalEnergy && kept.length >= 2) break;
+            kept.push({ startFrame: s.start, endFrame: s.end });
+            cumulative += s.energy;
+            if (kept.length >= maxSegments) break;
+        }
+
+        // Preserve original order
+        const keptMap = new Map();
+        for (const k of kept) keptMap.set(k.startFrame, k);
+        return segments.filter(s => keptMap.has(s.startFrame) && keptMap.get(s.startFrame).endFrame === s.endFrame);
+    }
+
+    /**
+     * Extract features from only the strongest vocalization segment.
+     * For longer recordings, this isolates the loudest/cleanest bird call
+     * and extracts features from just that portion, giving a much better
+     * match against reference recordings.
+     */
+    _extractBestSegmentFeatures(samples, sampleRate) {
+        const fftSize = this.N_FFT;
+        const hopLength = this.HOP_LENGTH;
+        const numFrames = Math.floor((samples.length - fftSize) / hopLength);
+        const numBins = fftSize / 2 + 1;
+
+        if (numFrames < 10) return null;
+
+        // Compute raw spectrogram
+        const rawSpectrogram = [];
+        for (let f = 0; f < numFrames; f++) {
+            const start = f * hopLength;
+            const frame = samples.slice(start, start + fftSize);
+            const spectrum = this._fft(frame);
+            rawSpectrogram.push(spectrum);
+        }
+
+        const noiseFloor = this._estimateNoiseFloor(rawSpectrogram, numBins);
+        const segments = this._segmentVocalizations(rawSpectrogram, noiseFloor, sampleRate, numBins);
+
+        if (segments.length <= 1) return null;
+
+        // Find the strongest segment by energy in bird frequency range
+        const birdBinLow = Math.floor(500 * fftSize / sampleRate);
+        const birdBinHigh = Math.min(Math.floor(10000 * fftSize / sampleRate), numBins - 1);
+
+        let bestSeg = null;
+        let bestEnergy = -1;
+        for (const seg of segments) {
+            let energy = 0;
+            for (let f = seg.startFrame; f < seg.endFrame && f < rawSpectrogram.length; f++) {
+                for (let i = birdBinLow; i <= birdBinHigh; i++) {
+                    energy += rawSpectrogram[f][i] * rawSpectrogram[f][i];
+                }
+            }
+            const dur = (seg.endFrame - seg.startFrame) * hopLength / sampleRate;
+            if (dur < 0.3) continue; // skip very short segments
+            if (energy > bestEnergy) {
+                bestEnergy = energy;
+                bestSeg = seg;
+            }
+        }
+
+        if (!bestSeg) return null;
+
+        // Extract audio samples for just this segment (with small padding)
+        const padFrames = 3;
+        const startFrame = Math.max(0, bestSeg.startFrame - padFrames);
+        const endFrame = Math.min(numFrames, bestSeg.endFrame + padFrames);
+        const startSample = startFrame * hopLength;
+        const endSample = Math.min(samples.length, endFrame * hopLength + fftSize);
+        const segSamples = samples.slice(startSample, endSample);
+
+        if (segSamples.length < fftSize) return null;
+
+        // Extract features from just this segment
+        return this.extractFeatures(segSamples, sampleRate);
     }
 
     /**
@@ -557,14 +681,31 @@ class BirdAudioAnalyzer {
             rawSpectrogram.push(spectrum);
         }
 
-        // --- NOISE SUBTRACTION ---
+        // --- NOISE SUBTRACTION (adaptive for phone recordings) ---
         // Estimate noise floor from quietest frames, then subtract
         const noiseFloor = this._estimateNoiseFloor(rawSpectrogram, numBins);
-        const spectrogram = this._subtractNoise(rawSpectrogram, noiseFloor, numBins, 1.5);
+        let spectrogram = this._subtractNoise(rawSpectrogram, noiseFloor, numBins, 1.5);
 
         // --- VOCALIZATION SEGMENTATION ---
         // Find frames where bird is actually vocalizing
-        const segments = this._segmentVocalizations(rawSpectrogram, noiseFloor, sampleRate, numBins);
+        let segments = this._segmentVocalizations(rawSpectrogram, noiseFloor, sampleRate, numBins);
+
+        // Determine active ratio; if very low (noisy phone recording), use stronger suppression
+        const totalFrames = rawSpectrogram.length;
+        const activeFrames = segments.reduce((sum, s) => sum + (s.endFrame - s.startFrame), 0);
+        const activeRatio = totalFrames > 0 ? activeFrames / totalFrames : 1.0;
+
+        if (activeRatio < 0.15) {
+            const extraGain = 2.0 + Math.max(0, (0.15 - activeRatio) * 10);
+            const energyFactor = 6.0 + Math.max(0, (0.15 - activeRatio) * 20);
+            const stdFactor = 1.0 + Math.max(0, (0.15 - activeRatio) * 5);
+            spectrogram = this._subtractNoise(rawSpectrogram, noiseFloor, numBins, 1.5, extraGain);
+            segments = this._segmentVocalizations(rawSpectrogram, noiseFloor, sampleRate, numBins, energyFactor, stdFactor);
+        }
+
+        // For noisy recordings, keep only the strongest vocalization segments
+        segments = this._selectBestSegments(spectrogram, segments, noiseFloor);
+
         const activeSpectrogram = this._extractActiveFrames(spectrogram, segments);
         const activeNumFrames = activeSpectrogram.length;
 
@@ -1326,9 +1467,17 @@ class BirdAudioAnalyzer {
             }
         }
 
-        // Step 2: Extract features
+        // Step 2: Extract features from full recording
         progress('Extracting audio features...', 20);
         const userFeatures = this.extractFeatures(samples, sampleRate);
+
+        // Step 2b: Also extract features from strongest segment only
+        // This helps match longer recordings where only part has the target bird
+        let bestSegFeatures = null;
+        if (userFeatures.duration > 5) {
+            progress('Analyzing strongest vocalization...', 25);
+            bestSegFeatures = this._extractBestSegmentFeatures(samples, sampleRate);
+        }
 
         console.log('[Identify] User features:', JSON.stringify({
             domFreq: userFeatures.dominantFreq,
@@ -1343,13 +1492,19 @@ class BirdAudioAnalyzer {
             noteCount: userFeatures.noteCount,
             mfccSeqLen: userFeatures.mfccSeq ? userFeatures.mfccSeq.length : 0
         }));
+        if (bestSegFeatures) {
+            console.log('[Identify] Best segment features:', JSON.stringify({
+                domFreq: bestSegFeatures.dominantFreq,
+                centroid: bestSegFeatures.spectralCentroid,
+                duration: bestSegFeatures.duration
+            }));
+        }
 
         // If user specified frequency hints, override detected range
         const freqHints = options.freqHints || null;
         if (freqHints) {
             if (freqHints.minFreq) userFeatures.freqLow = Math.max(userFeatures.freqLow, freqHints.minFreq);
             if (freqHints.maxFreq) userFeatures.freqHigh = Math.min(userFeatures.freqHigh, freqHints.maxFreq);
-            // Re-estimate dominant freq within the hinted range
             if (freqHints.minFreq && userFeatures.dominantFreq < freqHints.minFreq) {
                 userFeatures.dominantFreq = (freqHints.minFreq + (freqHints.maxFreq || userFeatures.freqHigh)) / 2;
             }
@@ -1366,9 +1521,24 @@ class BirdAudioAnalyzer {
         }
         progress(`Searching ${candidates.length} recordings...`, 40);
 
-        // Step 4: Fast candidate search
+        // Step 4: Fast candidate search — run with full features
         progress('Running fast frequency analysis...', 50);
         const allFastScored = this.fastSearch(userFeatures, candidates, candidates.length, freqHints);
+
+        // Step 4b: Also run fast search with best-segment features if available
+        // Merge: for each candidate use the higher score
+        if (bestSegFeatures) {
+            const segScored = this.fastSearch(bestSegFeatures, candidates, candidates.length, freqHints);
+            const segMap = new Map(segScored.map(r => [r.bird.audio, r.score]));
+            for (const r of allFastScored) {
+                const segScore = segMap.get(r.bird.audio) || 0;
+                if (segScore > r.score) {
+                    r.score = Math.round((r.score * 0.3 + segScore * 0.7) * 10) / 10;
+                }
+            }
+            allFastScored.sort((a, b) => b.score - a.score);
+        }
+
         const fastResults = allFastScored.slice(0, 30);
 
         // Debug: find Cape Robin-Chat rank

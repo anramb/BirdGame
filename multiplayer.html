@@ -729,7 +729,7 @@
     }
 
     function getAvailableBirds() {
-        let pool = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true' && !usedBirds.has(b.english) && b.audio);
+        let pool = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true' && b.identifyOnly !== true && !usedBirds.has(b.english) && b.audio);
         // Apply hotspot filter if any selected
         if (selectedHotspots.length > 0) {
             pool = pool.filter(b =>
@@ -825,7 +825,7 @@
         }
         if (pool.length === 0) {
             // Ultimate fallback: use all non-excluded birds
-            pool = allbirds.filter(b => !b.exclude && b.audio);
+            pool = allbirds.filter(b => !b.exclude && !b.identifyOnly && b.audio);
         }
         if (pool.length === 0) {
             alert(lang === 'af' ? 'Geen voëls beskikbaar nie!' : 'No birds available!');
@@ -836,7 +836,7 @@
         usedBirds.add(correctBird.english);
 
         // Get wrong options from ALL birds (not just difficulty-matched) for variety
-        const allPool = allbirds.filter(b => !b.exclude && b.english !== correctBird.english);
+        const allPool = allbirds.filter(b => !b.exclude && !b.identifyOnly && b.english !== correctBird.english);
         const wrongBirds = getWrongOptions(correctBird, allPool, 3);
         const nameKey = lang === 'af' ? 'afrikaans' : 'english';
 

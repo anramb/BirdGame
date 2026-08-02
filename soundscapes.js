@@ -115,7 +115,60 @@ const soundscapes = [
   ]
 }
 
+{
+  id: "BergEnDal_Kamp",
+  name: "Berg & Dal Rhino Trail, Berg & Dal",
+  habitat: "Kruger National Park",
+  region: "Mpumalanga",
+  audio: "Soundscape/260625_0735BergEnDalKampKNP.mp3",
+  spectrogram: "Soundscape/260625_0735BergEnDalKampKNP.png",
+  credit: "© Marna Buys, original field recording",
+  licenseLink: "",
+  changes: "Original recording",
+  
+  // Birds that ARE in this recording
+  birds: [
+    { english: "Common Bulbul (Dark-capped Bulbul)", afrikaans: "Swartoogtiptol", level: "easy", timestamp: "00:01" },
+    { english: "Yellow-breasted Apalis", afrikaans: "Geelborskleinjantjie", level: "intermediate", timestamp: "00:02" },
+    { english: "Terrestrial Brownbul", afrikaans: "Boskrapper", level: "intermediate", timestamp: "00:31" },
+    { english: "Red-eyed Dove", afrikaans: "Grootringduif", level: "easy", timestamp: "00:42" },
+    { english: "Purple-crested Turaco", afrikaans: "Bloukuifloerie", level: "easy", timestamp: "01:06" },
+    { english: "Grey-backed Camaroptera", afrikaans: "Grysrugkwêkwêvoël", level: "advanced", timestamp: "01:09" },
+    { english: "Long-billed Crombec", afrikaans: "Bosveldstompstert", level: "advanced", timestamp: "01:19" },
+    { english: "White-throated Robin-chat", afrikaans: "Witkeeljanfrederik", level: "advanced", timestamp: "01:22" },
+    { english: "Black-backed Puffback", afrikaans: "Sneeubal", level: "advanced", timestamp: "01:30" },
+    { english: "Black-headed Oriole", afrikaans: "Swartkopwielewaal", level: "intermediate", timestamp: "01:32" },
+    { english: "Black-collared Barbet", afrikaans: "Rooikophoutkapper", level: "intermediate", timestamp: "01:34" },
+    { english: "Rattling Cisticola", afrikaans: "Bosveldtinktinkie", level: "advanced", timestamp: "01:34" },
+    { english: "Crested Francolin", afrikaans: "Bospatrys", level: "advanced", timestamp: "01:52" },
+    { english: "Grey-headed Bushshrike", afrikaans: "Spookvoël", level: "easy", timestamp: "01:53" },
+    { english: "Crested Barbet", afrikaans: "Kuifkophoutkapper", level: "intermediate", timestamp: "02:30" },
+    { english: "African Green Pigeon", afrikaans: "Papegaaiduif", level: "advanced", timestamp: "02:38" },
+    { english: "Fork-tailed Drongo", afrikaans: "Mikstertbyvanger", level: "advanced", timestamp: "02:41" },
+    { english: "Grey-tit Flycatcher", afrikaans: "Waaierstertvlieëvanger", level: "advanced", timestamp: "02:53" },
 
+
+  ],
+
+  // Decoy birds - plausible for this habitat but NOT in this recording
+  decoys: [
+    { english: "Red-chested Cuckoo", afrikaans: "Piet-my-vrou", level: "easy" },
+    { english: "Laughing Dove", afrikaans: "Rooiborsduif", level: "easy" },
+    { english: "Emerald-spotted Wood-Dove", afrikaans: "Groenvlekduifie", level: "easy" },
+    { english: "Ring-necked Dove (Turtle)", afrikaans: "Gewone Tortelduif", level: "easy" },
+    { english: "Southern Boubou", afrikaans: "Suidelike Waterfiskaal", level: "intermediate" },
+    { english: "Chinspot Batis", afrikaans: "Witliesbosbontrokkie", level: "intermediate" },
+    { english: "Cape (Glossy) Starling", afrikaans: "Kleinglansspreeu", level: "intermediate" },
+    { english: "Spectacled Weaver", afrikaans: "Brilwewer", level: "intermediate" },
+    { english: "White-browed Robin-Chat", afrikaans: "Heuglinjanfrederik", level: "advanced" },
+    { english: "Sombre Greenbul", afrikaans: "Gewone Willie", level: "advanced" },
+    { english: "Red-faced Cisticola", afrikaans: "Rooiwangtinktinkie", level: "advanced" }
+
+  ]
+
+
+
+},
 
 
 

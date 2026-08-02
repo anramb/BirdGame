@@ -494,7 +494,7 @@ const birdgroupMap = {
   waterbirds: "Waterbirds"
 };
 
-let allData = { allbirds: typeof allbirds !== 'undefined' ? allbirds : [] };
+let allData = { allbirds: typeof allbirds !== 'undefined' ? allbirds.filter(b => !b.exclude && !b.identifyOnly) : [] };
 Object.entries(birdgroupMap).forEach(([key, group]) => {
   allData[key] = allData.allbirds.filter(bird => bird && bird.birdgroup === group);
 });

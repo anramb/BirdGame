@@ -438,12 +438,12 @@
         const allData = {};
         const allBirdsArr = typeof allbirds !== 'undefined' ? allbirds : [];
         Object.entries(birdgroupMap).forEach(([key, group]) => {
-            allData[key] = allBirdsArr.filter(bird => bird && bird.birdgroup === group);
+            allData[key] = allBirdsArr.filter(bird => bird && bird.birdgroup === group && !bird.exclude && !bird.identifyOnly);
         });
         
         // Helper: get all birds from allbirds
         function getAllBirds() {
-            return typeof allbirds !== 'undefined' ? allbirds : [];
+            return typeof allbirds !== 'undefined' ? allbirds.filter(b => !b.exclude && !b.identifyOnly) : [];
         }
         
         // Helper: get unique values from a semicolon-separated field

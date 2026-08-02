@@ -479,7 +479,7 @@
         function groupBirdsBySpecies() {
             const groups = {};
             allbirds.forEach(bird => {
-                if (bird.exclude === true || bird.exclude === 'true') return;
+                if (bird.exclude === true || bird.exclude === 'true' || bird.identifyOnly === true) return;
                 const base = getBaseName(bird.english);
                 if (!groups[base]) groups[base] = [];
                 groups[base].push(bird);
@@ -510,7 +510,7 @@
             if (typeof allbirds === 'undefined' || !Array.isArray(allbirds)) return;
             
             const nameKey = currentLanguage === 'af' ? 'afrikaans' : 'english';
-            const activeBirds = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true');
+            const activeBirds = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true' && b.identifyOnly !== true);
             const species = [...new Set(activeBirds.map(b => getSpecies(b[nameKey])))].sort();
             const allLabel = currentLanguage === 'af' ? 'Alle Spesies' : 'All Species';
             filter.innerHTML = `<option value="">${allLabel}</option>`;
@@ -869,7 +869,7 @@
             populateSpeciesFilter();
             populateBirdSelector();
             if (typeof allbirds !== 'undefined') {
-                const activeBirds = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true');
+                const activeBirds = allbirds.filter(b => b.exclude !== true && b.exclude !== 'true' && b.identifyOnly !== true);
                 const speciesCount = Object.keys(groupBirdsBySpecies()).length;
                 document.getElementById('totalBirdCalls').textContent = 
                     'Species: ' + speciesCount + ' | Total Calls: ' + activeBirds.length;

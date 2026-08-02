@@ -116,18 +116,19 @@ def main():
         print("Run this script from the BestRunDay project root.")
         sys.exit(1)
     
-    # Find all mp3 files
-    mp3_files = [f for f in os.listdir(AUDIO_DIR) if f.lower().endswith('.mp3')]
-    mp3_files.sort()
+    # Find all audio files
+    audio_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
+    audio_files = [f for f in os.listdir(AUDIO_DIR) if f.lower().endswith(audio_extensions)]
+    audio_files.sort()
     
-    print(f"Found {len(mp3_files)} audio files in '{AUDIO_DIR}/'")
+    print(f"Found {len(audio_files)} audio files in '{AUDIO_DIR}/'")
     print(f"Generating spectrograms...\n")
     
     generated = 0
     skipped = 0
     errors = 0
     
-    for i, filename in enumerate(mp3_files):
+    for i, filename in enumerate(audio_files):
         audio_path = os.path.join(AUDIO_DIR, filename)
         png_name = os.path.splitext(filename)[0] + '.png'
         output_path = os.path.join(OUTPUT_DIR, png_name)
@@ -137,7 +138,7 @@ def main():
             skipped += 1
             continue
         
-        print(f"  [{i+1}/{len(mp3_files)}] {filename}")
+        print(f"  [{i+1}/{len(audio_files)}] {filename}")
         
         if generate_spectrogram(audio_path, output_path):
             generated += 1

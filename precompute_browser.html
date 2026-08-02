@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Browser Precompute - Bird Audio Features</title>
+<style>
+body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+h1 { color: #4fc3f7; }
+#status { margin: 20px 0; padding: 15px; background: #222; border-radius: 8px; }
+#log { 
+    background: #111; padding: 15px; border-radius: 8px; 
+    max-height: 500px; overflow-y: auto; font-size: 0.85em; 
+    white-space: pre-wrap;
+}
+button { 
+    padding: 12px 24px; font-size: 1em; cursor: pointer; 
+    background: #4fc3f7; color: #000; border: none; border-radius: 6px; 
+    margin: 5px;
+}
+button:disabled { background: #555; color: #999; cursor: not-allowed; }
+.progress-bar { 
+    height: 20px; background: #333; border-radius: 10px; margin: 10px 0; overflow: hidden;
+}
+.progress-fill { 
+    height: 100%; background: linear-gradient(90deg, #4fc3f7, #81c784); 
+    transition: width 0.3s; border-radius: 10px;
+}
+.error { color: #ef5350; }
+.success { color: #81c784; }
+</style>
+</head>
+<body>
+<h1>Browser Feature Precompute</h1>
+<p>This uses the exact same <code>BirdAudioAnalyzer.extractFeatures()</code> code that runs during identification, ensuring perfect feature matching.</p>
+
+<div id="status">
+    <div>Total birds: <span id="totalCount">-</span></div>
+    <div>Processed: <span id="processedCount">0</span></div>
+    <div>Errors: <span id="errorCount">0</span></div>
+    <div>Elapsed: <span id="elapsed">-</span></div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<button id="btnStart" onclick="startPrecompute()">Start Precompute (All)</button>
+<button id="btnIncremental" onclick="startPrecompute(true)">Incremental (New Only)</button>
+<button id="btnDownload" onclick="downloadResult()" disabled>Download bird_audio_features.json</button>
+
+<div id="log"></div>
+
+<script src="allbirds.js"></script>
+<script src="audio-analyzer.js"></script>
+<script>
+let analyzer = null;
+let features = {};
+let startTime = null;
+
+function log(msg, cls) {
+    const el = document.getElementById('log');
+    if (cls) {
+        el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+    } else {
+        el.innerHTML += msg + '\n';
+    }
+    el.scrollTop = el.scrollHeight;
+}
+
+function updateStatus(processed, errors, total) {
+    document.getElementById('processedCount').textContent = processed;
+    document.getElementById('errorCount').textContent = errors;
+    document.getElementById('progressFill').style.width = (processed / total * 100) + '%';
+    if (startTime) {
+        const sec = Math.round((Date.now() - startTime) / 1000);
+        document.getElementById('elapsed').textContent = `${Math.floor(sec/60)}m ${sec%60}s`;
+    }
+}
+
+async function startPrecompute(incremental = false) {
+    document.getElementById('btnStart').disabled = true;
+    document.getElementById('btnIncremental').disabled = true;
+    
+    // Initialize analyzer
+    analyzer = new BirdAudioAnalyzer();
+    analyzer.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
+    
+    // Get all audio entries
+    const entries = allbirds.filter(b => !b.exclude && b.audio);
+    document.getElementById('totalCount').textContent = entries.length;
+    
+    // Load existing features if incremental
+    let existingKeys = new Set();
+    if (incremental) {
+        try {
+            const resp = await fetch('bird_audio_features.json');
+            const data = await resp.json();
+            features = data.features || {};
+            existingKeys = new Set(Object.keys(features));
+            log(`Loaded ${existingKeys.size} existing features`, 'success');
+        } catch (e) {
+            log('No existing features file found, computing all', 'error');
+        }
+    }
+    
+    startTime = Date.now();
+    let processed = 0;
+    let errors = 0;
+    
+    for (let i = 0; i < entries.length; i++) {
+        const bird = entries[i];
+        const audioPath = bird.audio;
+        let audioKey = audioPath.replace('All birds/', '');
+        // Strip extension
+        for (const ext of ['.mp3', '.wav', '.ogg', '.flac']) {
+            audioKey = audioKey.replace(ext, '');
+        }
+        
+        // Skip if already exists (incremental mode)
+        if (incremental && existingKeys.has(audioKey)) {
+            processed++;
+            updateStatus(processed, errors, entries.length);
+            continue;
+        }
+        
+        try {
+            // Load audio
+            const audioData = await analyzer.loadAudio(audioPath);
+            let samples = audioData.samples;
+            const sr = audioData.sampleRate;
+            
+            // Apply high-pass filter at 300Hz (same as identification flow)
+            samples = analyzer._highPassFilter(samples, sr, 300);
+            
+            // Extract features using the SAME code as identification
+            const f = analyzer.extractFeatures(samples, sr);
+            
+            if (f) {
+                features[audioKey] = f;
+                processed++;
+                if (processed % 10 === 0 || processed === entries.length) {
+                    log(`[${processed}/${entries.length}] ${audioKey} — dom:${f.dominantFreq}Hz`);
+                }
+            } else {
+                errors++;
+                log(`ERROR: ${audioKey} — no features extracted`, 'error');
+            }
+        } catch (e) {
+            errors++;
+            log(`ERROR: ${audioKey} — ${e.message}`, 'error');
+        }
+        
+        updateStatus(processed + errors, errors, entries.length);
+        
+        // Yield to UI every 5 entries
+        if (i % 5 === 0) {
+            await new Promise(r => setTimeout(r, 0));
+        }
+    }
+    
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    log(`\nDone! ${processed} features computed, ${errors} errors, ${elapsed}s elapsed`, 'success');
+    log(`Output size: ~${Math.round(JSON.stringify(features).length / 1024)} KB`);
+    
+    document.getElementById('btnDownload').disabled = false;
+}
+
+function downloadResult() {
+    const output = {
+        version: 'js-browser-extracted',
+        extractedAt: new Date().toISOString(),
+        extractionMethod: 'Browser (BirdAudioAnalyzer.extractFeatures)',
+        sampleRate: 22050,
+        fftSize: 2048,
+        hopLength: 512,
+        totalProcessed: Object.keys(features).length,
+        features: features
+    };
+    
+    const json = JSON.stringify(output);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bird_audio_features.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    log('Downloaded bird_audio_features.json', 'success');
+}
+</script>
+</body>
+</html>
