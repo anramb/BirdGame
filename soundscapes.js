@@ -113,7 +113,7 @@ const soundscapes = [
 
 
   ]
-}
+},
 
 {
   id: "BergEnDal_Kamp",
