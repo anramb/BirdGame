@@ -117,7 +117,7 @@ const soundscapes = [
 
 {
   id: "BergEnDal_Kamp",
-  name: "Berg & Dal Rhino Trail, Berg & Dal",
+  name: "Berg & Dal Rhino Trail",
   habitat: "Kruger National Park",
   region: "Mpumalanga",
   audio: "Soundscape/260625_0735BergEnDalKampKNP.mp3",
