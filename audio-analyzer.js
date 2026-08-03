@@ -1037,55 +1037,55 @@ class BirdAudioAnalyzer {
             let score = 0;
             let totalWeight = 0;
 
-            // 1. Dominant frequency similarity (weight: 25) — most reliable feature
+            // 1. Dominant frequency similarity (weight: 18)
             const freqDiff = Math.abs(userFeatures.dominantFreq - bf.dominantFreq);
             const freqScore = Math.max(0, 1 - freqDiff / 2000);
-            score += freqScore * 25;
-            totalWeight += 25;
+            score += freqScore * 18;
+            totalWeight += 18;
 
-            // 2. Frequency range overlap (weight: 10)
+            // 2. Frequency range overlap (weight: 8)
             // Use containment: does user range cover the reference range?
             const refRange = bf.freqHigh - bf.freqLow;
             const overlapLow = Math.max(userFeatures.freqLow, bf.freqLow);
             const overlapHigh = Math.min(userFeatures.freqHigh, bf.freqHigh);
             const overlap = Math.max(0, overlapHigh - overlapLow);
             const rangeScore = refRange > 0 ? Math.min(overlap / refRange, 1) : 0;
-            score += rangeScore * 10;
-            totalWeight += 10;
+            score += rangeScore * 8;
+            totalWeight += 8;
 
-            // 3. Spectral centroid similarity (weight: 10)
+            // 3. Spectral centroid similarity (weight: 8)
             const centroidDiff = Math.abs(userFeatures.spectralCentroid - bf.spectralCentroid);
             const centroidScore = Math.max(0, 1 - centroidDiff / 2000);
-            score += centroidScore * 10;
-            totalWeight += 10;
+            score += centroidScore * 8;
+            totalWeight += 8;
 
-            // 4. Band energy distribution (weight: 15) — compare only upper bands (1000+ Hz)
+            // 4. Band energy distribution (weight: 12) — compare only upper bands (1000+ Hz)
             // Bands [200-500, 500-1000, 1000-2000, 2000-3000, 3000-4000, 4000-6000, 6000-8000, 8000-12000]
             // Skip bands 0-1 (most affected by noise) and compare bands 2-7
             if (userFeatures.bandEnergies && bf.bandEnergies) {
                 const ub = userFeatures.bandEnergies.slice(2);
                 const rb = bf.bandEnergies.slice(2);
                 const bandCos = this._cosineSimilarity(ub, rb);
-                score += Math.max(0, bandCos) * 15;
+                score += Math.max(0, bandCos) * 12;
             }
-            totalWeight += 15;
+            totalWeight += 12;
 
             // 5. Peak band agreement (weight: 5) — do both peak in the same band?
             if (userFeatures.bandEnergies && bf.bandEnergies) {
                 const userPeak = userFeatures.bandEnergies.indexOf(Math.max(...userFeatures.bandEnergies));
                 const refPeak = bf.bandEnergies.indexOf(Math.max(...bf.bandEnergies));
                 const peakDist = Math.abs(userPeak - refPeak);
-                const peakScore = peakDist === 0 ? 1 : (peakDist === 1 ? 0.7 : 0.2);
+                const peakScore = peakDist === 0 ? 1 : (peakDist === 1 ? 0.8 : 0.3);
                 score += peakScore * 5;
             }
             totalWeight += 5;
 
-            // 6. Spectral envelope shape (weight: 15) — detailed frequency profile
+            // 6. Spectral envelope shape (weight: 12) — detailed frequency profile
             if (userFeatures.spectralEnvelope && bf.spectralEnvelope) {
                 const envScore = this._cosineSimilarity(userFeatures.spectralEnvelope, bf.spectralEnvelope);
-                score += Math.max(0, envScore) * 15;
+                score += Math.max(0, envScore) * 12;
             }
-            totalWeight += 15;
+            totalWeight += 12;
 
             // 7. MFCC similarity (weight: 15) — most robust cross-recording feature
             if (userFeatures.mfccMean && bf.mfccMean) {
@@ -1102,6 +1102,26 @@ class BirdAudioAnalyzer {
                 score += rrScore * 5;
             }
             totalWeight += 5;
+
+            // 9. Onset density similarity (weight: 10) — distinguishes trills from simple calls
+            if (userFeatures.numOnsets > 0 && bf.numOnsets > 0 &&
+                userFeatures.activeDuration > 0 && bf.activeDuration > 0) {
+                const userDensity = userFeatures.numOnsets / userFeatures.activeDuration;
+                const refDensity = bf.numOnsets / bf.activeDuration;
+                const densityMax = Math.max(userDensity, refDensity, 0.1);
+                const densityDiff = Math.abs(userDensity - refDensity);
+                const densityScore = Math.max(0, 1 - densityDiff / densityMax);
+                score += densityScore * 10;
+            }
+            totalWeight += 10;
+
+            // 10. Pitch contour similarity (weight: 7) — captures ascending/descending patterns
+            if (userFeatures.pitchContour && bf.pitchContour &&
+                userFeatures.pitchContour.length >= 10 && bf.pitchContour.length >= 10) {
+                const pcScore = this._cosineSimilarity(userFeatures.pitchContour, bf.pitchContour);
+                score += Math.max(0, pcScore) * 7;
+            }
+            totalWeight += 7;
 
             const finalScore = totalWeight > 0 ? (score / totalWeight) * 100 : 0;
 
@@ -1539,7 +1559,7 @@ class BirdAudioAnalyzer {
             allFastScored.sort((a, b) => b.score - a.score);
         }
 
-        const fastResults = allFastScored.slice(0, 30);
+        const fastResults = allFastScored.slice(0, 40);
 
         // Debug: find Cape Robin-Chat rank
         console.log('[FastSearch] Top 10:', fastResults.map((r,i) => `${i+1}. ${r.bird.english}: ${r.score}%`).join(', '));
