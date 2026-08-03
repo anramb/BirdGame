@@ -376,6 +376,64 @@
         }
         .expected-count { font-size: 0.8em; color: #888; margin-top: 4px; }
 
+        /* --- Supported Birds --- */
+        .supported-link {
+            display: inline-block;
+            font-size: 0.82em;
+            color: #1a8f4a;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .supported-link:hover { color: #2e7d32; }
+        .supported-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 10px;
+            overflow-y: auto;
+        }
+        .supported-overlay.open { display: flex; }
+        .supported-panel {
+            background: white;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .supported-panel h2 { color: #1a8f4a; font-size: 1.1em; margin-bottom: 4px; }
+        .supported-panel .supported-subtitle { font-size: 0.8em; color: #888; margin-bottom: 12px; }
+        .supported-list { list-style: none; padding: 0; margin: 0; }
+        .supported-list li {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.88em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .supported-list li:last-child { border-bottom: none; }
+        .supported-list .bird-name { color: #333; font-weight: 500; }
+        .supported-list .bird-afr { color: #888; font-size: 0.85em; }
+        .supported-list .bird-notes { color: #aaa; font-size: 0.78em; font-style: italic; }
+        .supported-close {
+            display: block;
+            margin: 12px auto 0;
+            padding: 8px 24px;
+            background: #1a8f4a;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
         /* --- Progress --- */
         .progress-area {
             text-align: center;
@@ -697,6 +755,19 @@
         <a href="start.html" class="home-btn">&larr; Home</a>
         <h1>Bird Sound ID</h1>
         <p class="subtitle">Record or upload a bird sound to identify it</p>
+        <div style="text-align:center; margin-bottom:10px;">
+            <span class="supported-link" onclick="showSupportedBirds()">✅ Supported Birds (<span id="supportedCount">0</span>)</span>
+        </div>
+
+        <!-- Supported Birds Overlay -->
+        <div class="supported-overlay" id="supportedOverlay" onclick="if(event.target===this)closeSupportedBirds()">
+            <div class="supported-panel">
+                <h2>✅ Supported Birds</h2>
+                <div class="supported-subtitle">These birds have been verified to be identifiable by Sound ID when the correct location and habitat are selected.</div>
+                <ul class="supported-list" id="supportedList"></ul>
+                <button class="supported-close" onclick="closeSupportedBirds()">Close</button>
+            </div>
+        </div>
 
         <!-- INPUT SECTION -->
         <div class="section" id="inputSection">
@@ -926,6 +997,7 @@
     <div class="footer">Created by Marna Buys with Windsurf</div>
 
     <script src="allbirds.js"></script>
+    <script src="supported-birds.js"></script>
     <script src="spectrogram-generator.js"></script>
     <script src="audio-analyzer.js"></script>
     <script>
@@ -963,6 +1035,8 @@
             // Set up live feedback callbacks
             recorder.onLevelUpdate = updateLevelMeter;
             recorder.onBirdDetected = updateBirdDetection;
+
+            initSupportedBirds();
 
             try {
                 await analyzer.init();
@@ -1267,6 +1341,39 @@
 
         function closeExpectedBirds() {
             document.getElementById('expectedOverlay').classList.remove('open');
+        }
+
+        // ===========================
+        // Supported Birds
+        // ===========================
+        function initSupportedBirds() {
+            const list = typeof supportedBirds !== 'undefined' ? supportedBirds : [];
+            document.getElementById('supportedCount').textContent = list.length;
+        }
+
+        function showSupportedBirds() {
+            const list = typeof supportedBirds !== 'undefined' ? supportedBirds : [];
+            const listEl = document.getElementById('supportedList');
+
+            if (list.length === 0) {
+                listEl.innerHTML = '<li style="color:#888; justify-content:center;">No birds verified yet</li>';
+            } else {
+                listEl.innerHTML = list.map(b => {
+                    return `<li>
+                        <div>
+                            <span class="bird-name">${b.english}</span><br>
+                            <span class="bird-afr">${b.afrikaans}</span>
+                        </div>
+                        ${b.notes ? `<span class="bird-notes">${b.notes}</span>` : ''}
+                    </li>`;
+                }).join('');
+            }
+
+            document.getElementById('supportedOverlay').classList.add('open');
+        }
+
+        function closeSupportedBirds() {
+            document.getElementById('supportedOverlay').classList.remove('open');
         }
 
         // ===========================
