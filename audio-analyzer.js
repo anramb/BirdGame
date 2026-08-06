@@ -1059,12 +1059,21 @@ class BirdAudioAnalyzer {
             score += centroidScore * 8;
             totalWeight += 8;
 
-            // 4. Band energy distribution (weight: 12) — compare only upper bands (1000+ Hz)
+            // 4. Band energy distribution (weight: 12)
             // Bands [200-500, 500-1000, 1000-2000, 2000-3000, 3000-4000, 4000-6000, 6000-8000, 8000-12000]
-            // Skip bands 0-1 (most affected by noise) and compare bands 2-7
+            // For low-frequency birds (< 1000 Hz), use ALL bands since signal is in bands 0-1
+            // For high-frequency birds, skip bands 0-1 (most affected by noise)
             if (userFeatures.bandEnergies && bf.bandEnergies) {
-                const ub = userFeatures.bandEnergies.slice(2);
-                const rb = bf.bandEnergies.slice(2);
+                const userLowFreq = userFeatures.dominantFreq < 1000;
+                const refLowFreq = bf.dominantFreq < 1000;
+                let ub, rb;
+                if (userLowFreq || refLowFreq) {
+                    ub = userFeatures.bandEnergies;
+                    rb = bf.bandEnergies;
+                } else {
+                    ub = userFeatures.bandEnergies.slice(2);
+                    rb = bf.bandEnergies.slice(2);
+                }
                 const bandCos = this._cosineSimilarity(ub, rb);
                 score += Math.max(0, bandCos) * 12;
             }
