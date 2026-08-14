@@ -81,9 +81,9 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 /* Post-recording section */
 .post-section{display:none}
 .waveform-wrap{position:relative;background:white;border-radius:10px;overflow:hidden;margin-bottom:8px;border:1px solid #e0e0e0}
-#waveCanvas{width:100%;height:70px;display:block;cursor:crosshair}
+#waveCanvas{width:100%;height:70px;display:block;cursor:crosshair;user-select:none;-webkit-user-select:none}
 .playhead-line{position:absolute;top:0;bottom:0;width:2px;background:#1a3a2a;pointer-events:none;display:none}
-.trim-region{position:absolute;top:0;bottom:0;background:rgba(46,109,68,.15);border-left:2px solid #2e6b44;border-right:2px solid #2e6b44;pointer-events:none;display:none}
+.trim-region{position:absolute;top:0;bottom:0;background:rgba(46,109,68,.25);border-left:3px solid #1a3a2a;border-right:3px solid #1a3a2a;pointer-events:none;display:none;box-shadow:inset 0 0 0 1px #2e6b44}
 
 /* Full spectrogram post-recording */
 .postspectro-wrap{position:relative;overflow:hidden;border-radius:10px;border:1px solid #e0e0e0;margin-bottom:8px;background:white}
@@ -871,75 +871,118 @@ function renderWaveform(samples) {
     setupWaveDrag(canvas, samples.length);
 }
 
-function setupWaveDrag(canvas, totalSamples) {
-    let selecting = false, x0 = 0;
-    canvas.onmousedown = canvas.ontouchstart = (e) => {
-        selecting = true;
-        const x = getCanvasX(e, canvas);
-        x0 = x;
-        const frac = x / canvas.width;
-        trimStart = frac * (totalSamples / sampleRate);
-        trimEnd = trimStart;
-        updateTrimUI();
-    };
-    canvas.onmousemove = canvas.ontouchmove = (e) => {
-        if (!selecting) return;
-        const x = getCanvasX(e, canvas);
-        const frac = x / canvas.width;
-        const t = frac * (totalSamples / sampleRate);
-        trimStart = Math.min(x0, x) / canvas.width * (totalSamples / sampleRate);
-        trimEnd = Math.max(x0, x) / canvas.width * (totalSamples / sampleRate);
-        updateTrimUI();
-        redrawWaveformSelection(canvas, totalSamples);
-    };
-    canvas.onmouseup = canvas.ontouchend = () => { selecting = false; };
-}
-
+// ============================================================
+// HELPER: get X position within canvas from mouse or touch event
+// ============================================================
 function getCanvasX(e, canvas) {
     const rect = canvas.getBoundingClientRect();
     const src = e.touches ? e.touches[0] : e;
     return Math.max(0, Math.min(canvas.width, src.clientX - rect.left));
 }
 
+// ============================================================
+// HELPER: return the currently active (possibly edited) samples
+// ============================================================
 function getActiveSamples() { return editedSamples || allSamples; }
 
+// ============================================================
+// Draw the green selection band on the waveform canvas
+// ============================================================
 function redrawWaveformSelection(canvas, totalSamples) {
-    renderWaveform(getActiveSamples()); // re-render clean
-    if (trimStart == null || trimEnd == null) return;
-    const w = canvas.width, dur = totalSamples / sampleRate;
+    renderWaveform(getActiveSamples());
+    const reg = document.getElementById('waveTrimRegion');
+    if (trimStart == null || trimEnd == null || trimEnd <= trimStart + 0.001) {
+        reg.style.display = 'none';
+        return;
+    }
+    const dur = totalSamples / sampleRate;
+    const w = canvas.width;
     const x1 = (trimStart / dur) * w;
     const x2 = (trimEnd   / dur) * w;
-    const reg = document.getElementById('waveTrimRegion');
     reg.style.display = 'block';
-    reg.style.left = Math.min(x1, x2) + 'px';
-    reg.style.width = Math.abs(x2 - x1) + 'px';
+    reg.style.left  = x1 + 'px';
+    reg.style.width = Math.max(3, x2 - x1) + 'px';
 }
 
 // ============================================================
-// POST-RECORDING SPECTROGRAM
+// WAVEFORM DRAG — supports creating a new selection AND
+// independently dragging the left or right handle afterwards
+// ============================================================
+function setupWaveDrag(canvas, totalSamples) {
+    const HANDLE_TOL = 18; // px: how close to a handle edge to grab it
+    let mode = null;       // 'new' | 'start' | 'end'
+    let anchor = 0;        // time-anchor when creating a new selection
+
+    canvas.onmousedown = canvas.ontouchstart = (e) => {
+        e.preventDefault();
+        const x   = getCanvasX(e, canvas);
+        const dur  = totalSamples / sampleRate;
+        const w    = canvas.width;
+
+        // Check if user grabbed an existing handle
+        if (trimStart != null && trimEnd != null && trimEnd > trimStart + 0.001) {
+            const xs = (trimStart / dur) * w;
+            const xe = (trimEnd   / dur) * w;
+            if (Math.abs(x - xs) <= HANDLE_TOL) { mode = 'start'; return; }
+            if (Math.abs(x - xe) <= HANDLE_TOL) { mode = 'end';   return; }
+        }
+
+        // Start a brand-new selection
+        mode   = 'new';
+        anchor = (x / w) * dur;
+        trimStart = anchor;
+        trimEnd   = anchor;
+        updateTrimUI();
+        redrawWaveformSelection(canvas, totalSamples);
+    };
+
+    canvas.onmousemove = canvas.ontouchmove = (e) => {
+        if (!mode) return;
+        e.preventDefault();
+        const x   = getCanvasX(e, canvas);
+        const dur  = totalSamples / sampleRate;
+        const t    = (x / canvas.width) * dur;
+
+        if (mode === 'new') {
+            trimStart = Math.min(anchor, t);
+            trimEnd   = Math.max(anchor, t);
+        } else if (mode === 'start') {
+            // Left handle: keep it left of trimEnd
+            trimStart = Math.min(t, trimEnd - 0.02);
+        } else if (mode === 'end') {
+            // Right handle: keep it right of trimStart
+            trimEnd = Math.max(t, trimStart + 0.02);
+        }
+        updateTrimUI();
+        redrawWaveformSelection(canvas, totalSamples);
+    };
+
+    canvas.onmouseup = canvas.ontouchend = () => { mode = null; };
+}
+
+// ============================================================
+// POST-RECORDING SPECTROGRAM (rendered from PCM after stop)
 // ============================================================
 function renderPostSpectrogram(samples) {
-    // Use stored liveColumns if enough are available, else compute
     const totalDur = samples.length / sampleRate;
-    const pxPerSec = 20; // 20px per second
-    const totalW = Math.max(400, Math.ceil(totalDur * pxPerSec));
-    const h = 200;
+    const pxPerSec = 20;
+    const totalW   = Math.max(400, Math.ceil(totalDur * pxPerSec));
+    const h        = 200;
 
     const canvas = document.getElementById('postSpectroCanvas');
-    canvas.width = totalW;
+    canvas.width  = totalW;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, totalW, h);
 
-    // Compute from PCM samples using FFT
-    const fftSize = 4096;
-    const hop = Math.max(1, Math.floor(samples.length / totalW));
-    const window = makeHannWindow(fftSize);
-    const re = new Float64Array(fftSize);
-    const im = new Float64Array(fftSize);
+    const fftSize  = 4096;
+    const hop      = Math.max(1, Math.floor(samples.length / totalW));
+    const win      = makeHannWindow(fftSize);
+    const re       = new Float64Array(fftSize);
+    const im       = new Float64Array(fftSize);
     const hzPerBin = sampleRate / fftSize;
-    const maxBin = Math.min(Math.floor(freqMax / hzPerBin), fftSize / 2 - 1);
+    const maxBin   = Math.min(Math.floor(freqMax / hzPerBin), fftSize / 2 - 1);
 
     const imgData = ctx.getImageData(0, 0, totalW, h);
     const pixels  = imgData.data;
@@ -948,62 +991,59 @@ function renderPostSpectrogram(samples) {
         const offset = col * hop;
         re.fill(0); im.fill(0);
         for (let i = 0; i < fftSize; i++) {
-            re[i] = (samples[offset + i] || 0) * window[i];
+            re[i] = (samples[offset + i] || 0) * win[i];
         }
         fft(re, im);
         for (let y = 0; y < h; y++) {
-            const bin = Math.round((1 - y / h) * maxBin);
-            const mag = Math.sqrt(re[bin]*re[bin] + im[bin]*im[bin]);
-            const db = mag > 0 ? 20 * Math.log10(mag) : -120;
+            const bin  = Math.round((1 - y / h) * maxBin);
+            const mag  = Math.sqrt(re[bin] * re[bin] + im[bin] * im[bin]);
+            const db   = mag > 0 ? 20 * Math.log10(mag) : -120;
             const norm = Math.max(0, Math.min(1, (db - (-90)) / ((-20) - (-90))));
-            const gamma = Math.pow(norm, 0.65);
-            const darkness = Math.round(gamma * 255);
-            const c = 255 - darkness;
-            const idx = (y * totalW + col) * 4;
+            const c    = 255 - Math.round(Math.pow(norm, 0.65) * 255);
+            const idx  = (y * totalW + col) * 4;
             pixels[idx] = c; pixels[idx+1] = c; pixels[idx+2] = c; pixels[idx+3] = 255;
         }
     }
     ctx.putImageData(imgData, 0, 0);
-
     drawFreqAxis(document.getElementById('postFreqAxis'), freqMax, h);
 
-    // Click to seek
+    // Click to seek playback
     canvas.onclick = (e) => {
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const frac = x / canvas.width;
+        const frac = (e.clientX - rect.left) / canvas.width;
         seekPlayback(frac * totalDur);
     };
 
-    // Drag to select trim
+    // Drag on spectrogram to set selection
     setupPostSpectroDrag(canvas, totalDur);
 }
 
+// ============================================================
+// SPECTROGRAM DRAG (simple: always creates new selection)
+// ============================================================
 function setupPostSpectroDrag(canvas, dur) {
     let selecting = false, x0 = 0;
     canvas.onmousedown = canvas.ontouchstart = (e) => {
         selecting = true;
         const rect = canvas.getBoundingClientRect();
-        const src = e.touches ? e.touches[0] : e;
+        const src  = e.touches ? e.touches[0] : e;
         x0 = src.clientX - rect.left;
         trimStart = (x0 / canvas.width) * dur;
-        trimEnd = trimStart;
+        trimEnd   = trimStart;
         updateTrimUI();
     };
     canvas.onmousemove = canvas.ontouchmove = (e) => {
         if (!selecting) return;
         const rect = canvas.getBoundingClientRect();
-        const src = e.touches ? e.touches[0] : e;
-        const x1 = src.clientX - rect.left;
-        const t0 = Math.min(x0, x1) / canvas.width * dur;
-        const t1 = Math.max(x0, x1) / canvas.width * dur;
-        trimStart = t0; trimEnd = t1;
+        const src  = e.touches ? e.touches[0] : e;
+        const x1   = src.clientX - rect.left;
+        trimStart = Math.min(x0, x1) / canvas.width * dur;
+        trimEnd   = Math.max(x0, x1) / canvas.width * dur;
         updateTrimUI();
         const ov = document.getElementById('postTrimOverlay');
         ov.style.display = 'block';
-        ov.style.left   = Math.min(x0, x1) + 'px';
-        ov.style.width  = Math.abs(x1 - x0) + 'px';
-        // Sync waveform
+        ov.style.left    = Math.min(x0, x1) + 'px';
+        ov.style.width   = Math.max(3, Math.abs(x1 - x0)) + 'px';
         redrawWaveformSelection(document.getElementById('waveCanvas'), getActiveSamples().length);
     };
     canvas.onmouseup = canvas.ontouchend = () => { selecting = false; };
