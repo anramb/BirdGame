@@ -3,4 +3,5 @@
 // Each entry: { english, afrikaans, notes (optional) }
 const supportedBirds = [
     { english: "Cape Robin-chat", afrikaans: "Gewone Janfrederik", notes: "Call and song" },
+    { english: "Kingfisher Brown-hooded", afrikaans: "Bruinkopvisvanger", notes: "Call and song" },
 ];

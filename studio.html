@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a3a2a">
+<title>Bird Recording Studio – Chirp Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;color:#1a1a1a;min-height:100vh}
+.topbar{background:#1a3a2a;color:white;padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.topbar a{color:white;text-decoration:none;font-size:1.1em;opacity:.8}
+.topbar a:hover{opacity:1}
+.topbar h1{font-size:1.1em;font-weight:700;flex:1}
+.topbar .badge{font-size:.7em;background:#2e6b44;padding:3px 8px;border-radius:10px;opacity:.9}
+
+.container{max-width:640px;margin:0 auto;padding:12px}
+
+/* Tips */
+.tips-panel{background:#e8f5e9;border:1px solid #c8e6c9;border-radius:10px;margin-bottom:12px;overflow:hidden}
+.tips-toggle{width:100%;text-align:left;padding:10px 14px;background:none;border:none;cursor:pointer;font-size:.9em;font-weight:600;color:#2e7d32;display:flex;justify-content:space-between;align-items:center}
+.tips-body{padding:10px 14px 12px;font-size:.82em;color:#2e6b30;line-height:1.7;display:none}
+.tips-body.open{display:block}
+
+/* Mic section */
+.section{background:white;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.section-title{font-size:.8em;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.04em;margin-bottom:8px}
+.mic-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#micSelect{flex:1;min-width:140px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:.9em}
+.status-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.badge-pill{font-size:.72em;padding:3px 9px;border-radius:10px;font-weight:600}
+.badge-ok{background:#e8f5e9;color:#2e7d32}
+.badge-warn{background:#fff8e1;color:#f57f17}
+.badge-err{background:#ffebee;color:#c62828}
+
+/* Spectrogram */
+.spectro-wrap{background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.spectro-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8f8f8;border-bottom:1px solid #eee}
+.spectro-header span{font-size:.8em;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.04em}
+.zoom-btns{display:flex;gap:4px}
+.zoom-btn{padding:3px 9px;border:1px solid #ccc;border-radius:6px;font-size:.75em;background:white;cursor:pointer;color:#444}
+.zoom-btn.active{background:#1a3a2a;color:white;border-color:#1a3a2a}
+.spectro-inner{display:flex;height:210px}
+#freqAxisCanvas{width:36px;flex-shrink:0;background:white}
+#liveSpectro{flex:1;background:white;display:block}
+.time-axis-row{display:flex}
+.time-axis-spacer{width:36px;flex-shrink:0}
+#timeAxisCanvas{flex:1;height:18px;background:#f8f8f8}
+
+/* Level + status */
+.level-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.level-label{font-size:.78em;color:#666;white-space:nowrap;width:48px}
+.level-track{flex:1;height:12px;background:#e0e0e0;border-radius:6px;overflow:hidden}
+#levelBar{height:100%;width:0%;background:#2e7d32;border-radius:6px;transition:width .05s}
+#dbLabel{font-size:.78em;color:#666;width:48px;text-align:right}
+.signal-status{text-align:center;padding:8px 12px;border-radius:8px;font-weight:700;font-size:.95em;letter-spacing:.03em;margin-bottom:8px}
+.sig-good{background:#e8f5e9;color:#1b5e20}
+.sig-weak{background:#fff8e1;color:#e65100}
+.sig-veryweak{background:#fce4ec;color:#880e4f}
+.sig-clip{background:#ffebee;color:#b71c1c}
+.sig-idle{background:#f5f5f5;color:#9e9e9e}
+.signal-tip{font-size:.8em;color:#555;text-align:center;min-height:1.5em;margin-bottom:4px}
+
+/* Timer */
+.timer-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#recTimer{font-size:2em;font-weight:700;font-variant-numeric:tabular-nums;color:#1a1a1a}
+#recGuidance{font-size:.82em;color:#888;text-align:right;max-width:200px}
+#recGuidance.warn{color:#e65100;font-weight:600}
+#recGuidance.danger{color:#c62828;font-weight:700}
+
+/* Controls */
+.controls{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.ctrl-btn{flex:1;max-width:120px;padding:14px 8px;border:none;border-radius:12px;font-size:.88em;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.02em}
+#btnStart{background:#1a3a2a;color:white}
+#btnStart:hover:not(:disabled){background:#2e6b44}
+#btnPause{background:#e8f5e9;color:#1a3a2a;display:none}
+#btnResume{background:#e8f5e9;color:#1a3a2a;display:none}
+#btnStop{background:#c62828;color:white;display:none}
+.ctrl-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Post-recording section */
+.post-section{display:none}
+.waveform-wrap{position:relative;background:white;border-radius:10px;overflow:hidden;margin-bottom:8px;border:1px solid #e0e0e0}
+#waveCanvas{width:100%;height:70px;display:block;cursor:crosshair}
+.playhead-line{position:absolute;top:0;bottom:0;width:2px;background:#1a3a2a;pointer-events:none;display:none}
+.trim-region{position:absolute;top:0;bottom:0;background:rgba(46,109,68,.15);border-left:2px solid #2e6b44;border-right:2px solid #2e6b44;pointer-events:none;display:none}
+
+/* Full spectrogram post-recording */
+.postspectro-wrap{position:relative;overflow:hidden;border-radius:10px;border:1px solid #e0e0e0;margin-bottom:8px;background:white}
+.postspectro-inner{display:flex;height:200px}
+#postFreqAxis{width:36px;flex-shrink:0;background:white}
+.postspectro-scroll{flex:1;overflow-x:auto;overflow-y:hidden;position:relative}
+#postSpectroCanvas{display:block;height:200px}
+#postPlayhead{position:absolute;top:0;bottom:0;width:2px;background:#1a3a2a;pointer-events:none}
+#postTrimOverlay{position:absolute;top:0;bottom:0;background:rgba(46,109,68,.15);border-left:2px solid #2e6b44;border-right:2px solid #2e6b44;pointer-events:none;display:none}
+
+/* Playback controls */
+.playback-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.pb-btn{padding:10px 16px;border:none;border-radius:9px;font-weight:700;font-size:.85em;cursor:pointer}
+#pbPlay{background:#1a3a2a;color:white}
+#pbPause{background:#e0e0e0;color:#333}
+#pbStop{background:#e0e0e0;color:#333}
+.pb-time{font-size:.85em;color:#555;font-variant-numeric:tabular-nums;flex:1;text-align:right}
+
+/* Trim */
+.trim-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.trim-info{font-size:.82em;color:#555}
+#trimStartLabel,#trimEndLabel{font-weight:700;color:#1a3a2a}
+.action-btn{padding:9px 14px;border:none;border-radius:9px;font-size:.82em;font-weight:700;cursor:pointer}
+.btn-trim{background:#1a3a2a;color:white}
+.btn-cancel{background:#eee;color:#444}
+
+/* Metadata */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meta-field{display:flex;flex-direction:column;gap:4px}
+.meta-field label{font-size:.78em;color:#666;font-weight:600}
+.meta-field input,.meta-field textarea{padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:.88em;width:100%}
+.meta-field.full{grid-column:1/-1}
+.meta-field textarea{resize:vertical;min-height:56px}
+
+/* Quality summary */
+.quality-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.q-row{display:flex;flex-direction:column;background:#f8f8f8;border-radius:8px;padding:8px 10px}
+.q-label{font-size:.72em;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.q-value{font-size:.95em;font-weight:700;color:#1a1a1a;margin-top:2px}
+.quality-verdict{grid-column:1/-1;text-align:center;padding:10px;border-radius:8px;font-size:1.05em;font-weight:800;letter-spacing:.04em;margin-top:4px}
+.verdict-good{background:#e8f5e9;color:#1b5e20}
+.verdict-weak{background:#fff8e1;color:#e65100}
+.verdict-poor{background:#ffebee;color:#c62828}
+
+/* Save */
+.save-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.save-btn{flex:1;min-width:130px;padding:13px 10px;border:none;border-radius:10px;font-size:.88em;font-weight:700;cursor:pointer}
+#btnSaveOrig{background:#1a3a2a;color:white}
+#btnSaveTrim{background:#2e6b44;color:white;display:none}
+#btnSaveMp3{background:#f0f4f0;color:#1a3a2a;border:1px solid #c8ddc8}
+
+@media(max-width:400px){
+    .meta-grid{grid-template-columns:1fr}
+    .meta-field.full{grid-column:1}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="start.html">&#8592;</a>
+    <h1>Bird Recording Studio</h1>
+    <span class="badge">WAV</span>
+</div>
+
+<div class="container">
+
+    <!-- Tips -->
+    <div class="tips-panel">
+        <button class="tips-toggle" onclick="toggleTips(this)">
+            Recording tips <span id="tipsArrow">▼</span>
+        </button>
+        <div class="tips-body" id="tipsBody">
+            • Record for about <strong>15–30 seconds</strong>.<br>
+            • Move closer if it is safe and practical.<br>
+            • Point the microphone toward the bird.<br>
+            • Avoid touching or moving the phone while recording.<br>
+            • Avoid wind hitting the microphone.<br>
+            • The original recording is always preserved — trimmed versions are saved as separate files.
+        </div>
+    </div>
+
+    <!-- Microphone -->
+    <div class="section">
+        <div class="section-title">Microphone</div>
+        <div class="mic-row">
+            <select id="micSelect"><option value="">Default microphone</option></select>
+        </div>
+        <div class="status-badges" id="constraintBadges">
+            <span class="badge-pill badge-warn" id="badgeEC">Echo cancel: ?</span>
+            <span class="badge-pill badge-warn" id="badgeNS">Noise suppress: ?</span>
+            <span class="badge-pill badge-warn" id="badgeAGC">Auto gain: ?</span>
+            <span class="badge-pill badge-warn" id="badgeSR">Sample rate: ?</span>
+        </div>
+    </div>
+
+    <!-- Live spectrogram -->
+    <div class="spectro-wrap">
+        <div class="spectro-header">
+            <span>Spectrogram</span>
+            <div class="zoom-btns">
+                <button class="zoom-btn active" onclick="setZoom(12000,this)">12 kHz</button>
+                <button class="zoom-btn" onclick="setZoom(8000,this)">8 kHz</button>
+                <button class="zoom-btn" onclick="setZoom(4000,this)">4 kHz</button>
+            </div>
+        </div>
+        <div class="spectro-inner">
+            <canvas id="freqAxisCanvas" width="36" height="210"></canvas>
+            <canvas id="liveSpectro" height="210"></canvas>
+        </div>
+        <div class="time-axis-row">
+            <div class="time-axis-spacer"></div>
+            <canvas id="timeAxisCanvas" height="18"></canvas>
+        </div>
+    </div>
+
+    <!-- Level + signal -->
+    <div class="section">
+        <div class="level-row">
+            <span class="level-label">Level</span>
+            <div class="level-track"><div id="levelBar"></div></div>
+            <span id="dbLabel">– dB</span>
+        </div>
+        <div class="signal-status sig-idle" id="signalStatus">READY</div>
+        <div class="signal-tip" id="signalTip"></div>
+    </div>
+
+    <!-- Timer + guidance -->
+    <div class="section">
+        <div class="timer-row">
+            <span id="recTimer">00:00</span>
+            <span id="recGuidance">Recommended: 15–30 s</span>
+        </div>
+    </div>
+
+    <!-- Recording controls -->
+    <div class="controls">
+        <button class="ctrl-btn" id="btnStart" onclick="startRecording()">⏺ Start</button>
+        <button class="ctrl-btn" id="btnPause" onclick="pauseRecording()">⏸ Pause</button>
+        <button class="ctrl-btn" id="btnResume" onclick="resumeRecording()">▶ Resume</button>
+        <button class="ctrl-btn" id="btnStop" onclick="stopRecording()">⏹ Stop</button>
+    </div>
+
+    <!-- Post-recording -->
+    <div class="post-section" id="postSection">
+
+        <!-- Waveform -->
+        <div class="section">
+            <div class="section-title">Waveform — drag to select trim region</div>
+            <div class="waveform-wrap">
+                <canvas id="waveCanvas"></canvas>
+                <div class="playhead-line" id="wavePlayhead"></div>
+                <div class="trim-region" id="waveTrimRegion"></div>
+            </div>
+        </div>
+
+        <!-- Full spectrogram -->
+        <div class="section">
+            <div class="section-title">Full spectrogram — click to seek</div>
+            <div class="postspectro-wrap">
+                <div class="postspectro-inner">
+                    <canvas id="postFreqAxis" width="36" height="200"></canvas>
+                    <div class="postspectro-scroll" id="postSpectroScroll">
+                        <canvas id="postSpectroCanvas" height="200"></canvas>
+                        <div id="postPlayhead" style="left:0"></div>
+                        <div id="postTrimOverlay"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playback -->
+        <div class="section">
+            <div class="section-title">Playback</div>
+            <div class="playback-row">
+                <button class="pb-btn" id="pbPlay" onclick="playbackPlay()">▶ Play</button>
+                <button class="pb-btn" id="pbPause" onclick="playbackPause()">⏸ Pause</button>
+                <button class="pb-btn" id="pbStop" onclick="playbackStop()">⏹ Stop</button>
+                <span class="pb-time" id="pbTime">0:00 / 0:00</span>
+            </div>
+        </div>
+
+        <!-- Trim -->
+        <div class="section" id="trimSection">
+            <div class="section-title">Trim selection</div>
+            <div class="trim-row">
+                <span class="trim-info">From <span id="trimStartLabel">–</span> s to <span id="trimEndLabel">–</span> s</span>
+                <button class="action-btn btn-trim" id="btnApplyTrim" onclick="applyTrim()" disabled>Save as trimmed</button>
+                <button class="action-btn btn-cancel" onclick="clearTrim()">Clear</button>
+            </div>
+            <div style="font-size:.78em;color:#888;">Drag on the waveform or spectrogram to select a region. The original is always preserved.</div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="section">
+            <div class="section-title">Metadata (optional)</div>
+            <div class="meta-grid">
+                <div class="meta-field"><label>Species</label><input type="text" id="metaSpecies" placeholder="e.g. Laughing Dove"></div>
+                <div class="meta-field"><label>Location</label><input type="text" id="metaLocation" placeholder="e.g. Kruger NP"></div>
+                <div class="meta-field"><label>Date</label><input type="date" id="metaDate"></div>
+                <div class="meta-field"><label>Time</label><input type="time" id="metaTime"></div>
+                <div class="meta-field full"><label>Notes</label><textarea id="metaNotes" placeholder="Habitat, behaviour, background sounds…"></textarea></div>
+            </div>
+        </div>
+
+        <!-- Quality summary -->
+        <div class="section">
+            <div class="section-title">Recording quality summary</div>
+            <div class="quality-grid" id="qualityGrid">
+                <div class="q-row"><span class="q-label">Duration</span><span class="q-value" id="qDuration">–</span></div>
+                <div class="q-row"><span class="q-label">Sample rate</span><span class="q-value" id="qSR">–</span></div>
+                <div class="q-row"><span class="q-label">Bit depth</span><span class="q-value" id="qBits">24-bit PCM</span></div>
+                <div class="q-row"><span class="q-label">Channels</span><span class="q-value" id="qCh">Mono</span></div>
+                <div class="q-row"><span class="q-label">Peak level</span><span class="q-value" id="qPeak">–</span></div>
+                <div class="q-row"><span class="q-label">Avg level</span><span class="q-value" id="qAvg">–</span></div>
+                <div class="q-row"><span class="q-label">Est. SNR</span><span class="q-value" id="qSNR">–</span></div>
+                <div class="q-row"><span class="q-label">Clipping</span><span class="q-value" id="qClip">–</span></div>
+                <div class="quality-verdict" id="qualityVerdict">–</div>
+            </div>
+        </div>
+
+        <!-- Save -->
+        <div class="section">
+            <div class="section-title">Save / Export</div>
+            <div class="save-row">
+                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; Save WAV (original)</button>
+                <button class="save-btn" id="btnSaveTrim" onclick="saveTrimmed()">&#x2B07; Save WAV (trimmed)</button>
+            </div>
+        </div>
+
+    </div><!-- /post-section -->
+</div><!-- /container -->
+
+<div style="height:20px"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let audioCtx       = null;
+let analyserNode   = null;
+let workletNode    = null;
+let scriptNode     = null; // fallback
+let micStream      = null;
+let isRecording    = false;
+let isPaused       = false;
+
+let pcmChunks      = []; // Float32Array[]
+let allSamples     = null; // Float32Array — concatenated after stop
+let sampleRate     = 48000;
+let recordStartMs  = 0;
+let pausedMs       = 0;
+let pauseStartMs   = 0;
+let timerRafId     = null;
+
+let freqMax        = 12000;
+let liveColumns    = []; // Uint8Array per column (0-255, 0=white/quiet, 255=black/loud)
+let liveSpectroRaf = null;
+let liveColW       = 0;
+let liveX          = 0;
+
+let analyserData   = null; // Float32Array for frequency data
+
+let useWorklet     = false;
+
+// Post-recording
+let trimStart      = null;
+let trimEnd        = null;
+let trimSamples    = null; // trimmed Float32Array
+let playbackAudio  = null;
+let pbInterval     = null;
+let waveSelecting  = false;
+let waveSelX0      = 0;
+
+// Noise baseline (for SNR)
+let noiseFloor     = -80; // dB, estimated in first 1.5s
+let noiseEstDone   = false;
+let noiseFrames    = [];
+
+// ============================================================
+// TIPS TOGGLE
+// ============================================================
+function toggleTips(btn) {
+    const body = document.getElementById('tipsBody');
+    const arrow = document.getElementById('tipsArrow');
+    body.classList.toggle('open');
+    arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ============================================================
+// MICROPHONE POPULATION
+// ============================================================
+async function populateMicrophones() {
+    try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        const mics = devs.filter(d => d.kind === 'audioinput');
+        const sel = document.getElementById('micSelect');
+        sel.innerHTML = '';
+        mics.forEach((m, i) => {
+            const opt = document.createElement('option');
+            opt.value = m.deviceId;
+            opt.textContent = m.label || ('Microphone ' + (i + 1));
+            sel.appendChild(opt);
+        });
+        if (mics.length === 0) sel.innerHTML = '<option value="">Default microphone</option>';
+    } catch(e) {
+        console.warn('Cannot enumerate devices:', e);
+    }
+}
+
+function updateConstraintBadges(settings) {
+    function badge(id, label, val, okVal) {
+        const el = document.getElementById(id);
+        const ok = val === okVal;
+        const unknown = (val === undefined || val === null);
+        el.textContent = label + ': ' + (unknown ? '?' : (ok ? '✓ off' : '⚠ on'));
+        el.className = 'badge-pill ' + (unknown ? 'badge-warn' : (ok ? 'badge-ok' : 'badge-warn'));
+    }
+    badge('badgeEC',  'Echo cancel',    settings.echoCancellation, false);
+    badge('badgeNS',  'Noise suppress', settings.noiseSuppression, false);
+    badge('badgeAGC', 'Auto gain',      settings.autoGainControl,  false);
+    const srEl = document.getElementById('badgeSR');
+    const sr = settings.sampleRate;
+    srEl.textContent = 'Sample rate: ' + (sr ? (sr >= 44100 ? sr/1000 + ' kHz ✓' : sr/1000 + ' kHz') : '?');
+    srEl.className = 'badge-pill ' + (sr && sr >= 44100 ? 'badge-ok' : 'badge-warn');
+}
+
+// ============================================================
+// WAV ENCODER
+// ============================================================
+function encodeWAV(samples, sr) {
+    const numCh = 1;
+    const bitsPerSample = 24; // 24-bit PCM — Macaulay Library recommended
+    const bytesPerSample = 3;
+    const byteRate = sr * numCh * bytesPerSample;
+    const blockAlign = numCh * bytesPerSample;
+    const dataSize = samples.length * bytesPerSample;
+    const buf = new ArrayBuffer(44 + dataSize);
+    const v = new DataView(buf);
+    const ws = (off, str) => { for (let i = 0; i < str.length; i++) v.setUint8(off + i, str.charCodeAt(i)); };
+    ws(0, 'RIFF'); v.setUint32(4, 36 + dataSize, true);
+    ws(8, 'WAVE');
+    ws(12, 'fmt '); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); // PCM format
+    v.setUint16(22, numCh, true);
+    v.setUint32(24, sr, true); v.setUint32(28, byteRate, true);
+    v.setUint16(32, blockAlign, true); v.setUint16(34, bitsPerSample, true);
+    ws(36, 'data'); v.setUint32(40, dataSize, true);
+    let off = 44;
+    for (let i = 0; i < samples.length; i++, off += 3) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        // Convert Float32 to signed 24-bit two's complement, little-endian
+        let int24 = Math.round(s < 0 ? s * 0x800000 : s * 0x7FFFFF);
+        if (int24 < 0) int24 += 0x1000000; // unsigned representation
+        v.setUint8(off,      int24         & 0xFF);
+        v.setUint8(off + 1, (int24 >> 8)  & 0xFF);
+        v.setUint8(off + 2, (int24 >> 16) & 0xFF);
+    }
+    return buf;
+}
+
+// ============================================================
+// RECORDING — START
+// ============================================================
+async function startRecording() {
+    const micId = document.getElementById('micSelect').value;
+    const constraints = {
+        audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            sampleRate: 48000,
+            channelCount: 1
+        }
+    };
+    if (micId) constraints.audio.deviceId = { exact: micId };
+
+    try {
+        micStream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch(e) {
+        alert('Microphone access denied. Please allow microphone access and try again.');
+        return;
+    }
+
+    // Read actual settings
+    const track = micStream.getAudioTracks()[0];
+    const settings = track.getSettings ? track.getSettings() : {};
+    updateConstraintBadges(settings);
+    sampleRate = settings.sampleRate || 48000;
+
+    // Populate mic list now that we have permission
+    await populateMicrophones();
+    if (micId) document.getElementById('micSelect').value = micId;
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+    const source = audioCtx.createMediaStreamSource(micStream);
+
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 4096;
+    analyserNode.smoothingTimeConstant = 0.5;
+    source.connect(analyserNode);
+    analyserData = new Float32Array(analyserNode.frequencyBinCount);
+
+    // Try AudioWorklet, fall back to ScriptProcessorNode
+    if (audioCtx.audioWorklet) {
+        try {
+            await audioCtx.audioWorklet.addModule('wav-processor.js');
+            workletNode = new AudioWorkletNode(audioCtx, 'wav-recorder');
+            workletNode.port.onmessage = (e) => { if (isRecording && !isPaused) pcmChunks.push(e.data); };
+            source.connect(workletNode);
+            workletNode.port.postMessage('start');
+            useWorklet = true;
+        } catch(e) {
+            console.warn('AudioWorklet failed, using ScriptProcessorNode:', e);
+            setupScriptProcessor(source);
+        }
+    } else {
+        setupScriptProcessor(source);
+    }
+
+    isRecording = true;
+    isPaused = false;
+    pcmChunks = [];
+    liveColumns = [];
+    liveX = 0;
+    noiseFrames = [];
+    noiseEstDone = false;
+    noiseFloor = -80;
+    recordStartMs = Date.now();
+    pausedMs = 0;
+
+    showRecordingUI(true);
+    startTimer();
+    startLiveSpectrogram();
+    populateMeta();
+}
+
+function setupScriptProcessor(source) {
+    scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+    scriptNode.onaudioprocess = (e) => {
+        if (isRecording && !isPaused) {
+            pcmChunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+        }
+    };
+    source.connect(scriptNode);
+    scriptNode.connect(audioCtx.destination);
+    useWorklet = false;
+}
+
+// ============================================================
+// RECORDING — PAUSE / RESUME / STOP
+// ============================================================
+function pauseRecording() {
+    if (!isRecording || isPaused) return;
+    isPaused = true;
+    pauseStartMs = Date.now();
+    if (useWorklet && workletNode) workletNode.port.postMessage('stop');
+    document.getElementById('btnPause').style.display = 'none';
+    document.getElementById('btnResume').style.display = 'inline-block';
+    setSignalStatus('PAUSED', 'sig-idle', '');
+}
+
+function resumeRecording() {
+    if (!isRecording || !isPaused) return;
+    pausedMs += (Date.now() - pauseStartMs);
+    isPaused = false;
+    if (useWorklet && workletNode) workletNode.port.postMessage('start');
+    document.getElementById('btnPause').style.display = 'inline-block';
+    document.getElementById('btnResume').style.display = 'none';
+}
+
+async function stopRecording() {
+    if (!isRecording) return;
+    isRecording = false;
+    isPaused = false;
+
+    if (useWorklet && workletNode) {
+        workletNode.port.postMessage('stop');
+        workletNode.disconnect();
+        workletNode = null;
+    }
+    if (scriptNode) {
+        scriptNode.disconnect();
+        scriptNode = null;
+    }
+    if (analyserNode) { analyserNode.disconnect(); analyserNode = null; }
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+
+    cancelAnimationFrame(liveSpectroRaf);
+    cancelAnimationFrame(timerRafId);
+
+    showRecordingUI(false);
+
+    // Concatenate PCM chunks
+    const totalLen = pcmChunks.reduce((a, c) => a + c.length, 0);
+    allSamples = new Float32Array(totalLen);
+    let pos = 0;
+    for (const chunk of pcmChunks) { allSamples.set(chunk, pos); pos += chunk.length; }
+    pcmChunks = [];
+
+    if (totalLen < 100) {
+        alert('Recording was too short.');
+        return;
+    }
+
+    // Close AudioContext
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+
+    // Show post-recording UI
+    document.getElementById('postSection').style.display = 'block';
+    renderWaveform(allSamples);
+    renderPostSpectrogram(allSamples);
+    buildQualitySummary(allSamples);
+    initPlayback(allSamples);
+    trimStart = null; trimEnd = null;
+    updateTrimUI();
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function startTimer() {
+    function tick() {
+        if (!isRecording) return;
+        const elapsedMs = (Date.now() - recordStartMs) - pausedMs;
+        const secs = Math.floor(elapsedMs / 1000);
+        const m = String(Math.floor(secs / 60)).padStart(2, '0');
+        const s = String(secs % 60).padStart(2, '0');
+        document.getElementById('recTimer').textContent = m + ':' + s;
+        const g = document.getElementById('recGuidance');
+        if (secs < 15) {
+            g.textContent = 'Recommended: 15–30 s'; g.className = '';
+        } else if (secs <= 30) {
+            g.textContent = 'Good length ✓'; g.className = 'warn'; // green-ish
+            g.style.color = '#2e7d32';
+        } else if (secs <= 60) {
+            g.textContent = 'Longer than recommended — stop when ready'; g.className = 'warn'; g.style.color = '';
+        } else {
+            g.textContent = 'Recording is very long'; g.className = 'danger'; g.style.color = '';
+        }
+        timerRafId = requestAnimationFrame(tick);
+    }
+    tick();
+}
+
+// ============================================================
+// LIVE SPECTROGRAM
+// ============================================================
+function setZoom(maxHz, btn) {
+    freqMax = maxHz;
+    document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    drawFreqAxis(document.getElementById('freqAxisCanvas'), maxHz, 210);
+}
+
+function drawFreqAxis(canvas, maxHz, h) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, h);
+    ctx.fillStyle = '#f8f8f8';
+    ctx.fillRect(0, 0, canvas.width, h);
+    ctx.fillStyle = '#888';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    const steps = maxHz <= 4000 ? [0,1000,2000,3000,4000] :
+                  maxHz <= 8000 ? [0,2000,4000,6000,8000] :
+                                  [0,2000,4000,6000,8000,10000,12000];
+    steps.forEach(hz => {
+        const y = h - (hz / maxHz) * h;
+        ctx.fillStyle = '#ccc';
+        ctx.fillRect(0, Math.round(y), canvas.width, 1);
+        ctx.fillStyle = '#555';
+        ctx.fillText(hz >= 1000 ? (hz/1000)+'k' : hz, canvas.width - 2, Math.round(y) + 4);
+    });
+}
+
+let lastLiveMs = 0;
+const LIVE_COL_INTERVAL_MS = 50; // 20 columns/second
+
+function startLiveSpectrogram() {
+    const canvas = document.getElementById('liveSpectro');
+    canvas.width = canvas.clientWidth || 400;
+    const w = canvas.width;
+    const h = 210;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, w, h);
+    liveColW = w;
+    liveX = 0;
+
+    drawFreqAxis(document.getElementById('freqAxisCanvas'), freqMax, h);
+
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const pixels  = imgData.data;
+
+    function drawColumn(now) {
+        if (!isRecording) return;
+        liveSpectroRaf = requestAnimationFrame(drawColumn);
+        if (!analyserNode || isPaused) return;
+        if (now - lastLiveMs < LIVE_COL_INTERVAL_MS) return;
+        lastLiveMs = now;
+
+        analyserNode.getFloatFrequencyData(analyserData);
+        analyseSignalLive(analyserData);
+
+        const binCount = analyserNode.frequencyBinCount; // fftSize/2
+        // Each bin = sampleRate / fftSize Hz
+        const hzPerBin = (audioCtx ? audioCtx.sampleRate : 48000) / (analyserNode.fftSize);
+        const maxBin = Math.min(Math.floor(freqMax / hzPerBin), binCount - 1);
+
+        // Render column pixels
+        const col = new Uint8Array(h);
+        for (let y = 0; y < h; y++) {
+            const bin = Math.round((1 - y / h) * maxBin);
+            const db = analyserData[Math.min(bin, binCount - 1)];
+            const norm = Math.max(0, Math.min(1, (db - (-100)) / ((-20) - (-100))));
+            const gamma = Math.pow(norm, 0.6);
+            col[y] = Math.round(gamma * 255); // 0=white(quiet), 255=black(loud)
+        }
+        liveColumns.push(col);
+        if (liveColumns.length > 3000) liveColumns.shift(); // memory guard
+
+        // Draw column on canvas
+        const x = liveX;
+        for (let y = 0; y < h; y++) {
+            const darkness = col[y];
+            const c = 255 - darkness;
+            const idx = (y * w + x) * 4;
+            pixels[idx] = c; pixels[idx+1] = c; pixels[idx+2] = c; pixels[idx+3] = 255;
+        }
+
+        // Playhead: 1px light gray column ahead
+        const nx = (x + 1) % w;
+        for (let y = 0; y < h; y++) {
+            const idx = (y * w + nx) * 4;
+            pixels[idx] = 200; pixels[idx+1] = 200; pixels[idx+2] = 200; pixels[idx+3] = 255;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        liveX = (liveX + 1) % w;
+
+        drawTimeAxis(now);
+    }
+
+    requestAnimationFrame(drawColumn);
+}
+
+let timeAxisT0 = null;
+function drawTimeAxis(now) {
+    if (!timeAxisT0) timeAxisT0 = now;
+    const elapsed = (now - timeAxisT0) / 1000;
+    const canvas = document.getElementById('timeAxisCanvas');
+    if (!canvas.width) canvas.width = canvas.clientWidth || 400;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    ctx.fillStyle = '#f8f8f8';
+    ctx.fillRect(0, 0, w, 18);
+    ctx.fillStyle = '#888';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    // Show seconds at current x position
+    ctx.fillText(elapsed.toFixed(0) + 's', liveX, 13);
+}
+
+// ============================================================
+// SIGNAL ANALYSIS (live)
+// ============================================================
+let clipCount = 0;
+function analyseSignalLive(freqData) {
+    // Level from time domain
+    const timeBuf = new Float32Array(analyserNode.fftSize);
+    analyserNode.getFloatTimeDomainData(timeBuf);
+    let peak = 0, rms = 0;
+    for (let i = 0; i < timeBuf.length; i++) {
+        const a = Math.abs(timeBuf[i]);
+        if (a > peak) peak = a;
+        rms += a * a;
+    }
+    rms = Math.sqrt(rms / timeBuf.length);
+
+    const peakDb = peak > 0 ? 20 * Math.log10(peak) : -100;
+    const rmsDb  = rms  > 0 ? 20 * Math.log10(rms)  : -100;
+
+    // Level bar
+    const pct = Math.max(0, Math.min(100, (peakDb + 60) / 60 * 100));
+    document.getElementById('levelBar').style.width = pct + '%';
+    document.getElementById('levelBar').style.background =
+        pct > 90 ? '#c62828' : pct > 70 ? '#f57f17' : '#2e7d32';
+    document.getElementById('dbLabel').textContent = peakDb.toFixed(0) + ' dB';
+
+    // Clipping detection
+    if (peak > 0.97) clipCount++;
+    else clipCount = Math.max(0, clipCount - 1);
+
+    // Noise floor estimate (first 1.5s)
+    const elapsedSec = (Date.now() - recordStartMs) / 1000;
+    if (!noiseEstDone && elapsedSec < 1.5) {
+        noiseFrames.push(rmsDb);
+    } else if (!noiseEstDone && noiseFrames.length > 0) {
+        noiseFloor = noiseFrames.reduce((a,b) => a+b) / noiseFrames.length;
+        noiseEstDone = true;
+    }
+
+    const snr = rmsDb - noiseFloor;
+
+    // Signal status
+    if (clipCount > 8) {
+        setSignalStatus('⚠ CLIPPING', 'sig-clip', 'Recording level is too high — clipping may be occurring. Move the microphone further away.');
+    } else if (snr < 3) {
+        setSignalStatus('VERY WEAK SIGNAL', 'sig-veryweak', 'Signal is very weak. If possible, move closer to the bird or point the microphone more directly toward it.');
+    } else if (snr < 10) {
+        setSignalStatus('WEAK SIGNAL', 'sig-weak', 'Signal is weak. Move closer to the bird or point the microphone toward it for a better recording.');
+    } else {
+        setSignalStatus('GOOD SIGNAL ✓', 'sig-good', '');
+    }
+}
+
+function setSignalStatus(text, cls, tip) {
+    const el = document.getElementById('signalStatus');
+    el.textContent = text;
+    el.className = 'signal-status ' + cls;
+    document.getElementById('signalTip').textContent = tip;
+}
+
+// ============================================================
+// UI STATE
+// ============================================================
+function showRecordingUI(recording) {
+    document.getElementById('btnStart').style.display  = recording ? 'none' : 'inline-block';
+    document.getElementById('btnPause').style.display  = recording ? 'inline-block' : 'none';
+    document.getElementById('btnStop').style.display   = recording ? 'inline-block' : 'none';
+    document.getElementById('btnResume').style.display = 'none';
+    if (!recording) {
+        document.getElementById('recTimer').textContent = '00:00';
+        document.getElementById('recGuidance').textContent = 'Recommended: 15–30 s';
+        document.getElementById('recGuidance').className = '';
+        document.getElementById('recGuidance').style.color = '';
+        setSignalStatus('READY', 'sig-idle', '');
+        document.getElementById('dbLabel').textContent = '– dB';
+        document.getElementById('levelBar').style.width = '0%';
+    }
+}
+
+// ============================================================
+// WAVEFORM RENDER
+// ============================================================
+function renderWaveform(samples) {
+    const canvas = document.getElementById('waveCanvas');
+    canvas.width = canvas.clientWidth || 600;
+    const w = canvas.width, h = 70;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#2e6b44';
+    ctx.lineWidth = 1;
+
+    const step = Math.floor(samples.length / w);
+    ctx.beginPath();
+    for (let x = 0; x < w; x++) {
+        let min = 0, max = 0;
+        for (let i = 0; i < step; i++) {
+            const v = samples[x * step + i] || 0;
+            if (v < min) min = v; if (v > max) max = v;
+        }
+        const y1 = (0.5 - max / 2) * h;
+        const y2 = (0.5 - min / 2) * h;
+        ctx.moveTo(x + 0.5, y1);
+        ctx.lineTo(x + 0.5, y2);
+    }
+    ctx.stroke();
+
+    // Add drag-to-select
+    setupWaveDrag(canvas, samples.length);
+}
+
+function setupWaveDrag(canvas, totalSamples) {
+    canvas.onmousedown = canvas.ontouchstart = (e) => {
+        waveSelecting = true;
+        const x = getCanvasX(e, canvas);
+        waveSelX0 = x;
+        const frac = x / canvas.width;
+        trimStart = frac * (totalSamples / sampleRate);
+        trimEnd = trimStart;
+        updateTrimUI();
+    };
+    canvas.onmousemove = canvas.ontouchmove = (e) => {
+        if (!waveSelecting) return;
+        const x = getCanvasX(e, canvas);
+        const frac = x / canvas.width;
+        const t = frac * (totalSamples / sampleRate);
+        if (t < trimStart && waveSelX0 > x) {
+            // dragging left
+            trimEnd = waveSelX0 / canvas.width * (totalSamples / sampleRate);
+            trimStart = t;
+        } else {
+            trimEnd = t;
+        }
+        updateTrimUI();
+        redrawWaveformSelection(canvas, totalSamples);
+    };
+    canvas.onmouseup = canvas.ontouchend = () => { waveSelecting = false; };
+}
+
+function getCanvasX(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return Math.max(0, Math.min(canvas.width, src.clientX - rect.left));
+}
+
+function redrawWaveformSelection(canvas, totalSamples) {
+    renderWaveform(allSamples); // re-render clean
+    if (trimStart == null || trimEnd == null) return;
+    const w = canvas.width, dur = totalSamples / sampleRate;
+    const x1 = (trimStart / dur) * w;
+    const x2 = (trimEnd   / dur) * w;
+    const reg = document.getElementById('waveTrimRegion');
+    reg.style.display = 'block';
+    reg.style.left = x1 + 'px';
+    reg.style.width = (x2 - x1) + 'px';
+}
+
+// ============================================================
+// POST-RECORDING SPECTROGRAM
+// ============================================================
+function renderPostSpectrogram(samples) {
+    // Use stored liveColumns if enough are available, else compute
+    const totalDur = samples.length / sampleRate;
+    const pxPerSec = 20; // 20px per second
+    const totalW = Math.max(400, Math.ceil(totalDur * pxPerSec));
+    const h = 200;
+
+    const canvas = document.getElementById('postSpectroCanvas');
+    canvas.width = totalW;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, totalW, h);
+
+    // Compute from PCM samples using FFT
+    const fftSize = 4096;
+    const hop = Math.max(1, Math.floor(samples.length / totalW));
+    const window = makeHannWindow(fftSize);
+    const re = new Float64Array(fftSize);
+    const im = new Float64Array(fftSize);
+    const hzPerBin = sampleRate / fftSize;
+    const maxBin = Math.min(Math.floor(freqMax / hzPerBin), fftSize / 2 - 1);
+
+    const imgData = ctx.getImageData(0, 0, totalW, h);
+    const pixels  = imgData.data;
+
+    for (let col = 0; col < totalW; col++) {
+        const offset = col * hop;
+        re.fill(0); im.fill(0);
+        for (let i = 0; i < fftSize; i++) {
+            re[i] = (samples[offset + i] || 0) * window[i];
+        }
+        fft(re, im);
+        for (let y = 0; y < h; y++) {
+            const bin = Math.round((1 - y / h) * maxBin);
+            const mag = Math.sqrt(re[bin]*re[bin] + im[bin]*im[bin]);
+            const db = mag > 0 ? 20 * Math.log10(mag) : -120;
+            const norm = Math.max(0, Math.min(1, (db - (-90)) / ((-20) - (-90))));
+            const gamma = Math.pow(norm, 0.65);
+            const darkness = Math.round(gamma * 255);
+            const c = 255 - darkness;
+            const idx = (y * totalW + col) * 4;
+            pixels[idx] = c; pixels[idx+1] = c; pixels[idx+2] = c; pixels[idx+3] = 255;
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    drawFreqAxis(document.getElementById('postFreqAxis'), freqMax, h);
+
+    // Click to seek
+    canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const frac = x / canvas.width;
+        seekPlayback(frac * totalDur);
+    };
+
+    // Drag to select trim
+    setupPostSpectroDrag(canvas, totalDur);
+}
+
+function setupPostSpectroDrag(canvas, dur) {
+    let selecting = false, x0 = 0;
+    canvas.onmousedown = canvas.ontouchstart = (e) => {
+        selecting = true;
+        const rect = canvas.getBoundingClientRect();
+        const src = e.touches ? e.touches[0] : e;
+        x0 = src.clientX - rect.left;
+        trimStart = (x0 / canvas.width) * dur;
+        trimEnd = trimStart;
+        updateTrimUI();
+    };
+    canvas.onmousemove = canvas.ontouchmove = (e) => {
+        if (!selecting) return;
+        const rect = canvas.getBoundingClientRect();
+        const src = e.touches ? e.touches[0] : e;
+        const x1 = src.clientX - rect.left;
+        const t0 = Math.min(x0, x1) / canvas.width * dur;
+        const t1 = Math.max(x0, x1) / canvas.width * dur;
+        trimStart = t0; trimEnd = t1;
+        updateTrimUI();
+        const ov = document.getElementById('postTrimOverlay');
+        ov.style.display = 'block';
+        ov.style.left   = Math.min(x0, x1) + 'px';
+        ov.style.width  = Math.abs(x1 - x0) + 'px';
+        // Sync waveform
+        redrawWaveformSelection(document.getElementById('waveCanvas'), allSamples.length);
+    };
+    canvas.onmouseup = canvas.ontouchend = () => { selecting = false; };
+}
+
+// ============================================================
+// FFT (Cooley-Tukey radix-2)
+// ============================================================
+function fft(re, im) {
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) {
+        let bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) { [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+        const half = len >> 1;
+        const ang  = -2 * Math.PI / len;
+        const wr = Math.cos(ang), wi = Math.sin(ang);
+        for (let i = 0; i < n; i += len) {
+            let cr = 1, ci = 0;
+            for (let j = 0; j < half; j++) {
+                const tr = cr*re[i+j+half] - ci*im[i+j+half];
+                const ti = cr*im[i+j+half] + ci*re[i+j+half];
+                re[i+j+half] = re[i+j]-tr; im[i+j+half] = im[i+j]-ti;
+                re[i+j] += tr; im[i+j] += ti;
+                const ncr = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = ncr;
+            }
+        }
+    }
+}
+
+function makeHannWindow(n) {
+    const w = new Float64Array(n);
+    for (let i = 0; i < n; i++) w[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (n - 1)));
+    return w;
+}
+
+// ============================================================
+// PLAYBACK
+// ============================================================
+function initPlayback(samples) {
+    if (playbackAudio) { playbackAudio.pause(); playbackAudio = null; }
+    const wavBuf = encodeWAV(samples, sampleRate);
+    const blob   = new Blob([wavBuf], { type: 'audio/wav' });
+    const url    = URL.createObjectURL(blob);
+    playbackAudio = new Audio(url);
+    playbackAudio.onended = () => { clearInterval(pbInterval); updatePbTime(); };
+    const dur = samples.length / sampleRate;
+    document.getElementById('pbTime').textContent = '0:00 / ' + fmtTime(dur);
+}
+
+function playbackPlay() {
+    if (!playbackAudio) return;
+    playbackAudio.play();
+    clearInterval(pbInterval);
+    pbInterval = setInterval(updatePbTime, 100);
+}
+function playbackPause() { if (playbackAudio) playbackAudio.pause(); }
+function playbackStop()  {
+    if (!playbackAudio) return;
+    playbackAudio.pause();
+    playbackAudio.currentTime = 0;
+    clearInterval(pbInterval);
+    updatePbTime();
+}
+
+function seekPlayback(t) {
+    if (!playbackAudio) return;
+    playbackAudio.currentTime = t;
+    updatePbTime();
+}
+
+function updatePbTime() {
+    if (!playbackAudio || !allSamples) return;
+    const cur = playbackAudio.currentTime;
+    const dur = allSamples.length / sampleRate;
+    document.getElementById('pbTime').textContent = fmtTime(cur) + ' / ' + fmtTime(dur);
+    // Move playhead on post spectrogram
+    const canvas = document.getElementById('postSpectroCanvas');
+    const ph = document.getElementById('postPlayhead');
+    const x = (cur / dur) * canvas.width;
+    ph.style.left = x + 'px';
+    // Waveform playhead
+    const wc = document.getElementById('waveCanvas');
+    const wph = document.getElementById('wavePlayhead');
+    wph.style.display = 'block';
+    wph.style.left = ((cur / dur) * wc.width) + 'px';
+}
+
+function fmtTime(s) {
+    const m = Math.floor(s / 60), ss = Math.floor(s % 60);
+    return m + ':' + String(ss).padStart(2, '0');
+}
+
+// ============================================================
+// TRIM
+// ============================================================
+function updateTrimUI() {
+    const hasTrim = trimStart !== null && trimEnd !== null && trimEnd > trimStart + 0.01;
+    document.getElementById('trimStartLabel').textContent = trimStart !== null ? trimStart.toFixed(2) : '–';
+    document.getElementById('trimEndLabel').textContent   = trimEnd   !== null ? trimEnd.toFixed(2)   : '–';
+    document.getElementById('btnApplyTrim').disabled = !hasTrim;
+    document.getElementById('btnSaveTrim').style.display = hasTrim ? 'inline-block' : 'none';
+}
+
+function clearTrim() {
+    trimStart = null; trimEnd = null; trimSamples = null;
+    document.getElementById('waveTrimRegion').style.display = 'none';
+    document.getElementById('postTrimOverlay').style.display = 'none';
+    updateTrimUI();
+}
+
+function applyTrim() {
+    if (!allSamples || trimStart == null || trimEnd == null) return;
+    const s = Math.max(0, Math.round(trimStart * sampleRate));
+    const e = Math.min(allSamples.length, Math.round(trimEnd * sampleRate));
+    if (e <= s) return;
+    trimSamples = allSamples.slice(s, e);
+    document.getElementById('btnSaveTrim').style.display = 'inline-block';
+}
+
+// ============================================================
+// QUALITY SUMMARY
+// ============================================================
+function buildQualitySummary(samples) {
+    const dur = samples.length / sampleRate;
+    let peak = 0, rmsSum = 0;
+    let clipSamples = 0;
+    for (let i = 0; i < samples.length; i++) {
+        const a = Math.abs(samples[i]);
+        if (a > peak) peak = a;
+        rmsSum += a * a;
+        if (a > 0.97) clipSamples++;
+    }
+    const rms    = Math.sqrt(rmsSum / samples.length);
+    const peakDb = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '-∞';
+    const rmsDb  = rms  > 0 ? (20 * Math.log10(rms)).toFixed(1)  : '-∞';
+    const snr    = (parseFloat(rmsDb) - noiseFloor).toFixed(1);
+    const clipped = clipSamples > 10;
+
+    set('qDuration', dur.toFixed(1) + ' s');
+    set('qSR',   sampleRate >= 44100 ? sampleRate + ' Hz ✓' : sampleRate + ' Hz');
+    set('qPeak', peakDb + ' dBFS');
+    set('qAvg',  rmsDb  + ' dBFS');
+    set('qSNR',  snr + ' dB');
+    set('qClip', clipped ? '⚠ YES' : 'None detected');
+
+    const verdict = document.getElementById('qualityVerdict');
+    let cls = 'verdict-good', label = 'GOOD';
+    if (clipped) { cls = 'verdict-poor'; label = 'CLIPPING DETECTED'; }
+    else if (parseFloat(snr) < 5) { cls = 'verdict-poor'; label = 'POOR — very weak signal'; }
+    else if (parseFloat(snr) < 12) { cls = 'verdict-weak'; label = 'WEAK SIGNAL'; }
+    else if (dur < 10) { cls = 'verdict-weak'; label = 'GOOD — but very short'; }
+    verdict.textContent = label;
+    verdict.className = 'quality-verdict ' + cls;
+}
+
+function set(id, val) { document.getElementById(id).textContent = val; }
+
+// ============================================================
+// METADATA
+// ============================================================
+function populateMeta() {
+    const now = new Date();
+    document.getElementById('metaDate').value = now.toISOString().slice(0, 10);
+    document.getElementById('metaTime').value = now.toTimeString().slice(0, 5);
+}
+
+// ============================================================
+// FILENAME
+// ============================================================
+function buildFilename(suffix) {
+    const species = document.getElementById('metaSpecies').value.trim().replace(/\s+/g, '_');
+    const date = document.getElementById('metaDate').value.replace(/-/g, '') || '';
+    const time = document.getElementById('metaTime').value.replace(':', '') || '';
+    const dt = (date && time) ? date + '_' + time : date || new Date().toISOString().slice(0,19).replace(/[-:T]/g, '');
+    const base = species ? species + '_' + dt : dt;
+    return base + (suffix || '') + '.wav';
+}
+
+// ============================================================
+// SAVE
+// ============================================================
+async function saveWAV(samples, suffix) {
+    const wavBuf  = encodeWAV(samples, sampleRate);
+    const blob    = new Blob([wavBuf], { type: 'audio/wav' });
+    const fname   = buildFilename(suffix);
+    if (window.showSaveFilePicker) {
+        try {
+            const fh = await window.showSaveFilePicker({
+                suggestedName: fname,
+                types: [{ description: 'WAV audio', accept: { 'audio/wav': ['.wav'] } }]
+            });
+            const wr = await fh.createWritable();
+            await wr.write(blob);
+            await wr.close();
+            return;
+        } catch(e) {
+            if (e.name === 'AbortError') return;
+        }
+    }
+    // Fallback
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    a.click();
+}
+
+function saveOriginal() {
+    if (!allSamples) return;
+    saveWAV(allSamples, '');
+}
+
+function saveTrimmed() {
+    if (!trimSamples && (trimStart == null || trimEnd == null)) {
+        alert('No trim region selected.'); return;
+    }
+    const s = trimSamples || allSamples.slice(
+        Math.round(trimStart * sampleRate),
+        Math.round(trimEnd   * sampleRate)
+    );
+    saveWAV(s, '_trim');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+    // Try to enumerate devices (may need permission first)
+    try {
+        await populateMicrophones();
+    } catch(e) {}
+
+    // Draw empty spectrogram axes
+    drawFreqAxis(document.getElementById('freqAxisCanvas'), freqMax, 210);
+    const lc = document.getElementById('liveSpectro');
+    lc.width = lc.clientWidth || 400;
+    const ctx = lc.getContext('2d');
+    ctx.fillStyle = 'white'; ctx.fillRect(0, 0, lc.width, 210);
+
+    // Add resize handler
+    window.addEventListener('resize', () => {
+        const lc2 = document.getElementById('liveSpectro');
+        if (!isRecording) {
+            lc2.width = lc2.clientWidth || 400;
+            const c = lc2.getContext('2d');
+            c.fillStyle = 'white'; c.fillRect(0, 0, lc2.width, 210);
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
