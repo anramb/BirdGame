@@ -143,6 +143,24 @@
             <p>Play through a filtered playlist of birds. You can filter by <strong>bird</strong> (see a dropdown list of birds available), <strong>bird group</strong> (e.g. Cisticolas, Raptors, Seedeaters), <strong>hotspot</strong> (birding location), <strong>habitat</strong>, and <strong>difficulty level</strong> (Beginner, Intermediate, Advanced). The playlist plays each bird in sequence, showing the name, spectrogram, and audio. Great for systematic study before a birding trip.If the spectrogram fails to load, click on the <strong>Retry</strong> button. </p>
         </div>
         
+        <div class="mode-highlight" style="border-left-color: #1a3a2a;">
+            <strong style="color:#1a3a2a;">🎙️ Bird Recording Studio</strong>
+            <p>Record high-quality field recordings of birds directly from your phone. The studio is designed for wildlife recording rather than voice calls, and requests that the microphone's automatic processing (echo cancellation, noise suppression, automatic gain control) be switched off so that the natural bird sound is preserved as accurately as possible. All recordings are saved as uncompressed <strong>WAV files at 48&nbsp;kHz, 24-bit PCM</strong> &ndash; the format recommended by the Macaulay Library and eBird for archival submissions.</p>
+            <p>While recording, a large live <strong>spectrogram</strong> is displayed with a frequency scale in kHz. A <strong>signal quality indicator</strong> continuously estimates the signal-to-noise ratio and warns you if the bird signal is weak compared with background noise, or if clipping is detected. An elapsed-time indicator encourages recordings of the recommended 15&ndash;30 seconds.</p>
+            <p>After stopping, the complete waveform and a full spectrogram are displayed. You can:</p>
+            <ul>
+                <li><strong>Drag to select</strong> any region on the waveform or spectrogram.</li>
+                <li><strong>✂ Remove selection</strong> &ndash; cut out that section (e.g. handling noise) and keep the rest.</li>
+                <li><strong>Keep selection only</strong> &ndash; discard everything outside the selection.</li>
+                <li>Make multiple successive edits before saving.</li>
+                <li><strong>Reset to original</strong> at any time &ndash; the original recording is never modified.</li>
+            </ul>
+            <p>A <strong>recording quality summary</strong> is shown after stopping, including duration, sample rate, bit depth, peak and average level, estimated SNR, and whether clipping was detected. You can add optional metadata (species name, location, date, time, notes) before saving. Files are named automatically with the date and time, e.g. <em>LaughingDove_20260814_083215.wav</em> and <em>LaughingDove_20260814_083215_edit.wav</em> for edited versions. If your browser supports the File System Access API, you can choose where the file is saved; otherwise it downloads automatically.</p>
+            <div class="tip" style="margin-top:10px;">
+                <strong>Tip:</strong> For the best field recording: record for 15&ndash;30 seconds, move as close to the bird as possible, point the microphone toward it, avoid wind, and keep the phone still. A WAV recording saved from this studio can be uploaded directly to an eBird checklist for archiving in the Macaulay Library.
+            </div>
+        </div>
+
         <div class="mode-highlight">
             <strong>Soundscape ID Training</strong>
             <p>Listen to real-life field recordings containing multiple bird species. Try to identify each bird you hear in the soundscape. This mode simulates the actual birding experience where many birds call simultaneously.</p>

@@ -139,6 +139,11 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
     .meta-grid{grid-template-columns:1fr}
     .meta-field.full{grid-column:1}
 }
+.btn-remove{background:#b71c1c;color:white}
+.btn-remove:disabled{opacity:.35;cursor:not-allowed}
+.btn-keep{background:#1a3a2a;color:white}
+.btn-keep:disabled{opacity:.35;cursor:not-allowed}
+.edit-applied{font-size:.8em;color:#2e7d32;font-weight:600;margin-top:6px}
 </style>
 </head>
 <body>
@@ -266,15 +271,19 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
             </div>
         </div>
 
-        <!-- Trim -->
+        <!-- Selection / Edit -->
         <div class="section" id="trimSection">
-            <div class="section-title">Trim selection</div>
-            <div class="trim-row">
-                <span class="trim-info">From <span id="trimStartLabel">–</span> s to <span id="trimEndLabel">–</span> s</span>
-                <button class="action-btn btn-trim" id="btnApplyTrim" onclick="applyTrim()" disabled>Save as trimmed</button>
+            <div class="section-title">Selection</div>
+            <div style="font-size:.88em;color:#444;margin-bottom:10px;">
+                From <strong><span id="trimStartLabel">–</span></strong> s &nbsp;to&nbsp; <strong><span id="trimEndLabel">–</span></strong> s &nbsp;(<span id="trimDurLabel">–</span> s)
+            </div>
+            <div class="trim-row" style="gap:8px;flex-wrap:wrap;">
+                <button class="action-btn btn-remove" id="btnRemoveSel" onclick="removeSelection()" disabled>✂ Remove selection</button>
+                <button class="action-btn btn-keep" id="btnKeepSel" onclick="keepSelectionOnly()" disabled>Keep selection only</button>
                 <button class="action-btn btn-cancel" onclick="clearTrim()">Clear</button>
             </div>
-            <div style="font-size:.78em;color:#888;">Drag on the waveform or spectrogram to select a region. The original is always preserved.</div>
+            <div id="editStatus" style="font-size:.78em;color:#888;margin-top:8px;">Drag on the waveform or spectrogram to select a region to cut or keep.</div>
+            <button class="action-btn btn-cancel" id="btnResetOrig" onclick="resetToOriginal()" style="display:none;margin-top:8px;width:100%;text-align:center;">↩ Reset to original recording</button>
         </div>
 
         <!-- Metadata -->
@@ -309,8 +318,8 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
         <div class="section">
             <div class="section-title">Save / Export</div>
             <div class="save-row">
-                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; Save WAV (original)</button>
-                <button class="save-btn" id="btnSaveTrim" onclick="saveTrimmed()">&#x2B07; Save WAV (trimmed)</button>
+                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; Save original WAV</button>
+                <button class="save-btn" id="btnSaveEdited" onclick="saveEdited()" style="display:none;background:#2e6b44;">&#x2B07; Save edited WAV</button>
             </div>
         </div>
 
@@ -352,7 +361,7 @@ let useWorklet     = false;
 // Post-recording
 let trimStart      = null;
 let trimEnd        = null;
-let trimSamples    = null; // trimmed Float32Array
+let editedSamples  = null; // result of remove/keep edit (original always kept in allSamples)
 let playbackAudio  = null;
 let pbInterval     = null;
 let waveSelecting  = false;
@@ -593,6 +602,7 @@ async function stopRecording() {
     if (audioCtx) { audioCtx.close(); audioCtx = null; }
 
     // Show post-recording UI
+    editedSamples = null;
     document.getElementById('postSection').style.display = 'block';
     renderWaveform(allSamples);
     renderPostSpectrogram(allSamples);
@@ -600,6 +610,9 @@ async function stopRecording() {
     initPlayback(allSamples);
     trimStart = null; trimEnd = null;
     updateTrimUI();
+    document.getElementById('btnSaveEdited').style.display = 'none';
+    document.getElementById('btnResetOrig').style.display = 'none';
+    document.getElementById('editStatus').textContent = 'Drag on the waveform or spectrogram to select a region to cut or keep.';
 }
 
 // ============================================================
@@ -892,8 +905,10 @@ function getCanvasX(e, canvas) {
     return Math.max(0, Math.min(canvas.width, src.clientX - rect.left));
 }
 
+function getActiveSamples() { return editedSamples || allSamples; }
+
 function redrawWaveformSelection(canvas, totalSamples) {
-    renderWaveform(allSamples); // re-render clean
+    renderWaveform(getActiveSamples()); // re-render clean
     if (trimStart == null || trimEnd == null) return;
     const w = canvas.width, dur = totalSamples / sampleRate;
     const x1 = (trimStart / dur) * w;
@@ -993,7 +1008,7 @@ function setupPostSpectroDrag(canvas, dur) {
         ov.style.left   = Math.min(x0, x1) + 'px';
         ov.style.width  = Math.abs(x1 - x0) + 'px';
         // Sync waveform
-        redrawWaveformSelection(document.getElementById('waveCanvas'), allSamples.length);
+        redrawWaveformSelection(document.getElementById('waveCanvas'), getActiveSamples().length);
     };
     canvas.onmouseup = canvas.ontouchend = () => { selecting = false; };
 }
@@ -1090,30 +1105,80 @@ function fmtTime(s) {
 }
 
 // ============================================================
-// TRIM
+// SELECTION / NON-DESTRUCTIVE EDITING
 // ============================================================
 function updateTrimUI() {
     const hasTrim = trimStart !== null && trimEnd !== null && trimEnd > trimStart + 0.01;
     document.getElementById('trimStartLabel').textContent = trimStart !== null ? trimStart.toFixed(2) : '–';
     document.getElementById('trimEndLabel').textContent   = trimEnd   !== null ? trimEnd.toFixed(2)   : '–';
-    document.getElementById('btnApplyTrim').disabled = !hasTrim;
-    document.getElementById('btnSaveTrim').style.display = hasTrim ? 'inline-block' : 'none';
+    const dur = hasTrim ? (trimEnd - trimStart).toFixed(2) : '–';
+    document.getElementById('trimDurLabel').textContent = dur;
+    document.getElementById('btnRemoveSel').disabled = !hasTrim;
+    document.getElementById('btnKeepSel').disabled   = !hasTrim;
+}
+
+function clearTrimVisuals() {
+    document.getElementById('waveTrimRegion').style.display  = 'none';
+    document.getElementById('postTrimOverlay').style.display = 'none';
 }
 
 function clearTrim() {
-    trimStart = null; trimEnd = null; trimSamples = null;
-    document.getElementById('waveTrimRegion').style.display = 'none';
-    document.getElementById('postTrimOverlay').style.display = 'none';
+    trimStart = null; trimEnd = null;
+    clearTrimVisuals();
     updateTrimUI();
 }
 
-function applyTrim() {
-    if (!allSamples || trimStart == null || trimEnd == null) return;
+// Remove the selected region; keep everything before and after
+function removeSelection() {
+    const src = getActiveSamples();
+    if (!src || trimStart == null || trimEnd == null) return;
     const s = Math.max(0, Math.round(trimStart * sampleRate));
-    const e = Math.min(allSamples.length, Math.round(trimEnd * sampleRate));
+    const e = Math.min(src.length, Math.round(trimEnd   * sampleRate));
     if (e <= s) return;
-    trimSamples = allSamples.slice(s, e);
-    document.getElementById('btnSaveTrim').style.display = 'inline-block';
+    const result = new Float32Array(src.length - (e - s));
+    result.set(src.slice(0, s), 0);
+    result.set(src.slice(e),    s);
+    applyEdit(result);
+}
+
+// Keep only the selected region; discard everything outside
+function keepSelectionOnly() {
+    const src = getActiveSamples();
+    if (!src || trimStart == null || trimEnd == null) return;
+    const s = Math.max(0, Math.round(trimStart * sampleRate));
+    const e = Math.min(src.length, Math.round(trimEnd   * sampleRate));
+    if (e <= s) return;
+    applyEdit(src.slice(s, e));
+}
+
+// Apply an edit result: update display + playback, preserve original
+function applyEdit(newSamples) {
+    editedSamples = newSamples;
+    trimStart = null; trimEnd = null;
+    clearTrimVisuals();
+    renderWaveform(newSamples);
+    renderPostSpectrogram(newSamples);
+    initPlayback(newSamples);
+    updateTrimUI();
+    document.getElementById('editStatus').textContent = 'Edit applied ✓  Select again to make another cut. Original recording is preserved.';
+    document.getElementById('editStatus').style.color = '#2e7d32';
+    document.getElementById('btnResetOrig').style.display = 'block';
+    document.getElementById('btnSaveEdited').style.display = 'inline-block';
+}
+
+// Undo all edits; restore original
+function resetToOriginal() {
+    editedSamples = null;
+    trimStart = null; trimEnd = null;
+    clearTrimVisuals();
+    renderWaveform(allSamples);
+    renderPostSpectrogram(allSamples);
+    initPlayback(allSamples);
+    updateTrimUI();
+    document.getElementById('editStatus').textContent = 'Drag on the waveform or spectrogram to select a region to cut or keep.';
+    document.getElementById('editStatus').style.color = '#888';
+    document.getElementById('btnResetOrig').style.display    = 'none';
+    document.getElementById('btnSaveEdited').style.display   = 'none';
 }
 
 // ============================================================
@@ -1208,15 +1273,9 @@ function saveOriginal() {
     saveWAV(allSamples, '');
 }
 
-function saveTrimmed() {
-    if (!trimSamples && (trimStart == null || trimEnd == null)) {
-        alert('No trim region selected.'); return;
-    }
-    const s = trimSamples || allSamples.slice(
-        Math.round(trimStart * sampleRate),
-        Math.round(trimEnd   * sampleRate)
-    );
-    saveWAV(s, '_trim');
+function saveEdited() {
+    if (!editedSamples) { alert('No edits applied yet.'); return; }
+    saveWAV(editedSamples, '_edit');
 }
 
 // ============================================================
