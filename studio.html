@@ -91,7 +91,7 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 #postFreqAxis{width:36px;flex-shrink:0;background:white}
 .postspectro-scroll{flex:1;overflow-x:auto;overflow-y:hidden;position:relative}
 #postSpectroCanvas{display:block;height:200px}
-#postPlayhead{position:absolute;top:0;bottom:0;width:2px;background:#1a3a2a;pointer-events:none}
+#postPlayhead{position:absolute;top:0;bottom:0;width:2px;background:#ff0000;pointer-events:none}
 #postTrimOverlay{position:absolute;top:0;bottom:0;background:rgba(46,109,68,.15);border-left:2px solid #2e6b44;border-right:2px solid #2e6b44;pointer-events:none;display:none}
 
 /* Playback controls */
@@ -872,31 +872,27 @@ function renderWaveform(samples) {
 }
 
 function setupWaveDrag(canvas, totalSamples) {
+    let selecting = false, x0 = 0;
     canvas.onmousedown = canvas.ontouchstart = (e) => {
-        waveSelecting = true;
+        selecting = true;
         const x = getCanvasX(e, canvas);
-        waveSelX0 = x;
+        x0 = x;
         const frac = x / canvas.width;
         trimStart = frac * (totalSamples / sampleRate);
         trimEnd = trimStart;
         updateTrimUI();
     };
     canvas.onmousemove = canvas.ontouchmove = (e) => {
-        if (!waveSelecting) return;
+        if (!selecting) return;
         const x = getCanvasX(e, canvas);
         const frac = x / canvas.width;
         const t = frac * (totalSamples / sampleRate);
-        if (t < trimStart && waveSelX0 > x) {
-            // dragging left
-            trimEnd = waveSelX0 / canvas.width * (totalSamples / sampleRate);
-            trimStart = t;
-        } else {
-            trimEnd = t;
-        }
+        trimStart = Math.min(x0, x) / canvas.width * (totalSamples / sampleRate);
+        trimEnd = Math.max(x0, x) / canvas.width * (totalSamples / sampleRate);
         updateTrimUI();
         redrawWaveformSelection(canvas, totalSamples);
     };
-    canvas.onmouseup = canvas.ontouchend = () => { waveSelecting = false; };
+    canvas.onmouseup = canvas.ontouchend = () => { selecting = false; };
 }
 
 function getCanvasX(e, canvas) {
@@ -915,8 +911,8 @@ function redrawWaveformSelection(canvas, totalSamples) {
     const x2 = (trimEnd   / dur) * w;
     const reg = document.getElementById('waveTrimRegion');
     reg.style.display = 'block';
-    reg.style.left = x1 + 'px';
-    reg.style.width = (x2 - x1) + 'px';
+    reg.style.left = Math.min(x1, x2) + 'px';
+    reg.style.width = Math.abs(x2 - x1) + 'px';
 }
 
 // ============================================================
