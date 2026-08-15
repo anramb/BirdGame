@@ -50,8 +50,9 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 /* Level + status */
 .level-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .level-label{font-size:.78em;color:#666;white-space:nowrap;width:48px}
-.level-track{flex:1;height:12px;background:#e0e0e0;border-radius:6px;overflow:hidden}
-#levelBar{height:100%;width:0%;background:#2e7d32;border-radius:6px;transition:width .05s}
+.level-track{flex:1;height:14px;background:#e0e0e0;border-radius:6px;overflow:hidden;position:relative}
+#levelBar{position:absolute;top:0;bottom:0;left:0;width:0%;background:#2e7d32;border-radius:6px;transition:none}
+#levelPeak{position:absolute;top:1px;bottom:1px;width:3px;background:#1b5e20;border-radius:2px;left:0;transition:left .15s linear}
 #dbLabel{font-size:.78em;color:#666;width:48px;text-align:right}
 .signal-status{text-align:center;padding:8px 12px;border-radius:8px;font-weight:700;font-size:.95em;letter-spacing:.03em;margin-bottom:8px}
 .sig-good{background:#e8f5e9;color:#1b5e20}
@@ -71,8 +72,10 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 /* Controls */
 .controls{display:flex;gap:8px;justify-content:center;margin:12px 0}
 .ctrl-btn{flex:1;max-width:120px;padding:14px 8px;border:none;border-radius:12px;font-size:.88em;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.02em}
-#btnStart{background:#1a3a2a;color:white}
-#btnStart:hover:not(:disabled){background:#2e6b44}
+#btnStart{background:#c62828;color:white;letter-spacing:.05em}
+#btnStart:hover:not(:disabled){background:#b71c1c}
+@keyframes recpulse{0%,100%{opacity:1}50%{opacity:.5}}
+#btnStart .rec-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:white;margin-right:5px;vertical-align:middle;animation:recpulse 1.4s ease-in-out infinite}
 #btnPause{background:#e8f5e9;color:#1a3a2a;display:none}
 #btnResume{background:#e8f5e9;color:#1a3a2a;display:none}
 #btnStop{background:#c62828;color:white;display:none}
@@ -156,8 +159,9 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 
 <div class="container">
 
-    <!-- Tips -->
-    <div class="tips-panel">
+    <!-- Tips + Guide link -->
+    <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">
+    <div class="tips-panel" style="flex:1;margin-bottom:0">
         <button class="tips-toggle" onclick="toggleTips(this)">
             Recording tips <span id="tipsArrow">▼</span>
         </button>
@@ -169,6 +173,8 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
             • Avoid wind hitting the microphone.<br>
             • The original recording is always preserved — trimmed versions are saved as separate files.
         </div>
+    </div>
+    <a href="guide.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#e8f5e9;border:1px solid #c8ddc8;border-radius:10px;padding:10px 12px;font-size:.8em;font-weight:700;color:#1a3a2a;text-decoration:none;white-space:nowrap">📖 Guide</a>
     </div>
 
     <!-- Microphone -->
@@ -209,7 +215,7 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
     <div class="section">
         <div class="level-row">
             <span class="level-label">Level</span>
-            <div class="level-track"><div id="levelBar"></div></div>
+            <div class="level-track"><div id="levelBar"></div><div id="levelPeak"></div></div>
             <span id="dbLabel">– dB</span>
         </div>
         <div class="signal-status sig-idle" id="signalStatus">READY</div>
@@ -226,7 +232,7 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 
     <!-- Recording controls -->
     <div class="controls">
-        <button class="ctrl-btn" id="btnStart" onclick="startRecording()">⏺ Start</button>
+        <button class="ctrl-btn" id="btnStart" onclick="startRecording()"><span class="rec-dot"></span>REC</button>
         <button class="ctrl-btn" id="btnPause" onclick="pauseRecording()">⏸ Pause</button>
         <button class="ctrl-btn" id="btnResume" onclick="resumeRecording()">▶ Resume</button>
         <button class="ctrl-btn" id="btnStop" onclick="stopRecording()">⏹ Stop</button>
@@ -271,6 +277,15 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
             </div>
         </div>
 
+        <!-- Save -->
+        <div class="section">
+            <div class="section-title">Save / Export</div>
+            <div class="save-row">
+                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; Save original WAV</button>
+                <button class="save-btn" id="btnSaveEdited" onclick="saveEdited()" style="display:none;background:#2e6b44;">&#x2B07; Save edited WAV</button>
+            </div>
+        </div>
+
         <!-- Selection / Edit -->
         <div class="section" id="trimSection">
             <div class="section-title">Selection</div>
@@ -311,15 +326,6 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
                 <div class="q-row"><span class="q-label">Est. SNR</span><span class="q-value" id="qSNR">–</span></div>
                 <div class="q-row"><span class="q-label">Clipping</span><span class="q-value" id="qClip">–</span></div>
                 <div class="quality-verdict" id="qualityVerdict">–</div>
-            </div>
-        </div>
-
-        <!-- Save -->
-        <div class="section">
-            <div class="section-title">Save / Export</div>
-            <div class="save-row">
-                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; Save original WAV</button>
-                <button class="save-btn" id="btnSaveEdited" onclick="saveEdited()" style="display:none;background:#2e6b44;">&#x2B07; Save edited WAV</button>
             </div>
         </div>
 
@@ -371,6 +377,14 @@ let waveSelX0      = 0;
 let noiseFloor     = -80; // dB, estimated in first 1.5s
 let noiseEstDone   = false;
 let noiseFrames    = [];
+
+// Level meter: Audacity-style peak-hold
+let levelSmoothed  = 0;  // smoothed bar 0-100
+let peakHold       = 0;  // held peak 0-100
+let peakHoldTicks  = 0;  // countdown frames before peak decays
+const PEAK_HOLD_MS = 1500; // ms to hold peak before decay
+const PEAK_FPS     = 30;  // approximate
+const PEAK_HOLD_F  = Math.round(PEAK_HOLD_MS / (1000 / PEAK_FPS));
 
 // ============================================================
 // TIPS TOGGLE
@@ -779,11 +793,32 @@ function analyseSignalLive(freqData) {
     const peakDb = peak > 0 ? 20 * Math.log10(peak) : -100;
     const rmsDb  = rms  > 0 ? 20 * Math.log10(rms)  : -100;
 
-    // Level bar
+    // Level bar — fast rise, slow decay (Audacity-style)
     const pct = Math.max(0, Math.min(100, (peakDb + 60) / 60 * 100));
-    document.getElementById('levelBar').style.width = pct + '%';
-    document.getElementById('levelBar').style.background =
-        pct > 90 ? '#c62828' : pct > 70 ? '#f57f17' : '#2e7d32';
+    if (pct >= levelSmoothed) {
+        levelSmoothed = pct;                  // rise instantly
+    } else {
+        levelSmoothed = levelSmoothed * 0.82; // decay slowly
+    }
+
+    // Peak-hold marker
+    if (pct >= peakHold) {
+        peakHold      = pct;
+        peakHoldTicks = PEAK_HOLD_F;
+    } else if (peakHoldTicks > 0) {
+        peakHoldTicks--;
+    } else {
+        peakHold = peakHold * 0.97;           // slow drift down
+    }
+
+    const barColor = levelSmoothed > 90 ? '#c62828' : levelSmoothed > 70 ? '#f57f17' : '#2e7d32';
+    const peakColor = peakHold > 90 ? '#b71c1c' : peakHold > 70 ? '#e65100' : '#1b5e20';
+    const lb = document.getElementById('levelBar');
+    lb.style.width      = levelSmoothed.toFixed(1) + '%';
+    lb.style.background = barColor;
+    const pk = document.getElementById('levelPeak');
+    pk.style.left       = Math.min(peakHold, 97).toFixed(1) + '%';
+    pk.style.background = peakColor;
     document.getElementById('dbLabel').textContent = peakDb.toFixed(0) + ' dB';
 
     // Clipping detection
@@ -836,6 +871,8 @@ function showRecordingUI(recording) {
         setSignalStatus('READY', 'sig-idle', '');
         document.getElementById('dbLabel').textContent = '– dB';
         document.getElementById('levelBar').style.width = '0%';
+        document.getElementById('levelPeak').style.left = '0%';
+        levelSmoothed = 0; peakHold = 0; peakHoldTicks = 0;
     }
 }
 
@@ -1343,5 +1380,6 @@ async function init() {
 
 window.addEventListener('DOMContentLoaded', init);
 </script>
+<script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
