@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recording Guide – Chirp Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+
+/* Header */
+.header{background:#1a3a2a;color:white;padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.header a{color:white;text-decoration:none;font-size:1.3em;line-height:1}
+.header-title{font-size:1.05em;font-weight:700;flex:1}
+
+/* Language toggle */
+.lang-toggle{display:flex;background:rgba(255,255,255,.15);border-radius:20px;padding:2px;gap:2px}
+.lang-btn{padding:5px 14px;border:none;border-radius:18px;font-size:.8em;font-weight:700;cursor:pointer;background:transparent;color:rgba(255,255,255,.7);transition:all .2s}
+.lang-btn.active{background:white;color:#1a3a2a}
+
+/* Content */
+.container{max-width:680px;margin:0 auto;padding:20px 16px 40px}
+
+/* Section cards */
+.section-card{background:white;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px;overflow:hidden}
+.section-header{background:#1a3a2a;color:white;padding:14px 18px}
+.section-header h2{font-size:1.0em;font-weight:700;line-height:1.3}
+.section-header .sub{font-size:.82em;opacity:.8;margin-top:2px}
+.section-body{padding:18px}
+
+/* Steps */
+.step{display:flex;gap:14px;margin-bottom:20px}
+.step:last-child{margin-bottom:0}
+.step-num{width:30px;height:30px;min-width:30px;background:#1a3a2a;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9em;margin-top:2px}
+.step-content h3{font-size:.95em;font-weight:700;color:#1a3a2a;margin-bottom:5px}
+.step-content p{font-size:.88em;color:#333;line-height:1.55}
+.step-content ul{margin:6px 0 0 16px;font-size:.85em;color:#444;line-height:1.6}
+
+/* Screenshot placeholder */
+.screenshot{margin:10px 0 4px;border:2px dashed #c8d8c8;border-radius:10px;background:#f0f7f0;padding:12px;text-align:center}
+.screenshot img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
+.screenshot.placeholder{padding:28px 12px;color:#888;font-size:.8em}
+.screenshot.placeholder::before{content:'📷';display:block;font-size:2em;margin-bottom:6px}
+
+/* Tip box */
+.tip-box{background:#e8f5e9;border-left:4px solid #2e7d32;border-radius:0 8px 8px 0;padding:10px 14px;margin-top:10px;font-size:.84em;color:#1b5e20;line-height:1.5}
+.tip-box strong{display:block;margin-bottom:2px}
+a.ext-link{color:#1a3a2a;font-weight:700;text-decoration:underline}
+
+/* Warning box */
+.warn-box{background:#fff8e1;border-left:4px solid #f9a825;border-radius:0 8px 8px 0;padding:10px 14px;margin-top:10px;font-size:.84em;color:#5c4000;line-height:1.5}
+
+/* Divider between steps */
+.step-divider{border:none;border-top:1px solid #e8e8e8;margin:16px 0}
+
+/* Language content blocks */
+.lang-en, .lang-af{display:none}
+.lang-en.show, .lang-af.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="studio.html" title="Back to Studio">&#8592;</a>
+    <span class="header-title">Field Recording Guide</span>
+    <div class="lang-toggle">
+        <button class="lang-btn active" id="btnEn" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="btnAf" onclick="setLang('af')">AF</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ===================== SECTION 1 ===================== -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="lang-en show"><h2>Section 1: How to prepare a bird recording</h2><div class="sub">Using Chirp Coach Bird Recording Studio</div></div>
+            <div class="lang-af"><h2>Afdeling 1: Hoe om 'n voëlopname voor te berei</h2><div class="sub">Met Chirp Coach Voëlopname-ateljee</div></div>
+        </div>
+        <div class="section-body">
+
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Get close to the bird</h3>
+                        <p>The single most important factor in a quality recording is distance. Move as close to the bird as possible without disturbing it. A recording made 5 m away will always be better than one made 20 m away.</p>
+                        <ul>
+                            <li>Move slowly and quietly</li>
+                            <li>Avoid rustling clothing or footsteps</li>
+                            <li>Point your phone or microphone directly at the bird</li>
+                        </ul>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Kom nader aan die voël</h3>
+                        <p>Die belangrikste faktor vir 'n goeie opname is afstand. Beweeg so naby as moontlik aan die voël sonder om dit te steur. 'n Opname van 5 m weg sal altyd beter wees as een van 20 m weg.</p>
+                        <ul>
+                            <li>Beweeg stadig en stil</li>
+                            <li>Vermy ruisende klere of stapgeluide</li>
+                            <li>Rig jou foon of mikrofoon direk op die voël</li>
+                        </ul>
+                    </div>
+                    <div class="tip-box">
+                        <div class="lang-en show"><strong>Tip</strong>Early morning (within 1–2 hours after sunrise) is best — birds are most active and background noise is lowest.</div>
+                        <div class="lang-af"><strong>Wenk</strong>Vroeë oggend (binne 1–2 uur na sonopkoms) is die beste — voëls is die aktiefste en agtergrondgeraas is die laagste.</div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Open the Bird Recording Studio</h3>
+                        <p>From the Chirp Coach home screen, tap <strong>Bird Recording Studio</strong>. Allow microphone access when prompted.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Maak die Voëlopname-ateljee oop</h3>
+                        <p>Vanaf die Chirp Coach-tuisskerm, tik op <strong>Voëlopname-ateljee</strong>. Laat mikrofoon-toegang toe wanneer gevra word.</p>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/01-open-studio.png" alt="Opening the studio">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Watch the level meter</h3>
+                        <p>When pressing REC, watch the level meter while the bird is calling. The bar should reach roughly the <strong>middle to two-thirds</strong> of the meter. The small vertical marker shows the recent peak.</p>
+                        <ul>
+                            <li><strong>Too low</strong> (bar barely moves) — move closer</li>
+                            <li><strong>Red / clipping</strong> — move further away or lower the phone</li>
+                            <li>Aim for a <strong>GOOD SIGNAL ✓</strong> status</li>
+                        </ul>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Kyk na die vlak-meter</h3>
+                        <p>Voordat jy REC druk, kyk na die vlak-meter terwyl die voël roep. Die balk moet ongeveer <strong>die middel tot twee-derdes</strong> van die meter bereik. Die klein vertikale merker wys die onlangse piek.</p>
+                        <ul>
+                            <li><strong>Te laag</strong> (balk beweeg skaars) — beweeg nader</li>
+                            <li><strong>Rooi / knip</strong> — beweeg verder weg of laer die foon</li>
+                            <li>Mik na 'n <strong>GOEIE SEIN ✓</strong> status</li>
+                        </ul>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/02-level-meter.png" alt="Level meter showing good signal">
+                        Screenshot: Level meter with GOOD SIGNAL status
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Press REC and record</h3>
+                        <p>Tap the red <strong>● REC</strong> button. Record for at least <strong>15–30 seconds</strong> to capture several calls. The live spectrogram will show the bird's calls as dark bands — this is a good sign.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Druk REC en neem op</h3>
+                        <p>Tik die rooi <strong>● REC</strong> knoppie. Neem minstens <strong>15–30 sekondes</strong> op om verskeie roepgeluide vas te vang. Die lewendige spektrogram wys die voël se roepgeluide as donker bande — dit is 'n goeie teken.</p>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/03-recording.png" alt="Active recording with spectrogram">
+                        Screenshot: Active recording showing live spectrogram with bird calls
+                    </div>
+                    <div class="tip-box">
+                        <div class="lang-en show"><strong>Tip</strong>Hold your phone steady and breathe slowly. Even small movements can cause noise. Do not cover the microphone with your fingers.</div>
+                        <div class="lang-af"><strong>Wenk</strong>Hou jou foon stil en asem stadig. Selfs klein bewegings kan geraas veroorsaak. Moenie die mikrofoon met jou vingers toemaak nie.</div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Stop and review</h3>
+                        <p>Tap <strong>⏹ Stop</strong>. The waveform and full spectrogram will be displayed. Look for clear, distinct call patterns in the spectrogram — these are the parts worth keeping.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Stop en hersien</h3>
+                        <p>Tik <strong>⏹ Stop</strong>. Die golfvorm en volle spektrogram word vertoon. Soek na duidelike, onderskeibare roeppatrone in die spektrogram — dit is die dele werd om te hou.</p>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/04-post-recording.png" alt="Post-recording waveform and spectrogram">
+                        Screenshot: Post-recording view with waveform and spectrogram
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">6</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Edit out unwanted sections (optional)</h3>
+                        <p>Drag on the waveform to select a region. Then choose:</p>
+                        <ul>
+                            <li><strong>✂ Remove selection</strong> — cuts that section out (good for removing noise in the middle)</li>
+                            <li><strong>Keep selection only</strong> — discards everything outside (good for isolating the best call)</li>
+                        </ul>
+                        <p style="margin-top:6px">You can make multiple edits. The original is always preserved — tap <strong>↩ Reset to original</strong> to undo everything.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Sny ongewenste dele uit (opsioneel)</h3>
+                        <p>Sleep op die golfvorm om 'n streek te kies. Kies dan:</p>
+                        <ul>
+                            <li><strong>✂ Verwyder seleksie</strong> — sny daardie deel uit (goed om geraas in die middel te verwyder)</li>
+                            <li><strong>Hou slegs seleksie</strong> — gooi alles buite die seleksie weg (goed om die beste roepgeluid uit te sonder)</li>
+                        </ul>
+                        <p style="margin-top:6px">Jy kan verskeie redigerings maak. Die oorspronklike word altyd bewaar — tik <strong>↩ Terug na oorspronklike</strong> om alles ongedaan te maak.</p>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/05-editing.png" alt="Selecting a region to edit">
+                        Screenshot: Waveform with selection region highlighted
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">7</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Add metadata and save</h3>
+                        <p>Fill in <strong>Species</strong>, <strong>Location</strong>, <strong>Date</strong> and <strong>Time</strong> while you still remember them — this becomes part of the filename. Then tap <strong>⬇ Save WAV</strong>. The file is saved directly to your device.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Voeg metadata by en stoor</h3>
+                        <p>Vul <strong>Spesie</strong>, <strong>Ligging</strong>, <strong>Datum</strong> en <strong>Tyd</strong> in terwyl jy dit nog onthou — dit word deel van die lêernaam. Tik dan <strong>⬇ Stoor WAV</strong>. Die lêer word direk op jou toestel gestoor.</p>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/06-save.png" alt="Metadata fields and save button">
+                        Screenshot: Metadata fields filled in with save button
+                    </div>
+                    <div class="tip-box">
+                        <div class="lang-en show"><strong>File naming</strong>Files are named automatically, e.g. <em>Berg_and_Dal_Black-headed_oriole_20260816_1518.wav</em></div>
+                        <div class="lang-af"><strong>Lêernaming</strong>Lêers word outomaties vernoem, bv. <em>Berg_and_Dal_Black-headed_oriole_20260816_1518.wav</em></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================== SECTION 2 ===================== -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="lang-en show"><h2>Section 2: How to upload to eBird / Macaulay Library</h2><div class="sub">Share your recording with the world's largest bird sound archive</div></div>
+            <div class="lang-af"><h2>Afdeling 2: Hoe om op te laai na eBird / Macaulay-biblioteek</h2><div class="sub">Deel jou opname met die wêreld se grootste voëlklankargiefwerk</div></div>
+        </div>
+        <div class="section-body">
+
+            <div class="lang-en show">
+                <div class="warn-box">The Macaulay Library only accepts recordings where the species is <strong>confirmed</strong>. Make sure you are certain of the identification before uploading.</div>
+            </div>
+            <div class="lang-af">
+                <div class="warn-box">Die Macaulay-biblioteek aanvaar slegs opnames waar die spesie <strong>bevestig</strong> is. Maak seker jy is seker van die identifikasie voordat jy oplaai.</div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Create a free eBird account</h3>
+                        <p>Go to <a href="https://ebird.org" target="_blank" rel="noopener" class="ext-link">ebird.org</a> and create a free account if you don't have one. The same account gives you access to the Macaulay Library.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Skep 'n gratis eBird-rekening</h3>
+                        <p>Gaan na <a href="https://ebird.org" target="_blank" rel="noopener" class="ext-link">ebird.org</a> en skep 'n gratis rekening as jy nie een het nie. Dieselfde rekening gee jou toegang tot die Macaulay-biblioteek.</p>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/07-ebird-signup.png" alt="eBird sign up page">
+                        Screenshot: eBird.org sign-up / login page
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Submit a checklist for the observation</h3>
+                        <p>On eBird, tap <strong>Submit</strong> and log a checklist for the location and date where you made the recording. Add the species you recorded to the checklist.</p>
+                        <ul>
+                            <li>Use the correct location (GPS pin or place name)</li>
+                            <li>Select the correct date and time</li>
+                            <li>Choose an appropriate protocol (Stationary, Travelling, etc.)</li>
+                        </ul>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Dien 'n voëllys in vir die waarneming</h3>
+                        <p>Op eBird, tik <strong>Submit</strong> en teken 'n voëllys aan vir die ligging en datum waar jy die opname gemaak het. Voeg die spesie wat jy opgeneem het by die voëllys.</p>
+                        <ul>
+                            <li>Gebruik die korrekte ligging (GPS-pen of plaasnaam)</li>
+                            <li>Kies die korrekte datum en tyd</li>
+                            <li>Kies 'n gepaste protokol (Stasionêr, Beweeg, ens.)</li>
+                        </ul>
+                    </div>
+                    <div class="screenshot">
+                        <img src="Guide screenshots/08-ebird-checklist.png" alt="eBird checklist submission"> 
+                        Screenshot: eBird Submit Observations screen
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Attach your recording to the species</h3>
+                        <p>Next to the species name in your checklist, tap the <strong>media icon</strong> (camera/audio icon). Select <strong>Add media</strong> and choose your WAV file from your device's storage.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Koppel jou opname aan die spesie</h3>
+                        <p>Langs die spesiesnaam in jou voëllys, tik die <strong>media-ikoon</strong> (kamera/klank-ikoon). Kies <strong>Voeg media by</strong> en kies jou WAV-lêer vanuit jou toestel se stoor.</p>
+                    </div>
+                    <div class="screenshot placeholder">
+                        <!-- Replace with: <img src="Guide screenshots/09-attach-media.png" alt="Attaching media to a species in eBird"> -->
+                        Screenshot: eBird species entry with media attachment button
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Add recording details</h3>
+                        <p>After uploading, you will be asked to add details for the Macaulay Library:</p>
+                        <ul>
+                            <li><strong>Species</strong> — confirm it is correct</li>
+                            <li><strong>Behaviours</strong> — e.g. Song, Call, Alarm call</li>
+                            <li><strong>Recording equipment</strong> — e.g. Smartphone, built-in microphone</li>
+                            <li><strong>Background sounds</strong> — note any other species audible</li>
+                        </ul>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Voeg opname-besonderhede by</h3>
+                        <p>Na die oplaai, sal jy gevra word om besonderhede vir die Macaulay-biblioteek by te voeg:</p>
+                        <ul>
+                            <li><strong>Spesie</strong> — bevestig dit is korrek</li>
+                            <li><strong>Gedrag</strong> — bv. Sang, Roep, Alarmroep</li>
+                            <li><strong>Opname-toerusting</strong> — bv. Slimfoon, ingeboude mikrofoon</li>
+                            <li><strong>Agtergrondgeluide</strong> — let op enige ander spesies hoorbaar</li>
+                        </ul>
+                    </div>
+                    <div class="screenshot placeholder">
+                        <!-- Replace with: <img src="Guide screenshots/10-macaulay-details.png" alt="Macaulay Library recording details form"> -->
+                        Screenshot: Macaulay Library media details entry form
+                    </div>
+                </div>
+            </div>
+
+            <hr class="step-divider">
+
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <div class="lang-en show">
+                        <h3>Submit and your recording is live!</h3>
+                        <p>Submit the checklist. Your recording will be reviewed and added to the <strong>Macaulay Library</strong> — the world's largest archive of wildlife audio and video, managed by the Cornell Lab of Ornithology.</p>
+                    </div>
+                    <div class="lang-af">
+                        <h3>Dien in en jou opname is lewendig!</h3>
+                        <p>Dien die voëllys in. Jou opname sal hersien word en by die <strong>Macaulay-biblioteek</strong> gevoeg word — die wêreld se grootste argief van wildlewe-oudio en -video, bestuur deur die Cornell Lab of Ornithology.</p>
+                    </div>
+                    <div class="tip-box">
+                        <div class="lang-en show"><strong>Quality counts</strong>Even smartphone recordings are valuable — thousands of species have very few recordings. Your contribution matters!</div>
+                        <div class="lang-af"><strong>Gehalte tel</strong>Selfs slimfoon-opnames is waardevol — duisende spesies het baie min opnames. Jou bydrae maak saak!</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+function setLang(lang) {
+    document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('show', lang === 'en'));
+    document.querySelectorAll('.lang-af').forEach(el => el.classList.toggle('show', lang === 'af'));
+    document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+    document.getElementById('btnAf').classList.toggle('active', lang === 'af');
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chirp-coach-v3';
+const CACHE_NAME = 'chirp-coach-v5';
 const OFFLINE_DB_NAME = 'ChirpCoachOffline';
 const AUDIO_STORE = 'audioFiles';
 
@@ -24,7 +24,10 @@ const APP_SHELL = [
     './maintenance-check.js',
     './soundscapes.js',
     './bird_audio_features.json',
-    './manifest.json'
+    './manifest.json',
+    './studio.html',
+    './wav-processor.js',
+    './guide.html'
 ];
 
 // Install event - cache core app shell

@@ -147,6 +147,39 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 .btn-keep{background:#1a3a2a;color:white}
 .btn-keep:disabled{opacity:.35;cursor:not-allowed}
 .edit-applied{font-size:.8em;color:#2e7d32;font-weight:600;margin-top:6px}
+
+/* Open existing file */
+.open-file-btn{width:100%;padding:13px 16px;border:1.5px dashed #2e7d32;border-radius:12px;background:#f0f7f0;color:#1a3a2a;font-size:.92em;font-weight:700;cursor:pointer;letter-spacing:.02em;margin-bottom:8px}
+.open-file-btn:hover{background:#c8e6c9}
+
+/* File info pills */
+.fi-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.fi-pill{background:#f0f7f0;border:1px solid #c8ddc8;border-radius:20px;padding:4px 12px;font-size:.8em;white-space:nowrap;color:#444}
+.fi-pill strong{color:#1a3a2a}
+#fileInfoTitle{font-size:.85em;color:#666;word-break:break-all}
+
+/* Waveform zoom */
+.waveform-wrap{overflow-x:auto!important;overflow-y:hidden!important}
+.wave-zoom-row{display:flex;gap:4px;justify-content:flex-end;margin-bottom:4px}
+.wave-zoom-btn{padding:3px 10px;border:1px solid #c8ddc8;border-radius:14px;background:white;font-size:.74em;font-weight:700;color:#1a3a2a;cursor:pointer}
+.wave-zoom-btn.active{background:#1a3a2a;color:white;border-color:#1a3a2a}
+
+/* Playing indicator */
+.playing-now{display:inline-block;font-size:.8em;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:6px}
+.playing-orig{background:#e8f5e9;color:#1a3a2a}
+.playing-edit{background:#fff8e1;color:#e65100}
+
+/* MP3 row */
+.save-row-mp3{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.save-btn-mp3{flex:1;min-width:120px;padding:11px 8px;border:1.5px solid #c8ddc8;border-radius:10px;font-size:.84em;font-weight:700;cursor:pointer;background:#f0f7f0;color:#1a3a2a}
+.save-btn-mp3:hover{background:#c8e6c9}
+
+/* Undo / Redo / Trim buttons */
+.edit-extra-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.btn-undo,.btn-redo{background:#eeeeee;color:#333;border:1px solid #ccc;border-radius:8px;padding:8px 14px;font-size:.82em;font-weight:700;cursor:pointer}
+.btn-undo:disabled,.btn-redo:disabled{opacity:.3;cursor:not-allowed}
+.btn-trim{background:#5c6bc0;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:.82em;font-weight:700;cursor:pointer}
+.btn-trim:disabled{opacity:.3;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -176,6 +209,10 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
     </div>
     <a href="guide.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#e8f5e9;border:1px solid #c8ddc8;border-radius:10px;padding:10px 12px;font-size:.8em;font-weight:700;color:#1a3a2a;text-decoration:none;white-space:nowrap">📖 Guide</a>
     </div>
+
+    <!-- Open existing recording -->
+    <input type="file" id="audioFileInput" accept="audio/*" style="display:none" onchange="handleFileInput(this)">
+    <button class="open-file-btn" onclick="document.getElementById('audioFileInput').click()">&#x1F4C2; Open existing recording for editing</button>
 
     <!-- Microphone -->
     <div class="section">
@@ -241,11 +278,30 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
     <!-- Post-recording -->
     <div class="post-section" id="postSection">
 
+        <!-- Opened file info -->
+        <div class="section" id="fileInfoBar" style="display:none">
+            <div id="fileInfoTitle" class="section-title">Opened file</div>
+            <div class="fi-grid">
+                <span class="fi-pill">Format: <strong id="fi-format">–</strong></span>
+                <span class="fi-pill">Duration: <strong id="fi-dur">–</strong></span>
+                <span class="fi-pill">Sample rate: <strong id="fi-sr">–</strong></span>
+                <span class="fi-pill">Channels: <strong id="fi-ch">–</strong></span>
+            </div>
+        </div>
+
         <!-- Waveform -->
         <div class="section">
-            <div class="section-title">Waveform — drag to select trim region</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div class="section-title" style="margin-bottom:0">Waveform — drag to select</div>
+                <div class="wave-zoom-row" style="margin-bottom:0">
+                    <button class="wave-zoom-btn active" onclick="setWaveZoom(1,this)">1×</button>
+                    <button class="wave-zoom-btn" onclick="setWaveZoom(2,this)">2×</button>
+                    <button class="wave-zoom-btn" onclick="setWaveZoom(4,this)">4×</button>
+                    <button class="wave-zoom-btn" onclick="setWaveZoom(8,this)">8×</button>
+                </div>
+            </div>
             <div class="waveform-wrap">
-                <canvas id="waveCanvas"></canvas>
+                <canvas id="waveCanvas" style="display:block;height:70px"></canvas>
                 <div class="playhead-line" id="wavePlayhead"></div>
                 <div class="trim-region" id="waveTrimRegion"></div>
             </div>
@@ -280,9 +336,16 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
         <!-- Save -->
         <div class="section">
             <div class="section-title">Save / Export</div>
+            <div id="playingNowWrap" style="display:none;text-align:center">
+                <span class="playing-now playing-orig" id="playingNow">▶ Original</span>
+            </div>
             <div class="save-row">
-                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; Save original WAV</button>
-                <button class="save-btn" id="btnSaveEdited" onclick="saveEdited()" style="display:none;background:#2e6b44;">&#x2B07; Save edited WAV</button>
+                <button class="save-btn" id="btnSaveOrig" onclick="saveOriginal()">&#x2B07; WAV (original)</button>
+                <button class="save-btn" id="btnSaveEdited" onclick="saveEdited()" style="display:none;background:#2e6b44;">&#x2B07; WAV (edited)</button>
+            </div>
+            <div class="save-row-mp3">
+                <button class="save-btn-mp3" onclick="saveMp3('original')">&#x2B07; MP3 (original)</button>
+                <button class="save-btn-mp3" id="btnSaveEditedMp3" onclick="saveMp3('edited')" style="display:none">&#x2B07; MP3 (edited)</button>
             </div>
         </div>
 
@@ -296,6 +359,14 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
                 <button class="action-btn btn-remove" id="btnRemoveSel" onclick="removeSelection()" disabled>✂ Remove selection</button>
                 <button class="action-btn btn-keep" id="btnKeepSel" onclick="keepSelectionOnly()" disabled>Keep selection only</button>
                 <button class="action-btn btn-cancel" onclick="clearTrim()">Clear</button>
+            </div>
+            <div class="edit-extra-row">
+                <button class="btn-trim" id="btnTrimStart" onclick="trimToStart()" disabled>⊣ Trim beginning</button>
+                <button class="btn-trim" id="btnTrimEnd" onclick="trimFromHere()" disabled>Trim end ⊢</button>
+            </div>
+            <div class="edit-extra-row">
+                <button class="btn-undo" id="btnUndo" onclick="undoEdit()" disabled>↩ Undo</button>
+                <button class="btn-redo" id="btnRedo" onclick="redoEdit()" disabled>↪ Redo</button>
             </div>
             <div id="editStatus" style="font-size:.78em;color:#888;margin-top:8px;">Drag on the waveform or spectrogram to select a region to cut or keep.</div>
             <button class="action-btn btn-cancel" id="btnResetOrig" onclick="resetToOriginal()" style="display:none;margin-top:8px;width:100%;text-align:center;">↩ Reset to original recording</button>
@@ -373,6 +444,12 @@ let pbInterval     = null;
 let waveSelecting  = false;
 let waveSelX0      = 0;
 
+// Open file / edit history
+let editHistory    = [];    // Float32Array snapshots for undo/redo
+let editHistoryIdx = -1;
+let openedFileName = '';    // base name (no extension) of opened file
+let waveZoom       = 1;     // waveform zoom level
+
 // Noise baseline (for SNR)
 let noiseFloor     = -80; // dB, estimated in first 1.5s
 let noiseEstDone   = false;
@@ -383,6 +460,9 @@ let levelSmoothed  = 0;  // smoothed bar 0-100
 let peakHold       = 0;  // held peak 0-100
 let peakHoldTicks  = 0;  // countdown frames before peak decays
 const PEAK_HOLD_MS = 1500; // ms to hold peak before decay
+
+// Signal status: smoothed SNR (fast rise, slow fall ~3-4s hold)
+let snrSmoothed    = -100;
 const PEAK_FPS     = 30;  // approximate
 const PEAK_HOLD_F  = Math.round(PEAK_HOLD_MS / (1000 / PEAK_FPS));
 
@@ -616,7 +696,12 @@ async function stopRecording() {
     if (audioCtx) { audioCtx.close(); audioCtx = null; }
 
     // Show post-recording UI
-    editedSamples = null;
+    editedSamples  = null;
+    editHistory    = [new Float32Array(allSamples)];
+    editHistoryIdx = 0;
+    openedFileName = '';
+    document.getElementById('fileInfoBar').style.display = 'none';
+    document.getElementById('playingNowWrap').style.display = 'none';
     document.getElementById('postSection').style.display = 'block';
     renderWaveform(allSamples);
     renderPostSpectrogram(allSamples);
@@ -836,12 +921,20 @@ function analyseSignalLive(freqData) {
 
     const snr = rmsDb - noiseFloor;
 
-    // Signal status
+    // Smooth SNR: slow rise (~0.5s to detect real call) and slow fall (~4s hold after call ends)
+    // This prevents short events like breathing from flipping the status
+    if (snr > snrSmoothed) {
+        snrSmoothed = snrSmoothed * 0.95 + snr * 0.05;  // slow rise: needs ~0.5s sustained signal
+    } else {
+        snrSmoothed = snrSmoothed * 0.99 + snr * 0.01;  // very slow fall: ~4s hold before downgrade
+    }
+
+    // Signal status uses smoothed SNR so pauses don't cause false weak status
     if (clipCount > 8) {
         setSignalStatus('⚠ CLIPPING', 'sig-clip', 'Recording level is too high — clipping may be occurring. Move the microphone further away.');
-    } else if (snr < 3) {
+    } else if (snrSmoothed < 3) {
         setSignalStatus('VERY WEAK SIGNAL', 'sig-veryweak', 'Signal is very weak. If possible, move closer to the bird or point the microphone more directly toward it.');
-    } else if (snr < 10) {
+    } else if (snrSmoothed < 10) {
         setSignalStatus('WEAK SIGNAL', 'sig-weak', 'Signal is weak. Move closer to the bird or point the microphone toward it for a better recording.');
     } else {
         setSignalStatus('GOOD SIGNAL ✓', 'sig-good', '');
@@ -872,7 +965,7 @@ function showRecordingUI(recording) {
         document.getElementById('dbLabel').textContent = '– dB';
         document.getElementById('levelBar').style.width = '0%';
         document.getElementById('levelPeak').style.left = '0%';
-        levelSmoothed = 0; peakHold = 0; peakHoldTicks = 0;
+        levelSmoothed = 0; peakHold = 0; peakHoldTicks = 0; snrSmoothed = -100;
     }
 }
 
@@ -881,7 +974,7 @@ function showRecordingUI(recording) {
 // ============================================================
 function renderWaveform(samples) {
     const canvas = document.getElementById('waveCanvas');
-    canvas.width = canvas.clientWidth || 600;
+    canvas.width = (canvas.clientWidth || 600) * waveZoom;
     const w = canvas.width, h = 70;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = 'white';
@@ -924,21 +1017,21 @@ function getActiveSamples() { return editedSamples || allSamples; }
 
 // ============================================================
 // Draw the green selection band on the waveform canvas
+// (does NOT re-render the waveform — only updates the overlay div)
 // ============================================================
 function redrawWaveformSelection(canvas, totalSamples) {
-    renderWaveform(getActiveSamples());
     const reg = document.getElementById('waveTrimRegion');
     if (trimStart == null || trimEnd == null || trimEnd <= trimStart + 0.001) {
         reg.style.display = 'none';
         return;
     }
     const dur = totalSamples / sampleRate;
-    const w = canvas.width;
-    const x1 = (trimStart / dur) * w;
-    const x2 = (trimEnd   / dur) * w;
+    const w   = canvas.width;
+    const x1  = (trimStart / dur) * w;
+    const x2  = (trimEnd   / dur) * w;
     reg.style.display = 'block';
-    reg.style.left  = x1 + 'px';
-    reg.style.width = Math.max(3, x2 - x1) + 'px';
+    reg.style.left    = x1 + 'px';
+    reg.style.width   = Math.max(3, x2 - x1) + 'px';
 }
 
 // ============================================================
@@ -1021,22 +1114,32 @@ function renderPostSpectrogram(samples) {
     const hzPerBin = sampleRate / fftSize;
     const maxBin   = Math.min(Math.floor(freqMax / hzPerBin), fftSize / 2 - 1);
 
-    const imgData = ctx.getImageData(0, 0, totalW, h);
-    const pixels  = imgData.data;
-
+    // Pass 1: compute all dB values and store, then find auto-contrast range
+    const dbGrid = new Float32Array(totalW * h);
     for (let col = 0; col < totalW; col++) {
         const offset = col * hop;
         re.fill(0); im.fill(0);
-        for (let i = 0; i < fftSize; i++) {
-            re[i] = (samples[offset + i] || 0) * win[i];
-        }
+        for (let i = 0; i < fftSize; i++) re[i] = (samples[offset + i] || 0) * win[i];
         fft(re, im);
         for (let y = 0; y < h; y++) {
-            const bin  = Math.round((1 - y / h) * maxBin);
-            const mag  = Math.sqrt(re[bin] * re[bin] + im[bin] * im[bin]);
-            const db   = mag > 0 ? 20 * Math.log10(mag) : -120;
-            const norm = Math.max(0, Math.min(1, (db - (-90)) / ((-20) - (-90))));
-            const c    = 255 - Math.round(Math.pow(norm, 0.65) * 255);
+            const bin = Math.round((1 - y / h) * maxBin);
+            const mag = Math.sqrt(re[bin] * re[bin] + im[bin] * im[bin]);
+            dbGrid[col * h + y] = mag > 0 ? 20 * Math.log10(mag) : -120;
+        }
+    }
+    // Percentile-based normalization: 8th %ile → white (noise), 97th %ile → black (signal)
+    const sorted = Float32Array.from(dbGrid).sort();
+    const pLow   = sorted[Math.floor(sorted.length * 0.08)];
+    const pHigh  = sorted[Math.floor(sorted.length * 0.97)];
+    const range  = Math.max(1, pHigh - pLow);
+
+    // Pass 2: render with auto-contrast
+    const imgData = ctx.getImageData(0, 0, totalW, h);
+    const pixels  = imgData.data;
+    for (let col = 0; col < totalW; col++) {
+        for (let y = 0; y < h; y++) {
+            const norm = Math.max(0, Math.min(1, (dbGrid[col * h + y] - pLow) / range));
+            const c    = 255 - Math.round(Math.pow(norm, 0.6) * 255);
             const idx  = (y * totalW + col) * 4;
             pixels[idx] = c; pixels[idx+1] = c; pixels[idx+2] = c; pixels[idx+3] = 255;
         }
@@ -1044,46 +1147,91 @@ function renderPostSpectrogram(samples) {
     ctx.putImageData(imgData, 0, 0);
     drawFreqAxis(document.getElementById('postFreqAxis'), freqMax, h);
 
-    // Click to seek playback
-    canvas.onclick = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const frac = (e.clientX - rect.left) / canvas.width;
-        seekPlayback(frac * totalDur);
-    };
-
-    // Drag on spectrogram to set selection
+    // Drag (with click-to-seek built in) — see setupPostSpectroDrag
     setupPostSpectroDrag(canvas, totalDur);
 }
 
 // ============================================================
-// SPECTROGRAM DRAG (simple: always creates new selection)
+// SPECTROGRAM DRAG
+//   - Click (no drag): seek playback
+//   - Drag: create new selection or move existing handles
 // ============================================================
 function setupPostSpectroDrag(canvas, dur) {
-    let selecting = false, x0 = 0;
+    const HANDLE_TOL = 14;
+    let mode  = null;   // 'new' | 'start' | 'end'
+    let x0    = 0;      // canvas-px anchor for 'new' selections
+    let moved = false;
+
+    canvas.onclick = null; // handled below in onmouseup
+
     canvas.onmousedown = canvas.ontouchstart = (e) => {
-        selecting = true;
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const src  = e.touches ? e.touches[0] : e;
-        x0 = src.clientX - rect.left;
-        trimStart = (x0 / canvas.width) * dur;
+        const x    = src.clientX - rect.left;
+        moved = false;
+
+        // Grab an existing handle?
+        if (trimStart != null && trimEnd != null && trimEnd > trimStart + 0.001) {
+            const xs = (trimStart / dur) * canvas.width;
+            const xe = (trimEnd   / dur) * canvas.width;
+            if (Math.abs(x - xs) <= HANDLE_TOL) { mode = 'start'; return; }
+            if (Math.abs(x - xe) <= HANDLE_TOL) { mode = 'end';   return; }
+        }
+
+        // Start a new selection
+        mode = 'new';
+        x0   = x;
+        trimStart = (x / canvas.width) * dur;
         trimEnd   = trimStart;
         updateTrimUI();
     };
+
     canvas.onmousemove = canvas.ontouchmove = (e) => {
-        if (!selecting) return;
+        if (!mode) return;
+        e.preventDefault();
+        moved = true;
         const rect = canvas.getBoundingClientRect();
         const src  = e.touches ? e.touches[0] : e;
-        const x1   = src.clientX - rect.left;
-        trimStart = Math.min(x0, x1) / canvas.width * dur;
-        trimEnd   = Math.max(x0, x1) / canvas.width * dur;
+        const x    = src.clientX - rect.left;
+        const t    = (x / canvas.width) * dur;
+
+        if (mode === 'new') {
+            trimStart = Math.min((x0 / canvas.width) * dur, t);
+            trimEnd   = Math.max((x0 / canvas.width) * dur, t);
+        } else if (mode === 'start') {
+            trimStart = Math.min(t, trimEnd - 0.02);
+        } else if (mode === 'end') {
+            trimEnd   = Math.max(t, trimStart + 0.02);
+        }
+
         updateTrimUI();
+
         const ov = document.getElementById('postTrimOverlay');
-        ov.style.display = 'block';
-        ov.style.left    = Math.min(x0, x1) + 'px';
-        ov.style.width   = Math.max(3, Math.abs(x1 - x0)) + 'px';
+        if (trimStart != null && trimEnd != null && trimEnd > trimStart + 0.001) {
+            const x1 = (trimStart / dur) * canvas.width;
+            const x2 = (trimEnd   / dur) * canvas.width;
+            ov.style.display = 'block';
+            ov.style.left    = x1 + 'px';
+            ov.style.width   = Math.max(3, x2 - x1) + 'px';
+        }
         redrawWaveformSelection(document.getElementById('waveCanvas'), getActiveSamples().length);
     };
-    canvas.onmouseup = canvas.ontouchend = () => { selecting = false; };
+
+    canvas.onmouseup = canvas.ontouchend = (e) => {
+        const wasMode = mode;
+        mode = null;
+        if (!moved && wasMode === 'new') {
+            // Pure click — seek playback, clear any selection
+            const rect = canvas.getBoundingClientRect();
+            const src  = e.changedTouches ? e.changedTouches[0] : e;
+            const frac = (src.clientX - rect.left) / canvas.width;
+            seekPlayback(Math.max(0, frac) * dur);
+            trimStart = null; trimEnd = null;
+            clearTrimVisuals();
+            updateTrimUI();
+        }
+    };
 }
 
 // ============================================================
@@ -1139,6 +1287,15 @@ function playbackPlay() {
     playbackAudio.play();
     clearInterval(pbInterval);
     pbInterval = setInterval(updatePbTime, 100);
+    // Show which version is playing
+    const isEdit = editedSamples !== null;
+    const wrap  = document.getElementById('playingNowWrap');
+    const label = document.getElementById('playingNow');
+    if (wrap && label) {
+        wrap.style.display  = 'block';
+        label.textContent   = isEdit ? '▶ Edited' : '▶ Original';
+        label.className     = 'playing-now ' + (isEdit ? 'playing-edit' : 'playing-orig');
+    }
 }
 function playbackPause() { if (playbackAudio) playbackAudio.pause(); }
 function playbackStop()  {
@@ -1157,8 +1314,9 @@ function seekPlayback(t) {
 
 function updatePbTime() {
     if (!playbackAudio || !allSamples) return;
-    const cur = playbackAudio.currentTime;
-    const dur = allSamples.length / sampleRate;
+    const cur    = playbackAudio.currentTime;
+    const active = getActiveSamples();
+    const dur    = active.length / sampleRate;
     document.getElementById('pbTime').textContent = fmtTime(cur) + ' / ' + fmtTime(dur);
     // Move playhead on post spectrogram
     const canvas = document.getElementById('postSpectroCanvas');
@@ -1181,13 +1339,18 @@ function fmtTime(s) {
 // SELECTION / NON-DESTRUCTIVE EDITING
 // ============================================================
 function updateTrimUI() {
-    const hasTrim = trimStart !== null && trimEnd !== null && trimEnd > trimStart + 0.01;
-    document.getElementById('trimStartLabel').textContent = trimStart !== null ? trimStart.toFixed(2) : '–';
-    document.getElementById('trimEndLabel').textContent   = trimEnd   !== null ? trimEnd.toFixed(2)   : '–';
+    const hasSel  = trimStart !== null;
+    const hasTrim = hasSel && trimEnd !== null && trimEnd > trimStart + 0.01;
+    document.getElementById('trimStartLabel').textContent = hasSel ? trimStart.toFixed(2) : '–';
+    document.getElementById('trimEndLabel').textContent   = trimEnd !== null ? trimEnd.toFixed(2) : '–';
     const dur = hasTrim ? (trimEnd - trimStart).toFixed(2) : '–';
     document.getElementById('trimDurLabel').textContent = dur;
     document.getElementById('btnRemoveSel').disabled = !hasTrim;
     document.getElementById('btnKeepSel').disabled   = !hasTrim;
+    const ts = document.getElementById('btnTrimStart');
+    const te = document.getElementById('btnTrimEnd');
+    if (ts) ts.disabled = !hasSel;
+    if (te) te.disabled = !hasSel;
 }
 
 function clearTrimVisuals() {
@@ -1227,31 +1390,37 @@ function keepSelectionOnly() {
 // Apply an edit result: update display + playback, preserve original
 function applyEdit(newSamples) {
     editedSamples = newSamples;
+    pushEditHistory(newSamples);
     trimStart = null; trimEnd = null;
     clearTrimVisuals();
     renderWaveform(newSamples);
     renderPostSpectrogram(newSamples);
     initPlayback(newSamples);
     updateTrimUI();
+    updateSaveButtons();
+    document.getElementById('playingNowWrap').style.display = 'none';
     document.getElementById('editStatus').textContent = 'Edit applied ✓  Select again to make another cut. Original recording is preserved.';
     document.getElementById('editStatus').style.color = '#2e7d32';
     document.getElementById('btnResetOrig').style.display = 'block';
-    document.getElementById('btnSaveEdited').style.display = 'inline-block';
 }
 
 // Undo all edits; restore original
 function resetToOriginal() {
-    editedSamples = null;
+    editedSamples  = null;
+    editHistory    = allSamples ? [new Float32Array(allSamples)] : [];
+    editHistoryIdx = 0;
     trimStart = null; trimEnd = null;
     clearTrimVisuals();
     renderWaveform(allSamples);
     renderPostSpectrogram(allSamples);
     initPlayback(allSamples);
     updateTrimUI();
+    updateUndoRedoUI();
+    updateSaveButtons();
+    document.getElementById('playingNowWrap').style.display = 'none';
     document.getElementById('editStatus').textContent = 'Drag on the waveform or spectrogram to select a region to cut or keep.';
     document.getElementById('editStatus').style.color = '#888';
-    document.getElementById('btnResetOrig').style.display    = 'none';
-    document.getElementById('btnSaveEdited').style.display   = 'none';
+    document.getElementById('btnResetOrig').style.display = 'none';
 }
 
 // ============================================================
@@ -1305,12 +1474,16 @@ function populateMeta() {
 // FILENAME
 // ============================================================
 function buildFilename(suffix) {
-    const species = document.getElementById('metaSpecies').value.trim().replace(/\s+/g, '_');
-    const date = document.getElementById('metaDate').value.replace(/-/g, '') || '';
-    const time = document.getElementById('metaTime').value.replace(':', '') || '';
-    const dt = (date && time) ? date + '_' + time : date || new Date().toISOString().slice(0,19).replace(/[-:T]/g, '');
-    const base = species ? species + '_' + dt : dt;
-    return base + (suffix || '') + '.wav';
+    const clean  = s => s.trim().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+    const loc    = clean(document.getElementById('metaLocation').value);
+    const sp     = clean(document.getElementById('metaSpecies').value);
+    const date   = document.getElementById('metaDate').value.replace(/-/g, '');
+    const time   = document.getElementById('metaTime').value.replace(':', '');
+    const dt     = (date && time) ? date + '_' + time
+                 : date ? date
+                 : new Date().toISOString().slice(0,19).replace(/[-:T]/g,'');
+    const parts  = [loc, sp, dt].filter(Boolean);
+    return parts.join('_') + (suffix || ''); // no extension — caller adds .wav or .mp3
 }
 
 // ============================================================
@@ -1319,7 +1492,7 @@ function buildFilename(suffix) {
 async function saveWAV(samples, suffix) {
     const wavBuf  = encodeWAV(samples, sampleRate);
     const blob    = new Blob([wavBuf], { type: 'audio/wav' });
-    const fname   = buildFilename(suffix);
+    const fname   = buildFilename(suffix) + '.wav';
     if (window.showSaveFilePicker) {
         try {
             const fh = await window.showSaveFilePicker({
@@ -1378,8 +1551,222 @@ async function init() {
     });
 }
 
+// ============================================================
+// OPEN EXISTING FILE
+// ============================================================
+function handleFileInput(input) {
+    if (input.files && input.files[0]) loadAudioFile(input.files[0]);
+    input.value = ''; // allow re-opening same file
+}
+
+async function loadAudioFile(file) {
+    openedFileName = file.name.replace(/\.[^.]+$/, '');
+    const ext = (file.name.split('.').pop() || 'unknown').toUpperCase();
+
+    const arrayBuf = await file.arrayBuffer();
+    const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioBuf;
+    try {
+        audioBuf = await tmpCtx.decodeAudioData(arrayBuf);
+    } catch(e) {
+        alert('Could not decode this audio file.\nSupported formats: WAV, MP3, OGG, AAC, FLAC, M4A.');
+        tmpCtx.close();
+        return;
+    }
+    tmpCtx.close();
+
+    const numCh = audioBuf.numberOfChannels;
+    const len   = audioBuf.length;
+    const sr    = audioBuf.sampleRate;
+    const mono  = new Float32Array(len);
+    for (let ch = 0; ch < numCh; ch++) {
+        const d = audioBuf.getChannelData(ch);
+        for (let i = 0; i < len; i++) mono[i] += d[i] / numCh;
+    }
+
+    // Set global state
+    sampleRate    = sr;
+    allSamples    = mono;
+    editedSamples = null;
+    trimStart = null; trimEnd = null;
+    editHistory    = [new Float32Array(mono)];
+    editHistoryIdx = 0;
+
+    // File info bar
+    document.getElementById('fi-format').textContent = ext + (numCh > 1 ? ' → mono' : '');
+    document.getElementById('fi-dur').textContent    = fmtTime(len / sr);
+    document.getElementById('fi-sr').textContent     = sr.toLocaleString() + ' Hz';
+    document.getElementById('fi-ch').textContent     = numCh === 1 ? 'Mono' : numCh === 2 ? 'Stereo' : numCh + ' ch';
+    document.getElementById('fileInfoTitle').textContent = '📂 ' + file.name;
+    document.getElementById('fileInfoBar').style.display = 'block';
+
+    // Pre-fill metadata with file modification date
+    const d = new Date(file.lastModified);
+    document.getElementById('metaDate').value = d.toISOString().slice(0, 10);
+    document.getElementById('metaTime').value = d.toTimeString().slice(0, 5);
+
+    // Render post-section (same as after recording)
+    document.getElementById('postSection').style.display = 'block';
+    renderWaveform(allSamples);
+    renderPostSpectrogram(allSamples);
+    buildQualitySummary(allSamples);
+    initPlayback(allSamples);
+    clearTrimVisuals();
+    updateTrimUI();
+    updateUndoRedoUI();
+    updateSaveButtons();
+
+    document.getElementById('editStatus').textContent = 'Drag on the waveform or spectrogram to select a region to cut or keep.';
+    document.getElementById('editStatus').style.color = '#888';
+    document.getElementById('btnResetOrig').style.display = 'none';
+    document.getElementById('playingNowWrap').style.display = 'none';
+
+    document.getElementById('postSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================================
+// WAVEFORM ZOOM
+// ============================================================
+function setWaveZoom(level, btn) {
+    waveZoom = level;
+    document.querySelectorAll('.wave-zoom-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderWaveform(getActiveSamples());
+}
+
+// ============================================================
+// UNDO / REDO
+// ============================================================
+function pushEditHistory(samples) {
+    editHistory    = editHistory.slice(0, editHistoryIdx + 1);
+    editHistory.push(new Float32Array(samples));
+    editHistoryIdx = editHistory.length - 1;
+    updateUndoRedoUI();
+}
+
+function undoEdit() {
+    if (editHistoryIdx <= 0) return;
+    editHistoryIdx--;
+    if (editHistoryIdx === 0) {
+        editedSamples = null;
+        _refreshAfterHistoryChange(allSamples);
+    } else {
+        editedSamples = new Float32Array(editHistory[editHistoryIdx]);
+        _refreshAfterHistoryChange(editedSamples);
+    }
+    updateUndoRedoUI();
+    updateSaveButtons();
+}
+
+function redoEdit() {
+    if (editHistoryIdx >= editHistory.length - 1) return;
+    editHistoryIdx++;
+    editedSamples = new Float32Array(editHistory[editHistoryIdx]);
+    _refreshAfterHistoryChange(editedSamples);
+    updateUndoRedoUI();
+    updateSaveButtons();
+}
+
+function _refreshAfterHistoryChange(samples) {
+    trimStart = null; trimEnd = null;
+    clearTrimVisuals();
+    renderWaveform(samples);
+    renderPostSpectrogram(samples);
+    initPlayback(samples);
+    updateTrimUI();
+    document.getElementById('playingNowWrap').style.display = 'none';
+    const hasEdit = editedSamples !== null;
+    document.getElementById('editStatus').textContent = hasEdit
+        ? 'Edit applied ✓  Select again to make another cut. Original recording is preserved.'
+        : 'Drag on the waveform or spectrogram to select a region to cut or keep.';
+    document.getElementById('editStatus').style.color = hasEdit ? '#2e7d32' : '#888';
+    document.getElementById('btnResetOrig').style.display = hasEdit ? 'block' : 'none';
+}
+
+function updateUndoRedoUI() {
+    const u = document.getElementById('btnUndo');
+    const r = document.getElementById('btnRedo');
+    if (u) u.disabled = editHistoryIdx <= 0;
+    if (r) r.disabled = editHistoryIdx >= editHistory.length - 1;
+}
+
+// ============================================================
+// TRIM BEGINNING / END
+// ============================================================
+function trimToStart() {
+    if (trimStart == null) return;
+    const src = getActiveSamples();
+    const s   = Math.max(0, Math.round(trimStart * sampleRate));
+    applyEdit(src.slice(s));
+}
+
+function trimFromHere() {
+    if (trimEnd == null) return;
+    const src = getActiveSamples();
+    const e   = Math.min(src.length, Math.round(trimEnd * sampleRate));
+    applyEdit(src.slice(0, e));
+}
+
+// ============================================================
+// UPDATE SAVE BUTTONS
+// ============================================================
+function updateSaveButtons() {
+    const hasEdit = editedSamples !== null;
+    document.getElementById('btnSaveEdited').style.display    = hasEdit ? 'inline-block' : 'none';
+    const mp3 = document.getElementById('btnSaveEditedMp3');
+    if (mp3) mp3.style.display = hasEdit ? 'inline-block' : 'none';
+}
+
+// ============================================================
+// MP3 EXPORT (lamejs)
+// ============================================================
+async function saveMp3(version) {
+    if (typeof lamejs === 'undefined') {
+        alert('MP3 encoder is not loaded. Connect to the internet once to enable this feature.');
+        return;
+    }
+    const samples = (version === 'edited' && editedSamples) ? editedSamples : allSamples;
+    if (!samples) return;
+
+    const suffix = version === 'edited' ? '_edit' : '';
+    const fname  = buildFilename(suffix) + '.mp3';
+
+    const encoder  = new lamejs.Mp3Encoder(1, sampleRate, 128);
+    const int16    = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+        int16[i] = Math.max(-32768, Math.min(32767, Math.round(samples[i] * 32767)));
+    }
+    const blockSize = 1152;
+    const chunks = [];
+    for (let i = 0; i < int16.length; i += blockSize) {
+        const chunk   = int16.subarray(i, Math.min(i + blockSize, int16.length));
+        const encoded = encoder.encodeBuffer(chunk);
+        if (encoded.length > 0) chunks.push(new Uint8Array(encoded));
+    }
+    const tail = encoder.flush();
+    if (tail.length > 0) chunks.push(new Uint8Array(tail));
+
+    const blob = new Blob(chunks, { type: 'audio/mpeg' });
+    if (window.showSaveFilePicker) {
+        try {
+            const fh = await window.showSaveFilePicker({
+                suggestedName: fname,
+                types: [{ description: 'MP3 audio', accept: { 'audio/mpeg': ['.mp3'] } }]
+            });
+            const wr = await fh.createWritable();
+            await wr.write(blob); await wr.close();
+            return;
+        } catch(e) { if (e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    a.click();
+}
+
 window.addEventListener('DOMContentLoaded', init);
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js" crossorigin="anonymous"></script>
 <script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
