@@ -237,6 +237,14 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
         </div>
     </div>
 
+    <!-- Recording controls -->
+    <div class="controls">
+        <button class="ctrl-btn" id="btnStart" onclick="startRecording()"><span class="rec-dot"></span>REC</button>
+        <button class="ctrl-btn" id="btnPause" onclick="pauseRecording()">⏸ Pause</button>
+        <button class="ctrl-btn" id="btnResume" onclick="resumeRecording()">▶ Resume</button>
+        <button class="ctrl-btn" id="btnStop" onclick="stopRecording()">⏹ Stop</button>
+    </div>
+
     <!-- Microphone Gain -->
     <div class="section">
         <div class="section-title">Gain</div>
@@ -286,14 +294,6 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
             <span id="recTimer">00:00</span>
             <span id="recGuidance">Recommended: 15–30 s</span>
         </div>
-    </div>
-
-    <!-- Recording controls -->
-    <div class="controls">
-        <button class="ctrl-btn" id="btnStart" onclick="startRecording()"><span class="rec-dot"></span>REC</button>
-        <button class="ctrl-btn" id="btnPause" onclick="pauseRecording()">⏸ Pause</button>
-        <button class="ctrl-btn" id="btnResume" onclick="resumeRecording()">▶ Resume</button>
-        <button class="ctrl-btn" id="btnStop" onclick="stopRecording()">⏹ Stop</button>
     </div>
 
     <!-- Post-recording -->
