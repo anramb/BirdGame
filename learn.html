@@ -387,6 +387,63 @@
         let audio = document.getElementById('audioPlayer');
         let spectrogramReady = false;
         let totalCanvasWidth = 0;
+        let wakeLock = null;
+        
+        // Keep the screen on while learning mode is active. Without this, mobile
+        // browsers lock the screen and heavily throttle background timers, which
+        // is why audio/spectrogram loading would stall until the screen was turned on.
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', function() { wakeLock = null; });
+                }
+            } catch (err) {
+                console.warn('Wake Lock not available:', err);
+            }
+        }
+        
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release().catch(function() {});
+                wakeLock = null;
+            }
+        }
+        
+        // Mobile browsers release the wake lock and suspend the audio context /
+        // throttle timers whenever the tab is hidden (screen locked, app switched).
+        // When the tab becomes visible again, re-acquire the lock and catch up
+        // immediately instead of waiting for a throttled setTimeout to fire.
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState !== 'visible') return;
+            if (!isPlaying || isPaused) return;
+            
+            requestWakeLock();
+            
+            // Resume the shared spectrogram AudioContext if it got suspended.
+            if (typeof getSpectrogramAudioCtx === 'function') {
+                try { getSpectrogramAudioCtx(); } catch (e) {}
+            }
+            
+            // If the current audio already finished while the tab was hidden,
+            // advance now rather than waiting for the delayed setTimeout.
+            if (audio.ended) {
+                playNext();
+                return;
+            }
+            
+            // If audio stalled/paused while backgrounded, try to resume it.
+            if (audio.paused && audio.src) {
+                audio.play().catch(function() {});
+            }
+            
+            // If the spectrogram never finished (e.g. decode failed while the
+            // AudioContext was suspended), retry it for the current bird.
+            if (!spectrogramReady && playlist.length > 0) {
+                const current = playlist[(currentIndex - 1 + playlist.length) % playlist.length];
+                if (current) generateSpectrogramForBird(current.audio);
+            }
+        });
         
         // Set language on load
         document.getElementById('languageSelector').value = currentLanguage;
@@ -830,6 +887,7 @@
                 isPaused = false;
                 isPlaying = true;
                 audio.play();
+                requestWakeLock();
                 document.getElementById('pauseBtn').textContent = '⏸ Pause';
                 document.getElementById('pauseBtn').classList.remove('btn-pause');
                 document.getElementById('pauseBtn').classList.add('btn-pause');
@@ -908,6 +966,7 @@
             currentIndex = 0;
             isPlaying = true;
             isPaused = false;
+            requestWakeLock();
             
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('playbackControls').style.display = 'block';
@@ -923,12 +982,14 @@
                 isPaused = false;
                 isPlaying = true;
                 audio.play();
+                requestWakeLock();
                 document.getElementById('pauseBtn').textContent = '⏸ Pause';
             } else {
                 // Pause
                 isPaused = true;
                 isPlaying = false;
                 audio.pause();
+                releaseWakeLock();
                 document.getElementById('pauseBtn').textContent = '▶ Resume';
             }
         }
@@ -1033,6 +1094,7 @@
             isPaused = false;
             audio.pause();
             audio.currentTime = 0;
+            releaseWakeLock();
             
             document.getElementById('startBtn').style.display = 'inline-block';
             document.getElementById('playbackControls').style.display = 'none';
