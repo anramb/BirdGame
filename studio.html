@@ -33,6 +33,15 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
 .badge-warn{background:#fff8e1;color:#f57f17}
 .badge-err{background:#ffebee;color:#c62828}
 
+/* Gain control */
+.gain-row{display:flex;gap:8px;align-items:center}
+.gain-btn{width:34px;height:34px;flex-shrink:0;border:1px solid #c8ddc8;border-radius:8px;background:#f0f7f0;color:#1a3a2a;font-size:1.15em;font-weight:700;cursor:pointer;line-height:1}
+.gain-btn:hover{background:#c8e6c9}
+.gain-btn:active{background:#a5d6a7}
+.gain-slider{flex:1;accent-color:#1a3a2a;height:4px}
+.gain-value{font-size:.85em;font-weight:700;color:#1a3a2a;width:58px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+.gain-hint{font-size:.76em;color:#888;margin-top:6px;line-height:1.4}
+
 /* Spectrogram */
 .spectro-wrap{background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .spectro-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8f8f8;border-bottom:1px solid #eee}
@@ -228,6 +237,18 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f0;
         </div>
     </div>
 
+    <!-- Microphone Gain -->
+    <div class="section">
+        <div class="section-title">Gain</div>
+        <div class="gain-row">
+            <button type="button" class="gain-btn" onclick="adjustGain(-1)" aria-label="Decrease gain">&minus;</button>
+            <input type="range" id="gainSlider" class="gain-slider" min="-6" max="24" step="1" value="0" oninput="onGainSliderChange(this.value)">
+            <button type="button" class="gain-btn" onclick="adjustGain(1)" aria-label="Increase gain">+</button>
+            <span class="gain-value" id="gainValue">+0 dB</span>
+        </div>
+        <div class="gain-hint">Boosts the microphone input level while recording — useful for quiet or distant calls. This does not change playback volume or existing recordings. Watch the level meter below to avoid clipping.</div>
+    </div>
+
     <!-- Live spectrogram -->
     <div class="spectro-wrap">
         <div class="spectro-header">
@@ -417,6 +438,17 @@ let micStream      = null;
 let isRecording    = false;
 let isPaused       = false;
 
+// Microphone input gain (software digital gain — true hardware mic gain is not
+// exposed by getUserMedia/Web Audio on any platform). Applied via a GainNode
+// *before* the analyser and the PCM recorder, so it affects the level meter,
+// spectrogram and the actual saved recording — not just playback. No limiter
+// is applied: the gain is fully under the user's control so the recording
+// stays as close as possible to the natural/raw microphone signal.
+let inputGainNode  = null;
+const GAIN_MIN_DB  = -6;
+const GAIN_MAX_DB  = 24;
+let gainDb         = parseFloat(localStorage.getItem('studioGainDb')) || 0;
+
 let pcmChunks      = []; // Float32Array[]
 let allSamples     = null; // Float32Array — concatenated after stop
 let sampleRate     = 48000;
@@ -549,6 +581,32 @@ function encodeWAV(samples, sr) {
 }
 
 // ============================================================
+// MICROPHONE INPUT GAIN
+// ============================================================
+function dbToLinear(db) { return Math.pow(10, db / 20); }
+
+// Apply the current gain to the live audio graph (if recording) with a short
+// ramp to avoid clicks, and persist the choice for next time.
+function applyGainToGraph() {
+    if (inputGainNode && audioCtx) {
+        const now = audioCtx.currentTime;
+        inputGainNode.gain.cancelScheduledValues(now);
+        inputGainNode.gain.setTargetAtTime(dbToLinear(gainDb), now, 0.03);
+    }
+    localStorage.setItem('studioGainDb', String(gainDb));
+}
+
+function setGainDb(db) {
+    gainDb = Math.max(GAIN_MIN_DB, Math.min(GAIN_MAX_DB, Math.round(db)));
+    document.getElementById('gainSlider').value = gainDb;
+    document.getElementById('gainValue').textContent = (gainDb > 0 ? '+' : '') + gainDb + ' dB';
+    applyGainToGraph();
+}
+
+function onGainSliderChange(val) { setGainDb(parseFloat(val)); }
+function adjustGain(step) { setGainDb(gainDb + step); }
+
+// ============================================================
 // RECORDING — START
 // ============================================================
 async function startRecording() {
@@ -584,10 +642,20 @@ async function startRecording() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
     const source = audioCtx.createMediaStreamSource(micStream);
 
+    // Software input gain: applied before the analyser and the PCM recorder so
+    // it affects the level meter, live spectrogram AND the saved recording —
+    // not just playback. No limiter/shaping is applied — gain is a plain linear
+    // multiplication, so the recording stays as close as possible to the raw
+    // microphone signal. The user is responsible for avoiding clipping using
+    // the level meter and the clipping warning below.
+    inputGainNode = audioCtx.createGain();
+    inputGainNode.gain.value = dbToLinear(gainDb);
+    source.connect(inputGainNode);
+
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 4096;
     analyserNode.smoothingTimeConstant = 0.5;
-    source.connect(analyserNode);
+    inputGainNode.connect(analyserNode);
     analyserData = new Float32Array(analyserNode.frequencyBinCount);
 
     // Try AudioWorklet, fall back to ScriptProcessorNode
@@ -596,15 +664,15 @@ async function startRecording() {
             await audioCtx.audioWorklet.addModule('wav-processor.js');
             workletNode = new AudioWorkletNode(audioCtx, 'wav-recorder');
             workletNode.port.onmessage = (e) => { if (isRecording && !isPaused) pcmChunks.push(e.data); };
-            source.connect(workletNode);
+            inputGainNode.connect(workletNode);
             workletNode.port.postMessage('start');
             useWorklet = true;
         } catch(e) {
             console.warn('AudioWorklet failed, using ScriptProcessorNode:', e);
-            setupScriptProcessor(source);
+            setupScriptProcessor(inputGainNode);
         }
     } else {
-        setupScriptProcessor(source);
+        setupScriptProcessor(inputGainNode);
     }
 
     isRecording = true;
@@ -673,6 +741,7 @@ async function stopRecording() {
         scriptNode = null;
     }
     if (analyserNode) { analyserNode.disconnect(); analyserNode = null; }
+    if (inputGainNode) { inputGainNode.disconnect(); inputGainNode = null; }
     if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
 
     cancelAnimationFrame(liveSpectroRaf);
@@ -931,7 +1000,7 @@ function analyseSignalLive(freqData) {
 
     // Signal status uses smoothed SNR so pauses don't cause false weak status
     if (clipCount > 8) {
-        setSignalStatus('⚠ CLIPPING', 'sig-clip', 'Recording level is too high — clipping may be occurring. Move the microphone further away.');
+        setSignalStatus('⚠️ Clipping detected – reduce gain', 'sig-clip', 'Recording level too high — reduce the gain, or move the microphone further away.');
     } else if (snrSmoothed < 3) {
         setSignalStatus('VERY WEAK SIGNAL', 'sig-veryweak', 'Signal is very weak. If possible, move closer to the bird or point the microphone more directly toward it.');
     } else if (snrSmoothed < 10) {
@@ -1532,6 +1601,9 @@ async function init() {
     try {
         await populateMicrophones();
     } catch(e) {}
+
+    // Restore saved gain preference into the UI (takes effect once recording starts)
+    setGainDb(gainDb);
 
     // Draw empty spectrogram axes
     drawFreqAxis(document.getElementById('freqAxisCanvas'), freqMax, 210);
