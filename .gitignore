@@ -26,3 +26,8 @@ test_*.mp3
 # Temp folders
 /AwaitingPNG/
 /Spectrogram Work/
+
+# BirdNET V3 model — too large for normal git tracking (~68MB). Deploy this
+# file separately (upload directly to the server's models/ folder) rather
+# than committing it. The labels CSV is small and safe to keep in git.
+/models/*.onnx
