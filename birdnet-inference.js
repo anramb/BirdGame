@@ -73,7 +73,14 @@
     let loaded = 0;
     while (true) {
       const part = await reader.read();
-      if (part.done) break;
+      if (part.done) {
+        console.log('[BIRDNET LOAD STREAM DONE]', {
+          loaded,
+          total,
+          timestamp: performance.now(),
+        });
+        break;
+      }
       bytes.set(part.value, loaded);
       loaded += part.value.byteLength;
       onProgress({ loaded, total, indeterminate: false });
@@ -377,7 +384,7 @@
         modelBuffer = await modelResp.arrayBuffer();
         birdnetLoadTiming.arrayBufferAvailable = performance.now();
         console.log('[BIRDNET LOAD ARRAYBUFFER AVAILABLE]', {
-          performanceNow: birdnetLoadTiming.arrayBufferAvailable,
+          timestamp: birdnetLoadTiming.arrayBufferAvailable,
           modelBytes: modelBuffer.byteLength,
         });
 
