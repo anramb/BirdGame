@@ -69,7 +69,7 @@
     }
 
     const reader = response.body.getReader();
-    const bytes = new Uint8Array(total);
+    const chunks = [];
     let loaded = 0;
     while (true) {
       const part = await reader.read();
@@ -81,11 +81,18 @@
         });
         break;
       }
-      bytes.set(part.value, loaded);
-      loaded += part.value.byteLength;
-      onProgress({ loaded, total, indeterminate: false });
+      if (part.value && part.value.byteLength) {
+        chunks.push(part.value);
+        loaded += part.value.byteLength;
+        const progressTotal = loaded <= total ? total : null;
+        onProgress({
+          loaded,
+          total: progressTotal,
+          indeterminate: progressTotal === null,
+        });
+      }
     }
-    return new Response(bytes, {
+    return new Response(new Blob(chunks), {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
