@@ -1,0 +1,7 @@
+Southern Africa bird occurrence and seasonal reporting-rate data in this app is derived from the Southern African Bird Atlas Project 2 (SABAP2) / African Bird Atlas Project, a citizen-science project coordinated by the FitzPatrick Institute of African Ornithology, University of Cape Town, in partnership with BirdLife South Africa and SANBI.
+
+Data licence: MIT (as published via the SABAP2/BirdMap Africa API, api.birdmap.africa).
+
+Species taxonomy/identity: BirdNET+ Taxonomy v0.3-Jul2026 (birdnet-team/birdnet-taxonomy).
+
+Data downloaded/generated: 2026-09-08

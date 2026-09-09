@@ -2100,9 +2100,49 @@ class BirdRecorder {
         this.isRecording = false;
         this.analyserNode = null;
         this.audioContext = null;
-        this.onLevelUpdate = null;     // Callback for live level meter
+        this.onLevelUpdate = null;     // Callback for live level meter: (peak0to1) => {}
         this.onBirdDetected = null;    // Callback for live bird detection
+        this.onClippingChange = null;  // Callback for clipping state changes: (isClipping) => {}
         this.animationFrame = null;
+
+        // Microphone input gain (-6dB..+24dB), same concept as Recording
+        // Studio: a software digital GainNode applied in the live Web Audio
+        // graph (no hardware mic gain is exposed by getUserMedia/Web Audio
+        // on any platform). No limiter/compressor/normalization is applied —
+        // the user is responsible for avoiding clipping via the level meter.
+        this.gainNode = null;
+        this.mediaStreamDestination = null;
+        this.gainDb = 0; // can be set any time via setGain(), before or during recording
+        this._clipCount = 0;
+
+        // OPTIONAL raw-PCM tap for streaming consumers (e.g. continuous
+        // BirdNET inference, see birdnet-streaming.js). This is OFF by
+        // default and has ZERO effect on existing recording behaviour
+        // unless a caller explicitly sets onRawPcmChunk — the tap node is
+        // still created/connected (see start()), but its callback is a
+        // no-op check when onRawPcmChunk is null, so nothing changes for
+        // any existing caller that never sets it.
+        this.onRawPcmChunk = null; // (float32Array, sampleRate) => {}
+        this._pcmTapNode = null;
+    }
+
+    _dbToLinear(db) {
+        return Math.pow(10, db / 20);
+    }
+
+    /**
+     * Sets the input gain in dB. Safe to call before start() (just stores
+     * the value for when the graph is built) or while recording (ramps the
+     * live GainNode to the new value, same short ramp Recording Studio uses
+     * to avoid clicks).
+     */
+    setGain(db) {
+        this.gainDb = db;
+        if (this.gainNode && this.audioContext) {
+            const now = this.audioContext.currentTime;
+            this.gainNode.gain.cancelScheduledValues(now);
+            this.gainNode.gain.setTargetAtTime(this._dbToLinear(db), now, 0.03);
+        }
     }
 
     async start() {
@@ -2116,18 +2156,75 @@ class BirdRecorder {
                 }
             });
 
-            // Set up analyzer for live feedback
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const source = this.audioContext.createMediaStreamSource(this.stream);
+
+            // Gain is applied BEFORE both the level-meter/clipping analysis
+            // and the actual recorded stream, so what the user sees on the
+            // meter matches what is actually being saved.
+            this.gainNode = this.audioContext.createGain();
+            this.gainNode.channelCount = 1;
+            this.gainNode.channelCountMode = 'explicit'; // request mono through this node
+            this.gainNode.gain.value = this._dbToLinear(this.gainDb);
+            source.connect(this.gainNode);
+
+            // Level meter / clipping analysis taps the POST-GAIN signal —
+            // i.e. exactly what is about to be recorded, not the raw mic input.
             this.analyserNode = this.audioContext.createAnalyser();
             this.analyserNode.fftSize = 2048;
-            source.connect(this.analyserNode);
+            this.gainNode.connect(this.analyserNode);
 
-            // Set up recorder
+            // Route the POST-GAIN signal into a MediaStreamDestination so
+            // MediaRecorder actually captures the gained signal. Previously
+            // MediaRecorder recorded the raw, un-gained getUserMedia stream
+            // directly (the analyser was only a side-tap for monitoring and
+            // had no effect on the saved recording at all).
+            //
+            // Mono is explicitly requested (channelCount=1, channelCountMode
+            // 'explicit') on both this node and the GainNode above, to match
+            // the existing downstream pipeline (loadAudio() already forces
+            // mono via getChannelData(0) and resamples to 22050 Hz
+            // regardless, but requesting mono here keeps the recorded file
+            // itself as close as possible to previous behaviour). The actual
+            // resulting track's channel count is logged below for visibility
+            // — if a browser does not honour this request, no workaround is
+            // applied; it is left to the existing downstream mono conversion.
+            this.mediaStreamDestination = this.audioContext.createMediaStreamDestination();
+            this.mediaStreamDestination.channelCount = 1;
+            this.mediaStreamDestination.channelCountMode = 'explicit';
+            this.gainNode.connect(this.mediaStreamDestination);
+
+            const recordedTrack = this.mediaStreamDestination.stream.getAudioTracks()[0];
+            if (recordedTrack) {
+                const settings = recordedTrack.getSettings ? recordedTrack.getSettings() : {};
+                console.log('[BirdRecorder] Recording destination track settings:', settings,
+                    '| AudioContext sampleRate:', this.audioContext.sampleRate,
+                    '(mono requested via channelCount=1/channelCountMode=explicit on GainNode + MediaStreamDestination)');
+            }
+
+            // OPTIONAL raw-PCM tap (post-gain, same signal MediaRecorder gets)
+            // for streaming consumers such as continuous BirdNET inference.
+            // Uses the same ScriptProcessorNode pattern Recording Studio's own
+            // AudioWorklet fallback already uses (studio.html setupScriptProcessor),
+            // including the destination connection it requires to fire reliably.
+            // This tap does NOT alter, replace, or interfere with the existing
+            // analyserNode/MediaRecorder signal path above — it is an
+            // independent additional branch off the same GainNode, and its
+            // callback is only ever invoked if onRawPcmChunk is explicitly set.
+            const pcmTapBufferSize = 4096;
+            this._pcmTapNode = this.audioContext.createScriptProcessor(pcmTapBufferSize, 1, 1);
+            this._pcmTapNode.onaudioprocess = (e) => {
+                if (this.onRawPcmChunk) {
+                    this.onRawPcmChunk(new Float32Array(e.inputBuffer.getChannelData(0)), this.audioContext.sampleRate);
+                }
+            };
+            this.gainNode.connect(this._pcmTapNode);
+            this._pcmTapNode.connect(this.audioContext.destination);
+
             const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
                 ? 'audio/webm;codecs=opus'
                 : 'audio/webm';
-            this.mediaRecorder = new MediaRecorder(this.stream, { mimeType });
+            this.mediaRecorder = new MediaRecorder(this.mediaStreamDestination.stream, { mimeType });
             this.audioChunks = [];
 
             this.mediaRecorder.ondataavailable = (e) => {
@@ -2136,6 +2233,7 @@ class BirdRecorder {
 
             this.mediaRecorder.start(100); // Collect in 100ms chunks
             this.isRecording = true;
+            this._clipCount = 0;
 
             // Start live analysis
             this._startLiveAnalysis();
@@ -2163,6 +2261,24 @@ class BirdRecorder {
                     this.stream.getTracks().forEach(t => t.stop());
                     this.stream = null;
                 }
+                if (this.gainNode) {
+                    this.gainNode.disconnect();
+                    this.gainNode = null;
+                }
+                if (this.mediaStreamDestination) {
+                    this.mediaStreamDestination.stream.getTracks().forEach(t => t.stop());
+                    this.mediaStreamDestination.disconnect();
+                    this.mediaStreamDestination = null;
+                }
+                if (this._pcmTapNode) {
+                    this._pcmTapNode.disconnect();
+                    this._pcmTapNode.onaudioprocess = null;
+                    this._pcmTapNode = null;
+                }
+                if (this.analyserNode) {
+                    this.analyserNode.disconnect();
+                    this.analyserNode = null;
+                }
                 if (this.audioContext) {
                     this.audioContext.close();
                     this.audioContext = null;
@@ -2177,25 +2293,40 @@ class BirdRecorder {
 
     _startLiveAnalysis() {
         const bufferLength = this.analyserNode.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const timeBuf = new Float32Array(this.analyserNode.fftSize);
         const freqData = new Uint8Array(bufferLength);
 
         const analyze = () => {
             if (!this.isRecording) return;
 
-            // Time domain for level
-            this.analyserNode.getByteTimeDomainData(dataArray);
-            let maxAmplitude = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                const amplitude = Math.abs(dataArray[i] - 128) / 128;
-                if (amplitude > maxAmplitude) maxAmplitude = amplitude;
+            // Accurate peak level from float time-domain data (post-gain —
+            // exactly what is being recorded), same approach as Recording
+            // Studio's analyseSignalLive().
+            this.analyserNode.getFloatTimeDomainData(timeBuf);
+            let peak = 0;
+            for (let i = 0; i < timeBuf.length; i++) {
+                const a = Math.abs(timeBuf[i]);
+                if (a > peak) peak = a;
             }
 
             if (this.onLevelUpdate) {
-                this.onLevelUpdate(maxAmplitude);
+                this.onLevelUpdate(peak);
             }
 
-            // Frequency domain for bird detection
+            // Clipping detection: count frames with peak > 0.97, same
+            // threshold and hysteresis approach as Recording Studio (a
+            // single spike does not immediately trigger a permanent
+            // warning, and the warning clears again once the level drops).
+            if (peak > 0.97) {
+                this._clipCount++;
+            } else {
+                this._clipCount = Math.max(0, this._clipCount - 1);
+            }
+            if (this.onClippingChange) {
+                this.onClippingChange(this._clipCount > 8);
+            }
+
+            // Frequency domain for bird detection (unchanged)
             this.analyserNode.getByteFrequencyData(freqData);
             const sampleRate = this.audioContext.sampleRate;
             const binSize = sampleRate / this.analyserNode.fftSize;

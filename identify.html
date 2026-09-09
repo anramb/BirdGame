@@ -35,17 +35,31 @@
             font-size: 0.85em;
             margin-bottom: 15px;
         }
-        .home-btn {
+        .top-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .home-btn, .settings-btn {
             display: inline-block;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.85em;
+            cursor: pointer;
+        }
+        .home-btn {
             background: #1a8f4a;
             color: white;
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            margin-bottom: 15px;
         }
-        .home-btn:hover { opacity: 0.9; }
+        .settings-btn {
+            background: white;
+            border: 1px solid #1a8f4a;
+            color: #1a8f4a;
+        }
+        .home-btn:hover, .settings-btn:hover { opacity: 0.9; }
 
         /* --- Sections --- */
         .section {
@@ -154,6 +168,7 @@
             border-radius: 3px;
             margin: 8px auto;
             overflow: hidden;
+            position: relative;
         }
         .level-meter .fill {
             height: 100%;
@@ -162,7 +177,52 @@
             transition: width 0.05s;
             width: 0%;
         }
-        .level-meter .fill.loud { background: #e53935; }
+        .level-meter .fill.loud { background: #f9a825; }
+        .level-meter .fill.clipping { background: #e53935; }
+
+        /* Clipping warning */
+        .clip-warning {
+            font-size: 0.78em;
+            color: #e53935;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 2px;
+            min-height: 16px;
+        }
+
+        /* Gain control (compact, matches existing record-area styling) */
+        .gain-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 6px auto 0;
+            max-width: 240px;
+        }
+        .gain-row button {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: none;
+            background: #1a8f4a;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .gain-row button:hover { opacity: 0.9; }
+        .gain-row input[type="range"] {
+            flex: 1;
+            accent-color: #1a8f4a;
+        }
+        .gain-row .gain-value {
+            font-size: 0.78em;
+            color: #666;
+            min-width: 66px;
+            text-align: right;
+            white-space: nowrap;
+        }
 
         /* Timer */
         .record-timer {
@@ -181,11 +241,11 @@
             display: inline-block;
             background: #1a8f4a;
             color: white;
-            padding: 10px 24px;
-            border-radius: 25px;
+            padding: 6px 14px;
+            border-radius: 18px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.95em;
+            font-size: 0.85em;
         }
         .file-input-label:hover { opacity: 0.9; }
         .file-name { font-size: 0.8em; color: #666; margin-top: 6px; }
@@ -497,72 +557,108 @@
         /* --- Results --- */
         .result-card {
             background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            margin-bottom: 10px;
+            border: 1px solid #e7e7e7;
+            border-radius: 8px;
+            margin-bottom: 4px;
             overflow: hidden;
             transition: all 0.2s;
         }
         .result-card:first-child {
-            border: 2px solid #1a8f4a;
-            box-shadow: 0 2px 12px rgba(26,143,74,0.15);
+            border: 1px solid #1a8f4a;
+            box-shadow: 0 1px 5px rgba(26,143,74,0.12);
         }
         .result-header {
             display: flex;
             align-items: center;
-            padding: 10px;
-            gap: 10px;
+            padding: 5px 6px;
+            gap: 6px;
             cursor: pointer;
         }
         .result-rank {
-            font-size: 1.3em;
+            font-size: 0.9em;
             font-weight: bold;
             color: #1a8f4a;
-            width: 30px;
+            width: 20px;
             text-align: center;
             flex-shrink: 0;
         }
         .result-photo {
-            width: 56px;
-            height: 56px;
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
             object-fit: cover;
             flex-shrink: 0;
             background: #f0f0f0;
         }
         .result-info { flex: 1; min-width: 0; }
         .result-name {
-            font-weight: bold;
-            font-size: 0.95em;
+            font-weight: 700;
+            font-size: 0.84em;
+            line-height: 1.15;
             color: #333;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .result-afrikaans {
-            font-size: 0.8em;
+            font-size: 0.7em;
+            line-height: 1.15;
             color: #888;
             font-style: italic;
         }
         .result-call-type {
-            font-size: 0.75em;
+            font-size: 0.68em;
             color: #1a8f4a;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         .result-score {
-            text-align: center;
+            text-align: right;
             flex-shrink: 0;
+            min-width: 38px;
         }
         .score-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
+            width: 34px;
+            height: 24px;
+            border-radius: 10px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 0.85em;
+            font-weight: 700;
+            font-size: 0.7em;
             color: white;
+        }
+        .heard-toggle {
+            display: block;
+            margin-top: 2px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #777;
+            font-size: 0.66em;
+            line-height: 1.2;
+            cursor: pointer;
+        }
+        .heard-toggle:hover { color: #1a8f4a; }
+        .heard-times {
+            display: none;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 3px;
+        }
+        .heard-times.open { display: flex; }
+        .heard-time {
+            display: inline-block;
+            padding: 1px 5px;
+            border: 1px solid #d8e8dc;
+            border-radius: 8px;
+            color: #1a8f4a;
+            background: #f5fbf6;
+            font-size: 0.65em;
+            line-height: 1.3;
+        }
+        .heard-times-empty {
+            color: #999;
+            font-size: 0.65em;
         }
         .score-high { background: #2e7d32; }
         .score-medium { background: #f9a825; }
@@ -752,30 +848,20 @@
 </head>
 <body>
     <div class="container">
-        <a href="start.html" class="home-btn">&larr; Home</a>
+        <div class="top-actions">
+            <a href="start.html" class="home-btn">&larr; Home</a>
+            <button type="button" class="settings-btn" id="settingsToggleBtn" onclick="toggleBirdSoundSettings()" aria-expanded="false" aria-controls="visibilitySettingsSection">&#9881; Settings</button>
+        </div>
         <h1>Bird Sound ID</h1>
-        <p class="subtitle">Record or upload a bird sound to identify it</p>
-        <div style="text-align:center; margin-bottom:10px;">
-            <span class="supported-link" onclick="showSupportedBirds()">✅ Supported Birds (<span id="supportedCount">0</span>)</span>
-        </div>
-
-        <!-- Supported Birds Overlay -->
-        <div class="supported-overlay" id="supportedOverlay" onclick="if(event.target===this)closeSupportedBirds()">
-            <div class="supported-panel">
-                <h2>✅ Supported Birds</h2>
-                <div class="supported-subtitle">These birds have been verified to be identifiable by Sound ID when the correct location and habitat are selected.</div>
-                <ul class="supported-list" id="supportedList"></ul>
-                <button class="supported-close" onclick="closeSupportedBirds()">Close</button>
-            </div>
-        </div>
+        <p class="subtitle">Upload a bird sound or listen live with BirdNET to identify it</p>
 
         <!-- INPUT SECTION -->
         <div class="section" id="inputSection">
             <div class="section-title">
-                <span class="step-badge">1</span> Your Recording
+                <span class="step-badge">1</span> Bird Sound
             </div>
             <div class="input-options">
-                <div class="input-btn" id="recordOption" onclick="selectInputMode('record')">
+                <div class="input-btn" id="recordOption" onclick="selectInputMode('record')" style="display:none;">
                     <div class="icon">🎙️</div>
                     <div class="label">Record</div>
                     <div class="hint">10-15 sec recommended</div>
@@ -789,14 +875,21 @@
 
             <!-- Record Mode -->
             <div class="record-area hidden" id="recordArea">
-                <div class="record-timer" id="recordTimer">00:00</div>
-                <div class="level-meter" id="levelMeter">
+                <div class="record-timer" id="recordTimer" style="display:none;">00:00</div>
+                <div class="gain-row" id="gainRow" style="display:none;">
+                    <button type="button" onclick="adjustGain(-1)" aria-label="Decrease gain">&minus;</button>
+                    <input type="range" id="gainSlider" min="-6" max="24" step="1" value="0" oninput="onGainSliderChange(this.value)">
+                    <button type="button" onclick="adjustGain(1)" aria-label="Increase gain">+</button>
+                    <span class="gain-value" id="gainValue">Gain: 0 dB</span>
+                </div>
+                <div class="level-meter" id="levelMeter" style="display:none;">
                     <div class="fill" id="levelFill"></div>
                 </div>
-                <button class="record-circle" id="recordBtn" onclick="toggleRecording()">
+                <div class="clip-warning hidden" id="clipWarning" style="display:none;">⚠️ Signal too loud – reduce gain</div>
+                <button class="record-circle" id="recordBtn" onclick="toggleRecording()" style="display:none;">
                     <div class="inner"></div>
                 </button>
-                <div class="record-status" id="recordStatus">Tap to start recording</div>
+                <div class="record-status" id="recordStatus" style="display:none;">Tap to start recording</div>
                 <canvas class="live-spectro-canvas hidden" id="liveSpectroCanvas"></canvas>
             </div>
 
@@ -840,6 +933,65 @@
                     Selected: <span id="trimStartLabel">0.0</span>s — <span id="trimEndLabel">0.0</span>s
                     (<span id="trimDurationLabel">0.0</span>s)
                 </div>
+
+                <!-- PHASE 2A — EXPERIMENTAL BirdNET V3 test. Independent of the
+                     existing MFCC identification below; does not affect it in
+                     any way. Runs on the same recording/upload, purely for
+                     testing raw acoustic Top-N. -->
+                <div id="experimentalBirdNetControls" style="display:none; margin-top:10px; padding-top:8px; border-top:1px dashed #444;">
+                    <button type="button" onclick="testBirdNetV3()" style="font-size:0.75em; color:#1a8f4a; background:none; border:1px solid #1a8f4a; border-radius:4px; padding:5px 10px; cursor:pointer;">
+                        🧪 Test BirdNET V3 (experimental — does not affect the result below)
+                    </button>
+                    <div id="birdnetTestProgress" style="font-size:0.72em; color:#888; margin-top:4px;"></div>
+
+                    <!-- Local-file fallback, shown only if the direct Zenodo
+                         download fails (e.g. CORS restriction for this origin
+                         — the same restriction already documented/observed in
+                         birdnet-test.html). Mirrors that already-proven fallback. -->
+                    <div id="birdnetLocalFallback" style="display:none; margin-top:6px; font-size:0.72em; color:#888;">
+                        Direct model download failed (likely a CORS restriction). If you have the model files
+                        downloaded locally, load them here instead:<br>
+                        Model (.onnx): <input type="file" id="birdnetLocalModel" accept=".onnx" style="display:inline; width:auto; font-size:0.9em;"><br>
+                        Labels (.csv): <input type="file" id="birdnetLocalLabels" accept=".csv" style="display:inline; width:auto; font-size:0.9em;"><br>
+                        <button type="button" onclick="testBirdNetV3(true)" style="font-size:0.9em; color:#1a8f4a; background:none; border:1px solid #1a8f4a; border-radius:4px; padding:3px 8px; cursor:pointer; margin-top:4px;">
+                            Load from local files &amp; retry
+                        </button>
+                    </div>
+
+                    <div id="birdnetTestPanel" style="display:none; margin-top:6px; background:#111; border:1px solid #333; border-radius:8px; padding:10px; font-family:monospace; font-size:0.7em; color:#8fd18f; max-height:260px; overflow-y:auto;">
+                        <pre id="birdnetTestContent" style="white-space:pre-wrap; margin:0;"></pre>
+                    </div>
+
+                    <!-- PHASE 2A-STREAMING — continuous/progressive windowing
+                         test. Independent of everything else on this page;
+                         does not affect MFCC identify, the main Record
+                         button, or the one-shot BirdNET test above. -->
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #444;">
+                        <button type="button" onclick="testContinuousBirdNet()" style="font-size:0.75em; color:#1a8f4a; background:none; border:1px solid #1a8f4a; border-radius:4px; padding:5px 10px; cursor:pointer;">
+                            🧪 Test Continuous BirdNET (progressive windows, same recording)
+                        </button>
+                        <button type="button" onclick="stopContinuousBirdNet()" style="font-size:0.75em; color:#e53935; background:none; border:1px solid #e53935; border-radius:4px; padding:5px 10px; cursor:pointer; margin-left:6px;">
+                            Stop
+                        </button>
+                        <div id="continuousBirdNetProgress" style="font-size:0.72em; color:#888; margin-top:4px;"></div>
+                        <table id="continuousBirdNetTable" style="display:none; margin-top:6px; width:100%; font-size:0.75em; background:#111; color:#8fd18f; border-collapse:collapse;">
+                            <thead>
+                                <tr style="text-align:left; border-bottom:1px solid #333;">
+                                    <th style="padding:4px;">Species (raw acoustic)</th>
+                                    <th style="padding:4px;">Latest</th>
+                                    <th style="padding:4px;">Best</th>
+                                    <th style="padding:4px;">Heard</th>
+                                    <th style="padding:4px;">Geo</th>
+                                    <th style="padding:4px;">SABAP2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="continuousBirdNetTbody"></tbody>
+                        </table>
+                        <div style="font-size:0.65em; color:#666; margin-top:4px;">
+                            Regional occurrence data: SABAP2 / BirdMap Africa, FitzPatrick Institute of African Ornithology, University of Cape Town (MIT licence). Geo/SABAP2 are evidence only — never used to remove or reorder a BirdNET candidate in this phase.
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -855,74 +1007,86 @@
             <div id="qualityContent"></div>
         </div>
 
-        <!-- FILTER SECTION -->
-        <div class="section" id="filterSection">
-            <div class="section-title">
-                <span class="step-badge">3</span> Optional Filters
-                <span style="font-weight: normal; font-size: 0.8em; color: #888;">(narrow results)</span>
+        <!-- USER VISIBILITY SETTINGS: controls which existing candidates are shown. -->
+        <div class="section hidden" id="visibilitySettingsSection">
+            <div class="section-title">Result settings</div>
+            <div style="font-size:0.82em; color:#666; margin-bottom:10px;">
+                Choose how much geographic context to use when showing possible birds.
+                BirdNET's underlying results remain available in diagnostics.
             </div>
-            <label class="filter-toggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-                <input type="checkbox" id="useFilters" onchange="toggleFilters(this.checked)"> Use location/habitat filters
-            </label>
-            <div class="hidden" id="filterControls" style="margin-top: 8px;">
-                <div class="filter-row">
-                    <div class="multi-select" id="hotspotMultiSelect">
-                        <button type="button" class="multi-select-btn" onclick="toggleMultiDrop('hotspotDrop')">All Locations</button>
-                        <div class="multi-select-dropdown" id="hotspotDrop"></div>
-                    </div>
-                </div>
-                <div class="filter-row">
-                    <div class="multi-select" id="habitatMultiSelect">
-                        <button type="button" class="multi-select-btn" onclick="toggleMultiDrop('habitatDrop')">All Habitats</button>
-                        <div class="multi-select-dropdown" id="habitatDrop"></div>
-                    </div>
-                </div>
-                <div class="filter-row">
-                    <select id="filterBirdgroup" onchange="updateExpectedCount()">
-                        <option value="">All Bird Groups</option>
-                    </select>
-                </div>
-            </div>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #333;">
-                <label style="font-size: 0.85em; color: #aaa; margin-bottom: 4px; display: block;">
-                    🎯 Frequency focus (use when background birds mask the target)
-                </label>
-                <select id="freqFocus" style="width: 100%;">
-                    <option value="">Auto (full spectrum — best for most birds)</option>
-                    <option value="low">Low (pigeons, owls, cuckoos, nightjars)</option>
-                    <option value="mid">Mid (lapwings, shrikes, bulbuls, robin-chats)</option>
-                    <option value="high">High (warblers, cisticolas, white-eyes, sunbirds)</option>
+            <label style="display:block; font-size:0.85em; margin-bottom:8px;">
+                Recording location
+                <select id="recordingLocationSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="automatic">Automatic / GPS</option>
+                    <option value="country">Country</option>
+                    <option value="province">Province</option>
+                    <option value="southern_africa">Southern Africa</option>
+                    <option value="none">No location filtering</option>
                 </select>
+            </label>
+            <div id="recordingLocationNote" style="font-size:0.75em; color:#777; margin:-3px 0 8px;"></div>
+            <label id="recordingCountrySettingRow" style="display:none; font-size:0.85em; margin-bottom:8px;">
+                Country
+                <select id="recordingCountrySetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="ZA">South Africa</option>
+                    <option value="NA">Namibia</option>
+                    <option value="BW">Botswana</option>
+                    <option value="ZW">Zimbabwe</option>
+                    <option value="MZ">Mozambique</option>
+                    <option value="ZM">Zambia</option>
+                    <option value="MW">Malawi</option>
+                    <option value="LS">Lesotho</option>
+                    <option value="SZ">Eswatini</option>
+                </select>
+            </label>
+            <label id="recordingProvinceSettingRow" style="display:none; font-size:0.85em; margin-bottom:8px;">
+                Province
+                <select id="recordingProvinceSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="EC">Eastern Cape</option>
+                    <option value="FS">Free State</option>
+                    <option value="GP">Gauteng</option>
+                    <option value="KZN">KwaZulu-Natal</option>
+                    <option value="LP">Limpopo</option>
+                    <option value="MP">Mpumalanga</option>
+                    <option value="NC">Northern Cape</option>
+                    <option value="NW">North West</option>
+                    <option value="WC">Western Cape</option>
+                </select>
+            </label>
+            <label style="display:block; font-size:0.85em; margin-bottom:8px;">
+                Uncommon species
+                <select id="uncommonSpeciesSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="light">Light — show more possibilities</option>
+                    <option value="normal">Normal — recommended</option>
+                    <option value="strict">Strict — show mainly strongly supported birds</option>
+                </select>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.85em; color:#555; cursor:pointer;">
+                <input type="checkbox" id="showVagrantsSetting" onchange="saveBirdSoundSettings()">
+                Show vagrants and extremely unusual species
+            </label>
+            <div style="font-size:0.72em; color:#888; margin-top:6px;">
+                Province information is province-level evidence. It does not prove that a bird was recorded at the exact GPS point.
             </div>
-            <div style="margin-top: 8px;">
-                <label style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.85em; color:#aaa;">
-                    <input type="checkbox" id="enhanceBird"> 🔊 Enhance bird sounds (boost signal for better ID)
-                </label>
-                <div style="font-size:0.7em; color:#666; margin-top:2px; margin-left:22px;">
-                    Boosts bird frequencies and filters noise. Original recording is not changed.
-                </div>
-            </div>
-        </div>
-
-        <div id="expectedBirdsLink" style="display:none; text-align:right;">
-            <span class="expected-link" onclick="showExpectedBirds()">🐦 View expected birds for this area</span>
-            <div class="expected-count" id="expectedCount"></div>
-        </div>
-
-        <!-- Expected Birds Overlay -->
-        <div class="expected-overlay" id="expectedOverlay" onclick="if(event.target===this)closeExpectedBirds()">
-            <div class="expected-panel">
-                <h2>🐦 Expected Birds</h2>
-                <div class="filter-summary" id="expectedFilterSummary"></div>
-                <ul class="expected-list" id="expectedList"></ul>
-                <button class="expected-close" onclick="closeExpectedBirds()">Close</button>
-            </div>
+            <button type="button" class="settings-btn" onclick="toggleBirdSoundSettings(false)" style="margin-top:10px;">Close Settings</button>
         </div>
 
         <!-- IDENTIFY BUTTON -->
-        <button class="identify-btn" id="identifyBtn" onclick="runIdentification()" disabled>
+        <button class="identify-btn hidden" id="identifyBtn" onclick="runIdentification()" disabled>
             Identify Bird
         </button>
+
+        <!-- PHASE 2D: BirdNET identification button (additive, separate from MFCC) -->
+        <button class="identify-btn" id="birdnetIdentifyBtn" onclick="runBirdNetIdentification()" disabled
+                style="margin-top:8px; background:#1565c0;">
+            Identify with BirdNET
+        </button>
+        <div id="birdnetLoadStatus" aria-live="polite" style="font-size:0.78em; color:#666; text-align:center; margin:6px 0 0;">
+            Please wait — BirdNET is preparing the identification engine…
+        </div>
+        <div id="birdnetLoadProgress" class="hidden" style="height:5px; background:#e0e0e0; border-radius:3px; overflow:hidden; margin:5px 0 8px;">
+            <div id="birdnetLoadProgressFill" style="height:100%; width:0%; background:#1565c0; transition:width 0.15s;"></div>
+        </div>
 
         <!-- PROGRESS SECTION -->
         <div class="section hidden" id="progressSection">
@@ -945,6 +1109,9 @@
                 </div>
 
                 <div id="confidenceBar"></div>
+
+                <!-- PHASE 2D: engine indicator (which identification engine produced this result) -->
+                <div id="engineIndicator" style="display:none; font-size:0.78em; color:#888; margin:4px 0; font-style:italic;"></div>
 
                 <!-- User recording spectrogram -->
                 <div class="spectro-compare" id="userSpectroArea">
@@ -983,7 +1150,7 @@
                     <div style="color:#4caf50; font-weight:bold; margin-bottom:8px;">Debug Info</div>
                     <pre id="debugContent" style="white-space:pre-wrap;"></pre>
                 </div>
-                <button onclick="document.getElementById('debugPanel').style.display=document.getElementById('debugPanel').style.display==='none'?'block':'none'" style="font-size:0.7em; color:#666; background:none; border:1px solid #333; border-radius:4px; padding:4px 8px; margin-top:8px; cursor:pointer;">
+                <button id="debugToggleBtn" onclick="document.getElementById('debugPanel').style.display=document.getElementById('debugPanel').style.display==='none'?'block':'none'" style="font-size:0.7em; color:#666; background:none; border:1px solid #333; border-radius:4px; padding:4px 8px; margin-top:8px; cursor:pointer;">
                     Toggle Debug Info
                 </button>
             </div>
@@ -1000,6 +1167,25 @@
     <script src="supported-birds.js"></script>
     <script src="spectrogram-generator.js"></script>
     <script src="audio-analyzer.js"></script>
+    <!-- PHASE 2A: standalone BirdNET V3 module. Self-contained, does not read
+         from or modify BirdAudioAnalyzer/BirdRecorder in any way. ONNX Runtime
+         Web itself is only fetched lazily, on first actual use. -->
+    <script src="birdnet-inference.js"></script>
+    <!-- PHASE 2A-STREAMING: continuous/windowed BirdNET orchestration, built
+         on top of birdnet-inference.js without modifying it. -->
+    <script src="birdnet-streaming.js"></script>
+    <!-- PHASE 2B: Geo Model (own module, does not modify birdnet-inference.js)
+         + the existing, unmodified SABAP2/occurrence loader + the existing,
+         unmodified evidence-labelling helper (used ONLY for display labels
+         here — its ranking/strategy functions are never called in Phase 2B). -->
+    <script src="birdnet-geo.js"></script>
+    <script src="southern-africa-occurrence.js"></script>
+    <script src="experimental-ranking-core.js"></script>
+    <!-- PHASE 2C: small dedicated integration module — calls the EXISTING,
+         unmodified EXP_RANKING_CORE "protected" strategy on the live
+         accumulator snapshot. Invents no new ranking algorithm. -->
+    <script src="birdnet-protected-live.js"></script>
+    <script src="birdnet-visibility.js"></script>
     <script>
         // ===========================
         // State
@@ -1024,17 +1210,122 @@
         // Live spectrogram state
         let liveSpectroCtx = null;
         let liveSpectroX = 0;
+        // Gain control state (same -6dB..+24dB concept as Recording Studio)
+        const GAIN_MIN_DB = -6;
+        const GAIN_MAX_DB = 24;
+        let gainDb = parseFloat(localStorage.getItem('soundIdGainDb'));
+        if (!isFinite(gainDb)) gainDb = 0;
+
+        // PHASE 2A — experimental BirdNET V3 engine. Entirely separate from
+        // `analyzer` (the existing MFCC BirdAudioAnalyzer) — created lazily,
+        // only when the experimental test button is actually used.
+        let birdNetEngine = null;
+        let birdnetLoadPromise = null;
+
+        // PHASE 2B — Geo Model + SABAP2 evidence layers. Purely additive
+        // metadata attached to BirdNET results; NEVER changes acoustic
+        // scores or ranking (see Part 15/19 of the spec / Test E below).
+        let geoModel = null; // BirdNetGeoModel instance, lazy
+        // Cached once per session (lat/lon/week rarely change mid-session) —
+        // avoids re-prompting GPS permission and re-running Geo inference
+        // for every single 3-second window (Part 20: performance).
+        let geoContext = null; // { computed, reason, lat, lon, week, probs }
+        let geoContextPromise = null; // in-flight de-dup
+
+        const BIRD_SOUND_SETTINGS_KEY = 'birdSoundIdVisibilitySettings';
+        let birdSoundSettings = BirdNetVisibility.normalize();
+
+        function loadBirdSoundSettings() {
+            birdSoundSettings = BirdNetVisibility.loadSettings(localStorage, BIRD_SOUND_SETTINGS_KEY);
+            return birdSoundSettings;
+        }
+
+        function currentBirdSoundSettingsFromControls() {
+            return BirdNetVisibility.normalize({
+                recordingLocation: document.getElementById('recordingLocationSetting').value,
+                country: document.getElementById('recordingCountrySetting').value,
+                province: document.getElementById('recordingProvinceSetting').value,
+                uncommonSpecies: document.getElementById('uncommonSpeciesSetting').value,
+                showVagrants: document.getElementById('showVagrantsSetting').checked,
+            });
+        }
+
+        function updateRecordingLocationControls() {
+            const mode = birdSoundSettings.recordingLocation;
+            document.getElementById('recordingCountrySettingRow').style.display = mode === 'country' ? 'block' : 'none';
+            document.getElementById('recordingProvinceSettingRow').style.display = mode === 'province' ? 'block' : 'none';
+            const note = document.getElementById('recordingLocationNote');
+            if (mode === 'automatic') {
+                note.textContent = inputMode === 'upload'
+                    ? 'For uploaded audio, choose the recording country or province if device GPS is not the recording location.'
+                    : 'For live recording, the current device location may be used when available.';
+            } else if (mode === 'province') {
+                note.textContent = 'Province evidence is broad province-level information, not an exact GPS location.';
+            } else if (mode === 'country') {
+                note.textContent = 'Country evidence is broad occurrence information for the selected country.';
+            } else if (mode === 'southern_africa') {
+                note.textContent = 'Uses the existing Southern African regional occurrence information.';
+            } else {
+                note.textContent = 'Location evidence will not narrow the existing candidate list.';
+            }
+        }
+
+        function initBirdSoundSettings() {
+            loadBirdSoundSettings();
+            document.getElementById('recordingLocationSetting').value = birdSoundSettings.recordingLocation;
+            document.getElementById('recordingCountrySetting').value = birdSoundSettings.country;
+            document.getElementById('recordingProvinceSetting').value = birdSoundSettings.province;
+            document.getElementById('uncommonSpeciesSetting').value = birdSoundSettings.uncommonSpecies;
+            document.getElementById('showVagrantsSetting').checked = birdSoundSettings.showVagrants;
+            updateRecordingLocationControls();
+        }
+
+        function saveBirdSoundSettings() {
+            birdSoundSettings = BirdNetVisibility.saveSettings(localStorage, BIRD_SOUND_SETTINGS_KEY, currentBirdSoundSettingsFromControls());
+            updateRecordingLocationControls();
+            geoContext = null;
+            geoContextPromise = null;
+            refreshBirdNetVisibility();
+        }
+
+        function getBirdSoundSettings() {
+            return birdSoundSettings;
+        }
+
+        function toggleBirdSoundSettings(forceOpen) {
+            const panel = document.getElementById('visibilitySettingsSection');
+            const button = document.getElementById('settingsToggleBtn');
+            if (!panel || !button) return;
+            const open = typeof forceOpen === 'boolean' ? forceOpen : panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !open);
+            button.setAttribute('aria-expanded', String(open));
+            if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
 
         // ===========================
         // Initialization
         // ===========================
         async function initApp() {
+            initBirdSoundSettings();
             analyzer = new BirdAudioAnalyzer();
             recorder = new BirdRecorder();
+            document.getElementById('birdnetIdentifyBtn').disabled = true;
 
             // Set up live feedback callbacks
             recorder.onLevelUpdate = updateLevelMeter;
             recorder.onBirdDetected = updateBirdDetection;
+            recorder.onClippingChange = updateClippingWarning;
+
+            // Restore the user's last gain setting (persisted like Studio does)
+            recorder.setGain(gainDb);
+            updateGainDisplay();
+
+            // PHASE 2B: fire-and-forget SABAP2/occurrence dataset load. Never
+            // blocks the rest of the app — if it fails, SA_OCCURRENCE.getState()
+            // simply stays { loaded: false }, and enrichPrediction() already
+            // handles that gracefully (BirdNET keeps working either way).
+            SA_OCCURRENCE.load();
+            preloadBirdNet();
 
             initSupportedBirds();
 
@@ -1049,7 +1340,7 @@
         }
 
         function populateFilters() {
-            if (!analyzer || !analyzer.isLoaded) return;
+            if (!analyzer || !analyzer.isLoaded || !document.getElementById('hotspotDrop')) return;
 
             // Hotspot multi-select
             const hotspotDrop = document.getElementById('hotspotDrop');
@@ -1125,6 +1416,7 @@
             document.getElementById('uploadOption').classList.toggle('active', mode === 'upload');
             document.getElementById('recordArea').classList.toggle('hidden', mode !== 'record');
             document.getElementById('uploadArea').classList.toggle('hidden', mode !== 'upload');
+            updateRecordingLocationControls();
         }
 
         // ===========================
@@ -1144,6 +1436,12 @@
         }
 
         async function startRecording() {
+            if (birdnetLiveActive || birdnetLiveStarting) {
+                document.getElementById('recordStatus').textContent =
+                    'Stop BirdNET listening before starting a normal recording.';
+                document.getElementById('recordStatus').className = 'record-status noise-warning';
+                return;
+            }
             const success = await recorder.start();
             if (!success) {
                 document.getElementById('recordStatus').textContent =
@@ -1187,6 +1485,7 @@
                     `Recording saved (${duration}s). Ready to identify!`;
                 document.getElementById('recordStatus').className = 'record-status';
                 document.getElementById('identifyBtn').disabled = false;
+                updateBirdNetButtonState();
 
                 // Create URL for playback
                 if (userAudioURL) URL.revokeObjectURL(userAudioURL);
@@ -1196,8 +1495,13 @@
                 showWaveformTrimmer(userAudioURL);
             }
 
-            // Reset level meter
-            document.getElementById('levelFill').style.width = '0%';
+            // Reset level meter and clipping warning
+            levelSmoothedId = 0;
+            lastLevelMeterTs = 0;
+            const fill = document.getElementById('levelFill');
+            fill.style.width = '0%';
+            fill.className = 'fill';
+            document.getElementById('clipWarning').classList.add('hidden');
         }
 
         function updateRecordTimer() {
@@ -1214,11 +1518,802 @@
             }
         }
 
+        // Visual-only smoothing state for the level meter display (fast
+        // attack / slow release, same approach as Recording Studio's
+        // analyseSignalLive() level bar: instant rise, decay by *0.82 per
+        // ~50ms). This does NOT touch the actual signal, the GainNode, the
+        // recorded audio, or clipping detection — it only smooths what is
+        // drawn on screen so the meter stays readable.
+        //
+        // IMPORTANT: Studio calls analyseSignalLive() throttled to ~20
+        // times/second (LIVE_COL_INTERVAL_MS = 50), whereas BirdRecorder's
+        // analyze loop calls onLevelUpdate on every requestAnimationFrame
+        // (~60+ times/second). Applying Studio's *0.82 factor per CALL
+        // instead of per ~50ms would decay far faster in real time than
+        // Studio's actual on-screen behaviour. The decay below is therefore
+        // normalized to real elapsed time so it decays at the same speed
+        // Studio does, regardless of how often this callback fires.
+        let levelSmoothedId = 0; // 0-100
+        let lastLevelMeterTs = 0;
+        const DECAY_PER_MS = Math.pow(0.88, 1 / 50); // slightly slower release than Studio's 0.82-per-50ms, per user feedback
+
         function updateLevelMeter(level) {
-            const pct = Math.min(level * 100 * 2, 100);
+            // level is the post-gain peak amplitude (0-1) — exactly what is
+            // being recorded, from BirdRecorder's analyserNode which taps the
+            // signal AFTER the GainNode. Clipping detection (below) uses the
+            // raw, unsmoothed signal independently of this display value.
+            const rawPct = Math.min(level * 100 * 2, 100);
+            const now = performance.now();
+            const elapsedMs = lastLevelMeterTs ? Math.min(now - lastLevelMeterTs, 500) : 50;
+            lastLevelMeterTs = now;
+
+            if (rawPct >= levelSmoothedId) {
+                levelSmoothedId = rawPct; // rise instantly (fast attack)
+            } else {
+                levelSmoothedId = levelSmoothedId * Math.pow(DECAY_PER_MS, elapsedMs); // decay slowly (slow release)
+            }
+
             const fill = document.getElementById('levelFill');
-            fill.style.width = pct + '%';
-            fill.className = pct > 80 ? 'fill loud' : 'fill';
+            fill.style.width = levelSmoothedId + '%';
+            fill.className = levelSmoothedId > 80 ? 'fill loud' : 'fill';
+        }
+
+        // ===========================
+        // Clipping warning
+        // ===========================
+        function updateClippingWarning(isClipping) {
+            const warningEl = document.getElementById('clipWarning');
+            warningEl.classList.toggle('hidden', !isClipping);
+            const fill = document.getElementById('levelFill');
+            if (isClipping) {
+                fill.className = 'fill clipping';
+            }
+        }
+
+        // ===========================
+        // Gain control (-6dB..+24dB, same concept as Recording Studio)
+        // ===========================
+        function dbToLinear(db) { return Math.pow(10, db / 20); }
+
+        function updateGainDisplay() {
+            document.getElementById('gainSlider').value = gainDb;
+            document.getElementById('gainValue').textContent =
+                'Gain: ' + (gainDb > 0 ? '+' : '') + gainDb + ' dB';
+        }
+
+        function setGainDb(newDb) {
+            gainDb = Math.max(GAIN_MIN_DB, Math.min(GAIN_MAX_DB, Math.round(newDb)));
+            updateGainDisplay();
+            if (recorder) recorder.setGain(gainDb); // applies live if currently recording
+            if (birdnetLiveRecorder) birdnetLiveRecorder.setGain(gainDb);
+            try { localStorage.setItem('soundIdGainDb', String(gainDb)); } catch (e) { /* storage unavailable — non-fatal */ }
+        }
+
+        function adjustGain(deltaDb) {
+            setGainDb(gainDb + deltaDb);
+        }
+
+        function onGainSliderChange(value) {
+            setGainDb(parseFloat(value));
+        }
+
+        // ===========================
+        // Shared BirdNET V3 model loading (used by the one-shot test, the
+        // file-simulation test, AND the live-microphone test below, so the
+        // model only needs to be loaded ONCE regardless of which entry point starts).
+        // ===========================
+        function formatBirdNetLoadBytes(bytes) {
+            if (!Number.isFinite(bytes)) return '—';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function updateBirdNetLoadUi(message, progress) {
+            const status = document.getElementById('birdnetLoadStatus');
+            const bar = document.getElementById('birdnetLoadProgress');
+            const fill = document.getElementById('birdnetLoadProgressFill');
+            if (!status || !bar || !fill) return;
+
+            if (progress && progress.total) {
+                const percent = Math.max(0, Math.min(100, progress.loaded / progress.total * 100));
+                status.textContent = 'Downloading AI model… ' + Math.round(percent) + '% (' +
+                    formatBirdNetLoadBytes(progress.loaded) + ' / ' + formatBirdNetLoadBytes(progress.total) + ')';
+                bar.classList.remove('hidden');
+                fill.style.width = percent + '%';
+                return;
+            }
+            if (progress && progress.indeterminate) {
+                status.textContent = 'Downloading AI model…';
+                bar.classList.add('hidden');
+                return;
+            }
+
+            if (message && message.includes('Model downloaded')) {
+                status.textContent = 'Model downloaded ✓ Preparing AI engine…';
+                bar.classList.remove('hidden');
+                fill.style.width = '100%';
+            } else if (message && message.includes('Initializing ONNX Runtime')) {
+                status.textContent = 'BirdNET is initialising… Model downloaded ✓ Preparing AI engine…';
+            } else if (message && message.includes('BirdNET V3 model ready')) {
+                status.textContent = '✓ BirdNET ready';
+                bar.classList.remove('hidden');
+                fill.style.width = '100%';
+            } else if (message && message.includes('Loading')) {
+                status.textContent = 'BirdNET is loading…';
+            }
+        }
+
+        async function ensureBirdNetLoaded(progressEl, useLocalFiles, modelInputId, labelsInputId, uiCallbacks) {
+            if (!birdNetEngine) {
+                birdNetEngine = new BirdNetInference();
+            }
+            if (birdNetEngine.isLoaded) return true;
+            if (birdnetLoadPromise) return birdnetLoadPromise;
+
+            const callbacks = uiCallbacks || {};
+            const status = (message) => {
+                if (progressEl) progressEl.textContent = message;
+                if (callbacks.status) callbacks.status(message);
+            };
+            const progress = (detail) => {
+                if (callbacks.progress) callbacks.progress(detail);
+            };
+
+            birdnetLoadPromise = (async () => {
+                if (useLocalFiles) {
+                    const modelFile = document.getElementById(modelInputId).files[0];
+                    const labelsFile = document.getElementById(labelsInputId).files[0];
+                    if (!modelFile || !labelsFile) {
+                        status('Select both the .onnx model file and the .csv labels file first.');
+                        return false;
+                    }
+                    status('Loading BirdNET V3 model from local files…');
+                    await birdNetEngine.loadModelFromLocalFiles(modelFile, labelsFile, status);
+                } else {
+                    status('BirdNET is loading…');
+                    await birdNetEngine.loadModel(status, progress);
+                }
+                return true;
+            })();
+
+            try {
+                return await birdnetLoadPromise;
+            } catch (err) {
+                birdnetLoadPromise = null;
+                throw err;
+            }
+        }
+
+        function updateBirdNetButtonState() {
+            const button = document.getElementById('birdnetIdentifyBtn');
+            if (button) button.disabled = !(birdNetEngine && birdNetEngine.isLoaded);
+        }
+
+        async function preloadBirdNet() {
+            const button = document.getElementById('birdnetIdentifyBtn');
+            if (button) button.disabled = true;
+            updateBirdNetLoadUi('BirdNET is loading…');
+            try {
+                await ensureBirdNetLoaded({ textContent: '' }, false, null, null, {
+                    status: (message) => updateBirdNetLoadUi(message),
+                    progress: (detail) => updateBirdNetLoadUi(null, detail),
+                });
+                updateBirdNetLoadUi('BirdNET V3 model ready');
+                if (button) button.disabled = false;
+            } catch (err) {
+                console.error('[BirdNET preload] failed:', err);
+                updateBirdNetLoadUi('BirdNET could not load. Please reload the page.');
+            }
+        }
+
+        // ===========================
+        // PHASE 2B — Geo Model + SABAP2 evidence context
+        // ===========================
+        // Builds (once per session, cached) a { computed, reason, lat, lon,
+        // week, probs } context: tries browser geolocation; if available,
+        // lazily loads the Geo Model (only then — never if there is no
+        // location to use it with) and runs ONE inference for the current
+        // lat/lon/week, reused for every subsequent window. If GPS is
+        // unavailable/denied/errors, resolves to { computed: false, reason }
+        // WITHOUT throwing — BirdNET must keep working regardless (Part 7/21).
+        function getBrowserLocation(timeoutMs) {
+            return new Promise((resolve) => {
+                if (!('geolocation' in navigator)) {
+                    resolve({ ok: false, reason: 'geolocation_unsupported' });
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ ok: true, lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                    (err) => resolve({ ok: false, reason: err && err.code === 1 ? 'permission_denied' : 'location_unavailable' }),
+                    { timeout: timeoutMs || 8000, maximumAge: 5 * 60 * 1000 }
+                );
+            });
+        }
+
+        async function ensureGeoContext(statusCallback) {
+            if (geoContext) return geoContext; // cached for the whole session
+            if (geoContextPromise) return geoContextPromise; // de-dup concurrent callers
+
+            const status = statusCallback || (() => {});
+            const useDeviceLocation = birdSoundSettings.recordingLocation === 'automatic' && inputMode !== 'upload';
+            if (!useDeviceLocation) {
+                const reason = inputMode === 'upload' && birdSoundSettings.recordingLocation === 'automatic'
+                    ? 'uploaded_recording_location_not_selected'
+                    : 'recording_location_setting_not_gps';
+                geoContext = { computed: false, reason, lat: null, lon: null, week: null, probs: null };
+                status('Recording location selected without device GPS — Geo evidence will be shown as Unknown.');
+                return geoContext;
+            }
+            geoContextPromise = (async () => {
+                status('Requesting location for Geo evidence…');
+                const loc = await getBrowserLocation();
+                if (!loc.ok) {
+                    geoContext = { computed: false, reason: loc.reason, lat: null, lon: null, week: null, probs: null };
+                    status('Location unavailable — Geo evidence will show as "Unknown" (BirdNET is unaffected).');
+                    return geoContext;
+                }
+
+                try {
+                    if (!geoModel) geoModel = new BirdNetGeoModel();
+                    if (!geoModel.isLoaded) {
+                        status('Loading Geo Model…');
+                        await geoModel.loadModel((msg) => status(msg));
+                    }
+                    if (!geoModel.acousticToGeoIndex && birdNetEngine && birdNetEngine.isLoaded) {
+                        geoModel.buildAcousticMap(birdNetEngine.labelRows);
+                    }
+                    const week = computeCurrentGeoWeek();
+                    status('Running Geo Model for your current location…');
+                    const probs = await geoModel.runInference(loc.lat, loc.lon, week);
+                    geoContext = { computed: true, reason: null, lat: loc.lat, lon: loc.lon, week, probs };
+                    status('Geo evidence ready.');
+                } catch (err) {
+                    console.error('[Phase 2B Geo] failed, continuing without Geo evidence:', err);
+                    geoContext = { computed: false, reason: 'geo_model_error', lat: loc.lat, lon: loc.lon, week: null, probs: null };
+                    status('Geo Model unavailable — BirdNET is unaffected.');
+                }
+                return geoContext;
+            })();
+
+            const result = await geoContextPromise;
+            geoContextPromise = null;
+            return result;
+        }
+
+        /**
+         * Enriches ONE raw BirdNET prediction (from topN[0]) with SABAP2 +
+         * Geo evidence, using the EXISTING, unmodified SA_OCCURRENCE.enrichPrediction()
+         * — never a new parallel implementation. Returns a brand-new object;
+         * the input `pred` (and the caller's topN array it came from) is
+         * NEVER mutated. Safe to call even if geo/SABAP2 are unavailable.
+         */
+        function enrichTopPrediction(pred) {
+            let geoScore = null;
+            if (geoContext && geoContext.computed && geoModel && geoModel.acousticToGeoIndex) {
+                geoScore = geoModel.scoreForAcousticIndex(pred.idx, geoContext.probs);
+            }
+            return SA_OCCURRENCE.enrichPrediction(
+                { rank: pred.rank, scientific_name: pred.sci, common_name: pred.com, birdnet_id: pred.id, idx: pred.idx, acoustic_score: pred.confidence },
+                {
+                    geoModelComputed: !!(geoContext && geoContext.computed && geoScore !== null),
+                    geoModelScore: geoScore,
+                    geoModelReasonNotComputed: geoContext && !geoContext.computed ? geoContext.reason : 'no_scientific_name_match_to_geo_model',
+                }
+            );
+        }
+
+        /** Turns the raw evidence numbers into the short display vocabulary
+         * requested for the UI (Part 14), reusing the EXISTING, unmodified
+         * EXP_RANKING_CORE.computeExperimentalEvidence() — never a new
+         * parallel geo/sabap evidence function. This call computes DISPLAY
+         * LABELS ONLY; runExperimentalStrategy() (ranking) is never called
+         * anywhere in Phase 2B. */
+        function evidenceDisplayLabels(geo_model, sabap2) {
+            const g = geo_model || { computed: false, score: null, reason_not_computed: 'no_data' };
+            const s = sabap2 || { found: false, current_month_rate: null, overall_reprate: null };
+            // computeExperimentalEvidence() only needs these fields off its
+            // input — build a minimal stand-in rather than a full prediction.
+            const fakeEnriched = { geo_model: g, sabap2_match: !!s.found, sabap2: s };
+            const evidence = EXP_RANKING_CORE.computeExperimentalEvidence(fakeEnriched, {});
+
+            let geoLabel = 'Unknown';
+            if (g.computed) {
+                if (evidence.geoEvidence === 1) geoLabel = 'High';
+                else if (evidence.geoEvidence === 0.3) geoLabel = 'Medium';
+                else if (evidence.geoEvidence === -1) geoLabel = 'Low';
+            }
+            let sabapLabel = 'No data';
+            if (s.found) {
+                if (evidence.monthState === 'NULL') sabapLabel = 'Not surveyed';
+                else if (evidence.monthState === 'ZERO' || evidence.monthState === 'LOW_VALUE') sabapLabel = 'Low';
+                else if (evidence.monthState === 'HIGH_VALUE') sabapLabel = 'High';
+            }
+            return { geoLabel, sabapLabel };
+        }
+
+        // ===========================
+        // PHASE 2A — EXPERIMENTAL BirdNET V3 test
+        // ===========================
+        // Runs entirely independently of the existing MFCC identification
+        // (`analyzer`/`runIdentification()`). Does not touch userAudioSource,
+        // audioBlob, or any existing result element. Purely for testing
+        // "audio -> 32kHz mono -> BirdNET V3 -> raw acoustic Top-N".
+        async function testBirdNetV3(useLocalFiles) {
+            const progressEl = document.getElementById('birdnetTestProgress');
+            const panelEl = document.getElementById('birdnetTestPanel');
+            const contentEl = document.getElementById('birdnetTestContent');
+            const fallbackEl = document.getElementById('birdnetLocalFallback');
+
+            if (!userAudioSource) {
+                progressEl.textContent = 'Record or upload audio first.';
+                return;
+            }
+
+            try {
+                const loaded = await ensureBirdNetLoaded(progressEl, useLocalFiles, 'birdnetLocalModel', 'birdnetLocalLabels');
+                if (!loaded) return;
+                fallbackEl.style.display = 'none';
+
+                progressEl.textContent = 'Running BirdNET V3 inference…';
+                const onProgress = (current, total) => {
+                    progressEl.textContent = `Processing chunk ${current} / ${total}…`;
+                };
+                const result = await birdNetEngine.identify(userAudioSource, {}, onProgress);
+
+                progressEl.textContent =
+                    `Done: ${result.meta.numChunks} chunk(s), ${result.meta.audioDurationSec.toFixed(1)}s audio, ` +
+                    `inference ${result.meta.inferenceMs.toFixed(0)}ms.`;
+
+                const lines = result.topN.map((r) =>
+                    `${r.rank}. ${r.com} (${r.sci}) — ${(r.confidence * 100).toFixed(1)}%`
+                );
+                contentEl.textContent =
+                    'RAW BirdNET V3 acoustic Top-' + result.topN.length + ' (Phase 2A — no Geo/SABAP2/Protected Acoustic applied yet):\n\n' +
+                    lines.join('\n');
+                panelEl.style.display = 'block';
+
+                console.log('[Phase 2A BirdNET test] full result:', result);
+            } catch (err) {
+                console.error('[Phase 2A BirdNET test] failed:', err);
+                progressEl.textContent = 'BirdNET test failed: ' + err.message;
+                // A network-level failure (e.g. "Failed to fetch") while
+                // downloading the model/labels most likely means zenodo.org
+                // did not send permissive CORS headers for this origin —
+                // offer the local-file fallback instead of a dead end.
+                if (!birdNetEngine || !birdNetEngine.isLoaded) {
+                    fallbackEl.style.display = 'block';
+                }
+            }
+        }
+
+        // ===========================
+        // PHASE 2A-STREAMING — continuous/progressive BirdNET test
+        // ===========================
+        // Entirely separate from the MFCC pipeline, the main Record button,
+        // and the one-shot "Test BirdNET V3" button above. Simulates a live
+        // audio stream by feeding the SAME known recording's samples into
+        // ContinuousBirdNetProcessor in small progressive chunks (like a
+        // live microphone tap would deliver them), so the continuous
+        // windowing/queueing/detection-accumulation mechanism can be tested
+        // end-to-end using the recording already validated in Phase 2A.
+        let continuousProcessor = null;
+        let continuousAccumulator = null;
+        let continuousSimTimer = null;
+
+
+        function renderContinuousBirdNetTable() {
+            const table = document.getElementById('continuousBirdNetTable');
+            const tbody = document.getElementById('continuousBirdNetTbody');
+            if (!continuousAccumulator) return;
+            // PHASE 2C: display order now comes from the EXISTING, unmodified
+            // Protected Acoustic strategy (via birdnet-protected-live.js) —
+            // NOT lastDetectedAt. Falls back to raw acoustic order internally
+            // (never crashes/breaks the table) if validation ever fails.
+            const ranking = BirdNetProtectedLive.rankAccumulatorRecords(continuousAccumulator.getAll());
+            const rows = ranking.rows;
+            if (!rows.length) { table.style.display = 'none'; return; }
+            tbody.innerHTML = rows.map((row) => {
+                const r = row.record; // ORIGINAL accumulator record — untouched by ranking
+                const { geoLabel, sabapLabel } = evidenceDisplayLabels(row.geo_model, row.sabap2);
+                return `
+                <tr style="border-bottom:1px solid #222;">
+                    <td style="padding:4px;">${r.com} <em>(${r.sci})</em></td>
+                    <td style="padding:4px;">${(r.latestScore * 100).toFixed(1)}%</td>
+                    <td style="padding:4px;">${(r.bestScore * 100).toFixed(1)}%</td>
+                    <td style="padding:4px;">${r.detectionCount}</td>
+                    <td style="padding:4px;">${geoLabel}</td>
+                    <td style="padding:4px;">${sabapLabel}</td>
+                </tr>`;
+            }).join('');
+            table.style.display = 'table';
+        }
+
+        async function testContinuousBirdNet() {
+            const progressEl = document.getElementById('continuousBirdNetProgress');
+
+            if (!userAudioSource) {
+                progressEl.textContent = 'Record or upload audio first.';
+                return;
+            }
+            if (!birdNetEngine || !birdNetEngine.isLoaded) {
+                progressEl.textContent = 'Run "Test BirdNET V3" above first, so the model is loaded.';
+                return;
+            }
+
+            stopContinuousBirdNet(); // clear any previous run
+
+            try {
+                progressEl.textContent = 'Decoding recording (original sample rate, no resample yet)…';
+                const { samples, sampleRate, duration } = await birdNetEngine.decodeMono(userAudioSource);
+
+                continuousAccumulator = new BirdDetectionAccumulator();
+                continuousProcessor = new ContinuousBirdNetProcessor(birdNetEngine, { windowSec: 3, maxQueueSize: 2 });
+
+                // PHASE 2B: best-effort Geo context, once for this whole run
+                // (never blocks starting the test — if it fails/denied, every
+                // window below just gets Geo "Unknown", never an error).
+                ensureGeoContext((msg) => { progressEl.textContent = msg; }).catch((err) => {
+                    console.warn('[Continuous BirdNET] Geo context unavailable:', err);
+                });
+
+                let windowsCompleted = 0;
+                let windowsDropped = 0;
+                continuousProcessor.onWindowResult = (topN, windowInfo) => {
+                    windowsCompleted++;
+                    // PHASE 2B: attach Geo + SABAP2 evidence for the window's
+                    // top raw prediction — additive only, topN itself (the
+                    // raw acoustic Top-N) is passed through unchanged below.
+                    let evidence = null;
+                    try {
+                        const enriched = enrichTopPrediction(topN[0]);
+                        evidence = { geo_model: enriched.geo_model, sabap2: enriched.sabap2 };
+                    } catch (err) {
+                        console.warn('[Continuous BirdNET] evidence enrichment failed (BirdNET result unaffected):', err);
+                    }
+                    continuousAccumulator.addWindowResult(topN, windowInfo, evidence);
+                    renderContinuousBirdNetTable();
+                    progressEl.textContent =
+                        `Window ${windowInfo.windowIndex + 1} done (${windowInfo.windowDurationSec.toFixed(1)}s) — ` +
+                        `${windowsCompleted} completed, ${windowsDropped} dropped (backpressure).`;
+                    console.log('[Continuous BirdNET] window result:', windowInfo, topN, evidence);
+                };
+                continuousProcessor.onWindowDropped = (windowInfo) => {
+                    windowsDropped++;
+                    console.warn('[Continuous BirdNET] window dropped (backpressure):', windowInfo);
+                };
+                continuousProcessor.onError = (err, windowInfo) => {
+                    console.error('[Continuous BirdNET] window failed:', windowInfo, err);
+                };
+
+                // Simulate progressive delivery: feed ~4096-sample pieces (same
+                // size BirdRecorder's live raw-PCM tap would deliver) with a
+                // short delay between pieces, rather than dumping the whole
+                // decoded recording in at once — this exercises the SAME
+                // arrival pattern a live microphone stream would produce.
+                const chunkSize = 4096;
+                let offset = 0;
+                progressEl.textContent = `Streaming ${duration.toFixed(1)}s of audio progressively…`;
+
+                await new Promise((resolve) => {
+                    function pushNextChunk() {
+                        if (!continuousProcessor || offset >= samples.length) {
+                            resolve();
+                            return;
+                        }
+                        const chunk = samples.subarray(offset, Math.min(offset + chunkSize, samples.length));
+                        continuousProcessor.feedAudioStream(chunk, sampleRate);
+                        offset += chunkSize;
+                        continuousSimTimer = setTimeout(pushNextChunk, 15);
+                    }
+                    pushNextChunk();
+                });
+
+                if (continuousProcessor) {
+                    continuousProcessor.flush(); // process any short leftover window
+                    progressEl.textContent =
+                        `Done streaming ${duration.toFixed(1)}s. ${windowsCompleted} window(s) completed, ` +
+                        `${windowsDropped} dropped. Click Stop to reset, or run again.`;
+                }
+            } catch (err) {
+                console.error('[Continuous BirdNET test] failed:', err);
+                progressEl.textContent = 'Continuous BirdNET test failed: ' + err.message;
+            }
+        }
+
+        function stopContinuousBirdNet() {
+            if (continuousSimTimer) {
+                clearTimeout(continuousSimTimer);
+                continuousSimTimer = null;
+            }
+            if (continuousProcessor) {
+                continuousProcessor.stop();
+                continuousProcessor = null;
+            }
+            const progressEl = document.getElementById('continuousBirdNetProgress');
+            if (progressEl) progressEl.textContent = 'Stopped.';
+        }
+
+        // PHASE 2D production BirdNET session state. Kept separate from
+        // the file-simulation test state above.
+        let birdnetLiveRecorder = null;
+        let birdnetLiveProcessor = null;
+        let birdnetLiveAccumulator = null;
+        let birdnetLiveActive = false;
+        let birdnetLiveStarting = false;
+        let birdnetLiveRunId = 0;
+        let birdnetLiveSpectroFrame = null;
+        let birdnetLiveLastRanking = null;
+        let birdnetLiveLastAudioInfo = null;
+        let birdnetLiveCandidateAggregator = null;
+        let birdnetLiveBarbetSummary = null;
+        let birdnetLiveWindowTiming = null;
+        let birdnetLiveOverlapTest = null;
+        let birdnetLiveTop20Test = null;
+        let birdnetLiveTop20DiagnosticAggregator = null;
+        let birdnetLiveRevealedRecordArea = false;
+
+        // Test-only opt-in: open identify.html?birdnetOverlapTest=1.
+        // Default is false, so normal production remains 3s window / 3s stride.
+        function birdnetOverlapTestEnabled() {
+            return new URLSearchParams(window.location.search).get('birdnetOverlapTest') === '1';
+        }
+
+        // Test-only opt-in: open identify.html?birdnetTop20Test=1.
+        // Production remains Top-5 unless this explicit diagnostic flag is present.
+        function birdnetTop20TestEnabled() {
+            return new URLSearchParams(window.location.search).get('birdnetTop20Test') === '1';
+        }
+
+        function productionCandidateKey(prediction) {
+            return prediction.id || prediction.sci || String(prediction.idx);
+        }
+
+        // Production-only candidate retention. The existing
+        // BirdDetectionAccumulator intentionally remains top-1-per-window;
+        // this separate map preserves the complete raw Top-N for production.
+        function createBirdNetProductionCandidateAggregator() {
+            const candidates = new Map();
+
+            return {
+                addWindowResult(topN, windowInfo, evidenceByKey) {
+                    const seenThisWindow = new Set();
+                    (topN || []).forEach((prediction, index) => {
+                        const key = productionCandidateKey(prediction);
+                        if (seenThisWindow.has(key)) return;
+                        seenThisWindow.add(key);
+
+                        let record = candidates.get(key);
+                        if (!record) {
+                            record = {
+                                idx: prediction.idx,
+                                id: prediction.id,
+                                sci: prediction.sci,
+                                com: prediction.com,
+                                latestScore: prediction.confidence,
+                                bestScore: prediction.confidence,
+                                detectionCount: 1,
+                                firstWindow: windowInfo.windowIndex,
+                                lastWindow: windowInfo.windowIndex,
+                                latestRank: index + 1,
+                            };
+                            candidates.set(key, record);
+                        } else {
+                            record.latestScore = prediction.confidence;
+                            record.bestScore = Math.max(record.bestScore, prediction.confidence);
+                            record.detectionCount++;
+                            record.lastWindow = windowInfo.windowIndex;
+                            record.latestRank = index + 1;
+                        }
+
+                        const evidence = evidenceByKey && evidenceByKey.get(key);
+                        if (evidence) {
+                            if (evidence.geo_model) record.geo_model = evidence.geo_model;
+                            if (evidence.sabap2) record.sabap2 = evidence.sabap2;
+                        }
+                    });
+                },
+                getAll() {
+                    return Array.from(candidates.values());
+                },
+                reset() {
+                    candidates.clear();
+                },
+            };
+        }
+
+        const BIRDNET_DIAGNOSTIC_PRIMARY_SCORE = 0.50;
+        const BIRDNET_DIAGNOSTIC_SECONDARY_SCORE = 0.10;
+
+        function createBirdNetTop20DiagnosticAggregator() {
+            const candidates = new Map();
+            return {
+                addWindowResult(topN, windowInfo, evidenceByKey) {
+                    const seenThisWindow = new Set();
+                    (topN || []).forEach((prediction, index) => {
+                        const key = productionCandidateKey(prediction);
+                        if (seenThisWindow.has(key)) return;
+                        seenThisWindow.add(key);
+                        let record = candidates.get(key);
+                        if (!record) {
+                            record = {
+                                idx: prediction.idx,
+                                id: prediction.id,
+                                sci: prediction.sci,
+                                com: prediction.com,
+                                bestScore: prediction.confidence,
+                                latestScore: prediction.confidence,
+                                detectionCount: 1,
+                                bestRawRank: index + 1,
+                                latestRawRank: index + 1,
+                                firstWindowNumber: windowInfo.windowIndex + 1,
+                                lastWindowNumber: windowInfo.windowIndex + 1,
+                                windowNumbers: [windowInfo.windowIndex + 1],
+                                top5Count: index < 5 ? 1 : 0,
+                                rank6to20Count: index >= 5 ? 1 : 0,
+                            };
+                            candidates.set(key, record);
+                        } else {
+                            const previousBestScore = record.bestScore;
+                            record.bestScore = Math.max(record.bestScore, prediction.confidence);
+                            record.latestScore = prediction.confidence;
+                            record.detectionCount++;
+                            record.latestRawRank = index + 1;
+                            record.lastWindowNumber = windowInfo.windowIndex + 1;
+                            record.windowNumbers.push(windowInfo.windowIndex + 1);
+                            record.top5Count += index < 5 ? 1 : 0;
+                            record.rank6to20Count += index >= 5 ? 1 : 0;
+                            if (prediction.confidence > previousBestScore) {
+                                record.bestRawRank = index + 1;
+                            }
+                        }
+                        const evidence = evidenceByKey && evidenceByKey.get(key);
+                        if (evidence) {
+                            if (evidence.geo_model) record.geo_model = evidence.geo_model;
+                            if (evidence.sabap2) record.sabap2 = evidence.sabap2;
+                        }
+                    });
+                },
+                getAll() {
+                    return Array.from(candidates.values());
+                },
+            };
+        }
+
+        function diagnosticBirdCategory(record) {
+            if (record.bestScore >= BIRDNET_DIAGNOSTIC_PRIMARY_SCORE) return 'PRIMARY';
+            if (record.bestScore >= BIRDNET_DIAGNOSTIC_SECONDARY_SCORE) return 'SECONDARY';
+            return 'BACKGROUND';
+        }
+
+        function exportBirdNetTop20Diagnostic(top20, ranking, diagnosticAggregator, top5Records, top20Rows, queueLengthAtStop, processingAtStop) {
+            const top20CandidatesSurvivingProtectedAcoustic = (ranking && ranking.rows) || [];
+            const candidates = top20CandidatesSurvivingProtectedAcoustic.map((row) => ({
+                ...(row.record || {}),
+                finalRank: row.protected_rank,
+                protectedRank: row.protected_rank,
+                rawRank: row.raw_rank,
+                rankDelta: row.rank_delta,
+                acoustic_score: row.acoustic_score,
+                geo_model: row.geo_model,
+                sabap2: row.sabap2,
+                evidence_labels: row.evidence_labels,
+                used_fallback: row.used_fallback,
+            }));
+            const classificationCounts = candidates.reduce((counts, candidate) => {
+                const classification = classifyBirdNetProductionGeography({
+                    geo: candidate.geo_model,
+                    sabap2: candidate.sabap2,
+                    evidence_labels: candidate.evidence_labels,
+                });
+                counts[classification] = (counts[classification] || 0) + 1;
+                return counts;
+            }, {});
+            const top20Records = diagnosticAggregator ? diagnosticAggregator.getAll() : [];
+            const hasAllCandidateFields = candidates.length === top20CandidatesSurvivingProtectedAcoustic.length;
+            if (!hasAllCandidateFields) {
+                console.error('[BIRDNET TOP20 DIAGNOSTIC EXPORT] candidate count validation failed', {
+                    candidateCount: candidates.length,
+                    sourceCandidateCount: top20CandidatesSurvivingProtectedAcoustic.length,
+                });
+            }
+            const fileName = 'birdnet_top20_diagnostic_' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+            const payload = {
+                metadata: {
+                    testMode: 'birdnetTop20Test',
+                    windowSec: 3,
+                    strideSec: 3,
+                    topNRequested: 20,
+                    completedWindows: top20.completedWindows,
+                    droppedWindows: top20.droppedWindows,
+                    failedWindows: top20.failedWindows,
+                    processingElapsedSec: (Date.now() - top20.startedAt) / 1000,
+                    queueLengthAtStop,
+                    processingAtStop,
+                    timestamp: new Date().toISOString(),
+                },
+                exportValidation: {
+                    candidateCount: candidates.length,
+                    sourceCandidateCount: top20CandidatesSurvivingProtectedAcoustic.length,
+                    hasAllCandidateFields,
+                },
+                summary: {
+                    uniqueTop5Candidates: top5Records.length,
+                    uniqueTop20Candidates: candidates.length,
+                    newCandidatesFromRanks6to20: top20Records.filter((record) => record.top5Count === 0 && record.rank6to20Count > 0).length,
+                    supportedCandidates: classificationCounts.GEOGRAPHICALLY_SUPPORTED || 0,
+                    unlikelyCandidates: classificationCounts.GEOGRAPHICALLY_UNLIKELY || 0,
+                    uncertainCandidates: classificationCounts.GEOGRAPHICALLY_UNCERTAIN || 0,
+                },
+                candidates,
+                windows: (top20.records || []).map((record) => ({
+                    windowNumber: record.windowNumber,
+                    windowStartSec: record.windowStartSec,
+                    windowEndSec: record.windowEndSec,
+                    top20: record.rawTop20,
+                })),
+            };
+            if (!hasAllCandidateFields) return null;
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = fileName;
+            anchor.click();
+            setTimeout(() => URL.revokeObjectURL(url), 0);
+            console.log('[BIRDNET TOP20 DIAGNOSTIC EXPORT]', {
+                candidateCount: candidates.length,
+                fileName,
+                hasAllCandidateFields,
+            });
+            return payload;
+        }
+
+        function diagnosticRankingRows(ranking) {
+            return (ranking && ranking.rows || []).map((row) => {
+                const record = row.record || {};
+                const geo = row.geo_model !== undefined ? row.geo_model : record.geo_model;
+                const sabap2 = row.sabap2 !== undefined ? row.sabap2 : record.sabap2;
+                const diagnosticEvidence = {
+                    geo,
+                    sabap2,
+                    evidence_labels: row.evidence_labels,
+                };
+                return {
+                    finalRank: row.protected_rank,
+                    commonName: record.com,
+                    scientificName: record.sci,
+                    bestScorePercent: record.bestScore * 100,
+                    detectionCount: record.detectionCount,
+                    top5Count: record.top5Count,
+                    rank6to20Count: record.rank6to20Count,
+                    bestRawRank: record.bestRawRank,
+                    windowNumbers: record.windowNumbers,
+                    geoComputed: geo && geo.computed === true,
+                    geoScore: geo && geo.score,
+                    sabap2,
+                    sabapRegional: sabap2 && sabap2.regional_occurrence,
+                    sabapOverall: sabap2 && sabap2.overall_reprate,
+                    sabapCurrentMonth: sabap2 && sabap2.current_month_rate,
+                    geographicClassification: classifyBirdNetProductionGeography(diagnosticEvidence),
+                    diagnosticCategory: diagnosticBirdCategory(record),
+                    evidenceLabels: row.evidence_labels,
+                };
+            });
+        }
+
+        function enrichBirdNetCandidates(topN) {
+            const evidenceByKey = new Map();
+            (topN || []).forEach((prediction) => {
+                try {
+                    const enriched = enrichTopPrediction(prediction);
+                    evidenceByKey.set(productionCandidateKey(prediction), {
+                        geo_model: enriched.geo_model,
+                        sabap2: enriched.sabap2,
+                    });
+                } catch (err) {
+                    console.warn('[BirdNET production] candidate enrichment unavailable; continuing:', prediction, err);
+                }
+            });
+            return evidenceByKey;
         }
 
         function updateBirdDetection(detected, birdEnergy, noiseEnergy) {
@@ -1250,6 +2345,7 @@
             userAudioSource = file;
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('identifyBtn').disabled = false;
+            updateBirdNetButtonState();
 
             if (userAudioURL) URL.revokeObjectURL(userAudioURL);
             userAudioURL = URL.createObjectURL(file);
@@ -1273,7 +2369,8 @@
         }
 
         function getFilters() {
-            if (!document.getElementById('useFilters').checked) return {};
+            const useFilters = document.getElementById('useFilters');
+            if (!useFilters || !useFilters.checked) return {};
             const hotspots = getMultiSelectValues('hotspotMultiSelect');
             const habitats = getMultiSelectValues('habitatMultiSelect');
             return {
@@ -1347,8 +2444,10 @@
         // Supported Birds
         // ===========================
         function initSupportedBirds() {
+            const countEl = document.getElementById('supportedCount');
+            if (!countEl) return; // legacy presentation removed from production UI
             const list = typeof supportedBirds !== 'undefined' ? supportedBirds : [];
-            document.getElementById('supportedCount').textContent = list.length;
+            countEl.textContent = list.length;
         }
 
         function showSupportedBirds() {
@@ -1374,6 +2473,1231 @@
 
         function closeSupportedBirds() {
             document.getElementById('supportedOverlay').classList.remove('open');
+        }
+
+        // ===========================
+        // PHASE 2D — BirdNET V3 + Protected Acoustic identification path
+        // ===========================
+        // ADDITIVE ONLY. Does not modify runIdentification(), showResults(),
+        // or any existing MFCC/BirdNET/Geo/SABAP2/Protected Acoustic code.
+        // Uses the existing validated BirdNET stack to produce a result in
+        // the legacy result shape via a thin adapter, so showResults() can
+        // render it without modification. Falls back to runIdentification()
+        // ONLY on unrecoverable BirdNET pipeline failure.
+
+        /**
+         * Adapter: converts a BirdNetProtectedLive.rankAccumulatorRecords()
+         * result into the minimum legacy result shape that showResults(),
+         * showQualityAssessment(), mergeIdentifyOnlyResults(), and
+         * populateDebug() expect.
+         *
+         * IMPORTANT: This adapter does NOT invent MFCC component scores.
+         * BirdNET has no DTW, pitch, or spectrogram comparison scores —
+         * those fields are set to null so the existing detail line shows
+         * "—" rather than a fake value. The primary `score` is the raw
+         * BirdNET acoustic_score converted to 0-100 for UI display only;
+         * it is NOT a calibrated probability.
+         *
+         * Confidence bands are UI-only labels derived from the raw BirdNET
+         * score, NOT calibrated probabilities. The thresholds below are
+         * reasonable for raw BirdNET V3 outputs and are documented here
+         * so they can be tuned later without touching the renderer.
+         *
+         * @param ranking  Result from BirdNetProtectedLive.rankAccumulatorRecords()
+         * @param audioInfo { durationSec, sampleRate, numWindows } from BirdNET decode
+         */
+        function birdnetRankingToLegacyResult(ranking, audioInfo) {
+            const ai = audioInfo || {};
+            const rk = ranking || { rows: [], validation: { valid: true, errors: [] }, usedFallback: false, candidateCountBefore: 0, candidateCountAfter: 0 };
+            const rows = rk.rows || [];
+
+            // UI-only confidence band from raw BirdNET acoustic score.
+            // NOT a calibrated probability — just a display band.
+            // Thresholds (raw 0-1 score): >=0.50 high, >=0.25 medium, else low.
+            const BIRDNET_HIGH_THRESH = 0.50;
+            const BIRDNET_MED_THRESH   = 0.25;
+
+            const results = rows.map((row) => {
+                const r = row.record; // original accumulator record
+                const scorePct = Math.round((row.acoustic_score || 0) * 1000) / 10; // 0-100, 1 decimal
+
+                // Best-effort allbirds lookup for english/afrikaans/audio/image.
+                // If no match, use safe placeholders — the UI handles missing
+                // photo via onerror and missing audio by hiding the play button.
+                const ab = r.allbirds || (typeof SA_OCCURRENCE !== 'undefined'
+                    ? SA_OCCURRENCE.lookupAllbirdsByCommonName(r.com)
+                    : { found: false, entry: null });
+                const abEntry = ab && ab.found ? ab.entry : null;
+
+                // BirdNET's common name is the user-facing standard-order
+                // display name. Keep allbirds' group-first English name only
+                // for its existing content lookup/backwards compatibility.
+                const englishName = r.com || (abEntry ? abEntry.english : 'Unknown');
+                const afrikaansName = abEntry ? (abEntry.afrikaans || '') : '';
+                const audioPath = abEntry ? (abEntry.audio || null) : null;
+                const imagePath = abEntry ? (abEntry.image || null) : null;
+
+                return {
+                    bird: {
+                        english: englishName,
+                        afrikaans: afrikaansName,
+                        audio: audioPath || '',
+                        image: imagePath || '',
+                        hotspot: '',
+                        habitat: '',
+                        birdgroup: '',
+                        spectrogram: '',
+                        identifyOnly: false, // no identifyOnly concept in BirdNET
+                        features: null,      // no MFCC reference features
+                    },
+                    // Primary score: raw BirdNET acoustic_score * 100 (UI scale only)
+                    score: scorePct,
+                    // MFCC component scores do not exist for BirdNET — null
+                    // so the existing detail line shows "—" not a fake value.
+                    fastScore: null,
+                    dtwScore: null,
+                    pitchScore: null,
+                    spectrogramScore: null,
+                    combinedScore: scorePct,
+                    // BirdNET-specific extra fields (not used by legacy UI,
+                    // available for debugging)
+                    _birdnet: {
+                        scientific_name: r.sci,
+                        detectionCount: r.detectionCount,
+                        bestScore: r.bestScore,
+                        latestScore: r.latestScore,
+                        firstWindow: r.firstWindow,
+                        lastWindow: r.lastWindow,
+                        windowNumbers: r.windowNumbers || null,
+                        protected_rank: row.protected_rank,
+                        raw_rank: row.raw_rank,
+                        rank_delta: row.rank_delta,
+                        evidence_labels: row.evidence_labels || [],
+                        used_fallback: row.used_fallback,
+                        geo_model: row.geo_model,
+                        sabap2: row.sabap2,
+                        allbirds_found: ab.found,
+                    },
+                };
+            });
+
+            // Derive confidence band from the top result's raw acoustic score.
+            let confidence = 'low';
+            if (results.length > 0) {
+                const topRaw = (rk.rows[0].acoustic_score || 0);
+                if (topRaw >= BIRDNET_HIGH_THRESH) confidence = 'high';
+                else if (topRaw >= BIRDNET_MED_THRESH) confidence = 'medium';
+            }
+
+            // Quality: BirdNET does not produce MFCC quality metrics.
+            // Provide a neutral state with the audio duration from BirdNET
+            // decoding, and a clear note that quality assessment is not
+            // available for the BirdNET engine.
+            const quality = {
+                rating: 'fair', // neutral — not good/poor, just unknown
+                duration: ai.durationSec ? ai.durationSec.toFixed(1) : '0',
+                warnings: ['Quality assessment not available for BirdNET engine.'],
+            };
+
+            // Debug info: BirdNET-specific fields, with MFCC-specific fields
+            // set to neutral values so populateDebug() doesn't crash.
+            const debugInfo = {
+                dbVersion: 'BirdNET V3 (no MFCC features DB)',
+                dbBirdCount: 0,
+                dbWithFeatures: 0,
+                candidateCount: rk.candidateCountBefore || results.length,
+                fastTop30: results.slice(0, 30).map((r) => ({
+                    name: r.bird.english,
+                    score: r.score,
+                })),
+                robinRank: -1, // Cape Robin-Chat tracking is MFCC-specific
+                robinScore: 0,
+                robinHasFeatures: false,
+                audioSampleRate: ai.sampleRate || 32000,
+                actualContextSR: ai.sampleRate || 32000,
+                freqFocus: null,
+                enhance: false,
+                analyzedDuration: ai.durationSec || 0,
+                // BirdNET-specific debug fields
+                birdnetNumWindows: ai.numWindows || 0,
+                birdnetUsedFallback: rk.usedFallback || false,
+                birdnetValidationErrors: (rk.validation && rk.validation.errors) || [],
+            };
+
+            return {
+                quality,
+                userFeatures: null, // no MFCC user features; showResults skips this section
+                results,
+                confidence,
+                totalCandidates: rk.candidateCountBefore || results.length,
+                duration: ai.durationSec || 0,
+                debugInfo,
+                // BirdNET-specific top-level marker
+                _engine: 'birdnet-protected',
+            };
+        }
+
+        /**
+         * Shows the engine indicator below the confidence bar.
+         * Non-invasive: just sets text on an existing hidden div.
+         */
+        function showEngineIndicator(engineName) {
+            const el = document.getElementById('engineIndicator');
+            if (!el) return;
+            el.textContent = 'Identification engine: ' + engineName;
+            el.style.display = 'block';
+        }
+
+        // Non-invasive: show "MFCC" indicator when the existing Identify
+        // button is clicked, WITHOUT modifying runIdentification() or the
+        // button's onclick attribute.
+        (function () {
+            var btn = document.getElementById('identifyBtn');
+            if (btn) btn.addEventListener('click', function () {
+                showEngineIndicator('MFCC');
+            });
+        })();
+
+        /**
+         * PHASE 2D entry point — "Identify with BirdNET" button handler.
+         *
+         * Flow:
+         *   existing audio (userAudioSource)
+         *   → BirdNET decode (decodeMono)
+         *   → ContinuousBirdNetProcessor (3s windows)
+         *   → BirdDetectionAccumulator
+         *   → existing Geo/SABAP2 enrichment (enrichTopPrediction)
+         *   → BirdNetProtectedLive.rankAccumulatorRecords()
+         *   → birdnetRankingToLegacyResult() adapter
+         *   → existing showResults()/showQualityAssessment()/populateDebug()
+         *
+         * Fallback policy:
+         *   Normal BirdNET conditions (GPS unavailable, Geo unavailable,
+         *   SABAP2 no data, allbirds lookup missing, individual window
+         *   failure) do NOT trigger MFCC fallback — BirdNET keeps working.
+         *   Only unrecoverable pipeline failure (model cannot load, decode
+         *   fails, processing fails, adapter fails) triggers the existing
+         *   runIdentification() as fallback, with a clear log.
+         */
+        function birdnetSetProgress(message, percent) {
+            const progress = document.getElementById('progressMessage');
+            if (progress) progress.innerHTML = '<span class="progress-spinner"></span> ' + message;
+            if (percent != null) document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // Caller-level drain for the existing processor. This deliberately
+        // does not modify birdnet-streaming.js: after flush(), wait until its
+        // already-queued/in-flight work settles before calling stop().
+        async function waitForBirdNetProcessorDrain(processor, timeoutMs) {
+            const deadline = Date.now() + (timeoutMs || 60000);
+            while (Date.now() < deadline) {
+                if (!processor._processing && processor._queue.length === 0 && processor._buffer.length === 0) return;
+                await new Promise((resolve) => setTimeout(resolve, 25));
+            }
+            throw new Error('BirdNET processing did not finish before timeout.');
+        }
+
+        function rankBirdNetProductionRecords(accumulator) {
+            const records = accumulator ? accumulator.getAll() : [];
+            const originalByKey = new Map(records.map((record) => [productionCandidateKey(record), record]));
+            // The existing Protected Acoustic module consumes `latestScore` as
+            // its acoustic_score. For this production-only path, provide
+            // shallow ranking views whose latestScore field is the retained
+            // bestScore, without modifying the original candidate records.
+            const rankingRecords = records.map((record) => ({
+                ...record,
+                latestScore: record.bestScore,
+            }));
+            const remapOriginalRecords = (ranking) => ({
+                ...ranking,
+                rows: ranking.rows.map((row) => ({
+                    ...row,
+                    record: originalByKey.get(productionCandidateKey(row.record)) || row.record,
+                })),
+            });
+            const defaultRanking = remapOriginalRecords(
+                BirdNetProtectedLive.rankAccumulatorRecords(rankingRecords)
+            );
+            if (!geoContext || !geoContext.computed || rankingRecords.length < 2) return defaultRanking;
+
+            const raw = rankingRecords.slice().sort((a, b) => b.latestScore - a.latestScore);
+            const leader = raw[0];
+            const challenger = raw[1];
+            const leaderGeo = leader.geo_model;
+            const leaderSabap = leader.sabap2;
+            const challengerGeo = challenger.geo_model;
+            const challengerSabap = challenger.sabap2;
+            const acousticGapPct = (leader.latestScore - challenger.latestScore) * 100;
+            const leaderClearlyUnsupported = leaderGeo && leaderGeo.computed && leaderGeo.score < 0.05 &&
+                !(leaderSabap && leaderSabap.found);
+            const challengerHasRegionalSupport =
+                (challengerGeo && challengerGeo.computed && challengerGeo.score >= 0.05) ||
+                (challengerSabap && challengerSabap.found &&
+                    ((challengerSabap.current_month_rate != null && challengerSabap.current_month_rate > 0) ||
+                     (challengerSabap.overall_reprate != null && challengerSabap.overall_reprate > 0)));
+
+            // Narrow production safeguard: use the existing Protected Acoustic
+            // core with a one-position >=90% cap only for a close, explicitly
+            // geographically-disagreed leader versus a regionally supported
+            // challenger. No candidate is deleted and no raw score changes.
+            if (acousticGapPct >= 0 && acousticGapPct <= 10 && leaderClearlyUnsupported && challengerHasRegionalSupport) {
+                return remapOriginalRecords(BirdNetProtectedLive.rankAccumulatorRecords(rankingRecords, {
+                    protectionBandCaps: { p90: 1 },
+                }));
+            }
+            return defaultRanking;
+        }
+
+        function selectBirdNetNormalCandidates(ranking) {
+            const allRows = (ranking && ranking.rows) || [];
+            const diagnosticRows = diagnosticRankingRows(ranking);
+            const visibility = BirdNetVisibility.selectRows(diagnosticRows, birdSoundSettings);
+            const visibleIndexes = new Set(
+                diagnosticRows
+                    .map((row, index) => ({ row, index }))
+                    .filter(({ row }) => visibility.visibleRows.includes(row))
+                    .map(({ index }) => index)
+            );
+            const visibleRows = allRows.filter((row, index) => visibleIndexes.has(index));
+            const filteredRows = allRows.filter((row, index) => !visibleIndexes.has(index));
+            const supportedCount = diagnosticRows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_SUPPORTED').length;
+            const uncertainCount = diagnosticRows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_UNCERTAIN').length;
+            const unlikelyCount = diagnosticRows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_UNLIKELY').length;
+            console.log('[BIRDNET geographic selection]', {
+                totalCandidates: allRows.length,
+                normalVisibleCandidates: visibleRows.length,
+                geographicallySupportedCount: supportedCount,
+                geographicallyUncertainCount: uncertainCount,
+                geographicallyUnlikelyCount: unlikelyCount,
+                filteredCount: filteredRows.length,
+            });
+            return {
+                allRows,
+                visibleRows,
+                filteredRows,
+                visibleRanking: { ...ranking, rows: visibleRows },
+                geographicFilteredCount: filteredRows.length,
+            };
+        }
+
+        function refreshBirdNetVisibility() {
+            if (!birdnetLiveLastRanking) return;
+            const selection = selectBirdNetNormalCandidates(birdnetLiveLastRanking);
+            const result = birdnetRankingToLegacyResult(selection.visibleRanking, birdnetLiveLastAudioInfo || {});
+            showQualityAssessment(result.quality);
+            mergeIdentifyOnlyResults(result);
+            showResults(result);
+            populateDebug(result);
+        }
+
+        function renderBirdNetProductionRanking(accumulator, audioInfo, runId) {
+            if (!accumulator || (runId != null && runId !== birdnetLiveRunId)) return null;
+            const ranking = rankBirdNetProductionRecords(accumulator);
+            birdnetLiveLastAudioInfo = audioInfo || {};
+            const selection = selectBirdNetNormalCandidates(ranking);
+            const result = birdnetRankingToLegacyResult(selection.visibleRanking, audioInfo);
+            birdnetLiveLastRanking = ranking;
+            showQualityAssessment(result.quality);
+            mergeIdentifyOnlyResults(result);
+            showResults(result);
+            populateDebug(result);
+            showEngineIndicator('BirdNET V3 + Protected Acoustic');
+            return ranking;
+        }
+
+        function startBirdNetLiveSpectrogram(recorderForDisplay, runId) {
+            const canvas = document.getElementById('liveSpectroCanvas');
+            if (!canvas || !recorderForDisplay || !recorderForDisplay.analyserNode) return;
+            canvas.classList.remove('hidden');
+            canvas.width = canvas.clientWidth || 400;
+            canvas.height = 60;
+            liveSpectroCtx = canvas.getContext('2d');
+            liveSpectroCtx.fillStyle = '#1a1a2e';
+            liveSpectroCtx.fillRect(0, 0, canvas.width, canvas.height);
+            liveSpectroX = 0;
+
+            const analyser = recorderForDisplay.analyserNode;
+            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            const height = canvas.height;
+            const drawColumn = () => {
+                if (!birdnetLiveActive || runId !== birdnetLiveRunId || !recorderForDisplay.analyserNode) return;
+                analyser.getByteFrequencyData(freqData);
+                const maxBin = Math.min(
+                    Math.floor(freqData.length * 12000 / (recorderForDisplay.audioContext.sampleRate / 2)),
+                    freqData.length
+                );
+                for (let y = 0; y < height; y++) {
+                    const bin = Math.floor((1 - y / height) * maxBin);
+                    const value = freqData[Math.min(bin, freqData.length - 1)] / 255;
+                    const r = Math.floor(value * value * 255);
+                    const g = Math.floor(value * 200 + 20);
+                    const b = Math.floor((1 - value) * 40 + 15);
+                    liveSpectroCtx.fillStyle = value > 0.1 ? `rgb(${r},${g},${b})` : '#1a1a2e';
+                    liveSpectroCtx.fillRect(liveSpectroX, y, 1, 1);
+                }
+                liveSpectroX++;
+                if (liveSpectroX >= canvas.width) {
+                    liveSpectroX = 0;
+                    liveSpectroCtx.fillStyle = '#1a1a2e';
+                    liveSpectroCtx.fillRect(0, 0, canvas.width, height);
+                }
+                liveSpectroCtx.fillStyle = '#fff';
+                liveSpectroCtx.fillRect(liveSpectroX, 0, 1, height);
+                birdnetLiveSpectroFrame = requestAnimationFrame(drawColumn);
+            };
+            drawColumn();
+        }
+
+        function stopBirdNetLiveSpectrogram() {
+            if (birdnetLiveSpectroFrame != null) {
+                cancelAnimationFrame(birdnetLiveSpectroFrame);
+                birdnetLiveSpectroFrame = null;
+            }
+            const canvas = document.getElementById('liveSpectroCanvas');
+            if (canvas) canvas.classList.add('hidden');
+            liveSpectroCtx = null;
+        }
+
+        function birdnetProductionDiagnosticRows(ranking, fallbackRecords) {
+            const rows = ranking && ranking.rows && ranking.rows.length
+                ? ranking.rows
+                : (fallbackRecords || []).map((record) => ({ record }));
+            return rows.map((row) => {
+                const record = row.record || {};
+                const geo = row.geo_model !== undefined ? row.geo_model : record.geo_model;
+                const sabap2 = row.sabap2 !== undefined ? row.sabap2 : record.sabap2;
+                return {
+                    commonName: record.com,
+                    scientificName: record.sci,
+                    bestScore: record.bestScore,
+                    latestScore: record.latestScore,
+                    detectionCount: record.detectionCount,
+                    rawRank: row.raw_rank,
+                    protectedRank: row.protected_rank,
+                    geo: {
+                        computed: geo && geo.computed,
+                        score: geo && geo.score,
+                        reason_not_computed: geo && geo.reason_not_computed,
+                    },
+                    sabap2: {
+                        found: sabap2 && sabap2.found,
+                        regional_occurrence: sabap2 && sabap2.regional_occurrence,
+                        overall_reprate: sabap2 && sabap2.overall_reprate,
+                        current_month_rate: sabap2 && sabap2.current_month_rate,
+                        current_month_state: sabap2 && sabap2.current_month_state,
+                        country_rates: sabap2 && sabap2.country_rates,
+                        match_type: sabap2 && sabap2.match_type,
+                        sabap2_spp_code: sabap2 && sabap2.sabap2_spp_code,
+                        province_data: sabap2 && sabap2.province_data,
+                        gauteng_found: sabap2 && sabap2.gauteng_found,
+                        gauteng_recrate: sabap2 && sabap2.gauteng_recrate,
+                        gauteng_records: sabap2 && sabap2.gauteng_records,
+                        gauteng_cards: sabap2 && sabap2.gauteng_cards,
+                        gauteng_current_month_rate: sabap2 && sabap2.gauteng_current_month_rate,
+                        sa_provinces_found: sabap2 && sabap2.sa_provinces_found,
+                        sa_province_count: sabap2 && sabap2.sa_province_count,
+                        strongest_sa_province: sabap2 && sabap2.strongest_sa_province,
+                    },
+                    evidence_labels: row.evidence_labels,
+                    geoClassification: classifyBirdNetProductionGeography({
+                        geo: geo,
+                        sabap2: sabap2,
+                        evidence_labels: row.evidence_labels,
+                    }),
+                };
+            });
+        }
+
+        function birdnetProductionDiagnosticTableRows(rows) {
+            return (rows || []).map((row) => ({
+                rank: row.protectedRank,
+                rawRank: row.rawRank,
+                commonName: row.commonName,
+                scientificName: row.scientificName,
+                bestScore: row.bestScore,
+                detections: row.detectionCount,
+                geoComputed: row.geo && row.geo.computed,
+                geoScore: row.geo && row.geo.score,
+                geoReason: row.geo && row.geo.reason_not_computed,
+                sabapFound: row.sabap2 && row.sabap2.found,
+                sabapRegional: row.sabap2 && row.sabap2.regional_occurrence,
+                sabapOverall: row.sabap2 && row.sabap2.overall_reprate,
+                sabapCurrentMonth: row.sabap2 && row.sabap2.current_month_rate,
+                sabapCurrentState: row.sabap2 && row.sabap2.current_month_state,
+                matchType: row.sabap2 && row.sabap2.match_type,
+                sppCode: row.sabap2 && row.sabap2.sabap2_spp_code,
+                evidenceLabels: row.evidence_labels,
+            }));
+        }
+
+        function classifyBirdNetProductionGeography(row) {
+            const labels = row.evidence_labels || [];
+            const sabap2 = row.sabap2 || {};
+            const hasExistingSupport = labels.some((label) =>
+                label.includes('geographic support') ||
+                label.includes('supported by regional occurrence')
+            ) || sabap2.regional_occurrence === true;
+            if (hasExistingSupport) return 'GEOGRAPHICALLY_SUPPORTED';
+
+            const hasExistingGeoDisagreement = labels.includes('geographic disagreement');
+            const hasRegionalOccurrence = sabap2.regional_occurrence === true;
+            if (hasExistingGeoDisagreement && !hasRegionalOccurrence) {
+                return 'GEOGRAPHICALLY_UNLIKELY';
+            }
+            return 'GEOGRAPHICALLY_UNCERTAIN';
+        }
+
+        function birdnetProductionGeographicSummaryRows(diagnostics) {
+            return (diagnostics || []).map((row) => ({
+                commonName: row.commonName,
+                bestScore: row.bestScore,
+                detectionCount: row.detectionCount,
+                geoScore: row.geo && row.geo.score,
+                sabapRegional: row.sabap2 && row.sabap2.regional_occurrence,
+                sabapOverall: row.sabap2 && row.sabap2.overall_reprate,
+                geoClassification: classifyBirdNetProductionGeography(row),
+            })).sort((a, b) =>
+                a.geoClassification.localeCompare(b.geoClassification) ||
+                ((b.bestScore || 0) - (a.bestScore || 0))
+            );
+        }
+
+        function logBirdNetProductionGeoContext(source, context) {
+            console.log('[BirdNET production][' + source + '][GPS context]', {
+                latitude: context && context.lat,
+                longitude: context && context.lon,
+                week: context && context.week,
+                computed: context && context.computed,
+                reason: context && context.reason,
+            });
+        }
+
+        async function stopBirdNetLiveIdentification() {
+            if (!birdnetLiveActive && !birdnetLiveStarting) return;
+            birdnetLiveActive = false;
+            birdnetLiveStarting = false;
+            birdnetLiveRunId++;
+
+            const processor = birdnetLiveProcessor;
+            const liveRecorder = birdnetLiveRecorder;
+            if (birdnetLiveCandidateAggregator) {
+                const diagnostics = birdnetProductionDiagnosticRows(
+                    birdnetLiveLastRanking,
+                    birdnetLiveCandidateAggregator.getAll()
+                );
+                console.log('[BirdNET production live][final retained candidates]', diagnostics);
+                console.table(birdnetProductionDiagnosticTableRows(diagnostics));
+                console.table(birdnetProductionGeographicSummaryRows(diagnostics));
+            }
+            if (birdnetLiveBarbetSummary) {
+                console.log('[BirdNET production live][Black-collared Barbet summary]', {
+                    totalCompletedWindows: birdnetLiveBarbetSummary.totalCompletedWindows,
+                    windowsAppeared: birdnetLiveBarbetSummary.windowsAppeared,
+                    windowsTop5: birdnetLiveBarbetSummary.windowsTop5,
+                    windowsTop1: birdnetLiveBarbetSummary.windowsTop1,
+                    highestRawScore: birdnetLiveBarbetSummary.highestRawScore,
+                    highestScoreWindow: birdnetLiveBarbetSummary.highestScoreWindow,
+                    highestScoreRawRank: birdnetLiveBarbetSummary.highestScoreRawRank,
+                    presentInProductionTopN: birdnetLiveBarbetSummary.windowsAppeared > 0,
+                    top20Available: false,
+                });
+                console.table([birdnetLiveBarbetSummary]);
+            }
+            if (birdnetLiveWindowTiming) {
+                const timing = birdnetLiveWindowTiming;
+                console.log('[BIRDNET WINDOW TIMING SUMMARY]', {
+                    totalCompletedWindows: timing.completedWindows,
+                    totalDroppedWindows: timing.droppedWindows,
+                    totalFailedWindows: timing.failedWindows,
+                    firstCompletedWindowStartSec: timing.firstCompletedWindowStartSec,
+                    firstCompletedWindowEndSec: timing.firstCompletedWindowEndSec,
+                    lastCompletedWindowStartSec: timing.lastCompletedWindowStartSec,
+                    lastCompletedWindowEndSec: timing.lastCompletedWindowEndSec,
+                    totalElapsedProductionLiveTimeSec: (Date.now() - timing.startedAt) / 1000,
+                    audioBeforeIdentifyCanEnterProcessor: false,
+                    firstWindowStartsAtApproximatelyZero: timing.firstCompletedWindowStartSec !== null && timing.firstCompletedWindowStartSec <= 3,
+                    top20Available: !!(birdnetLiveTop20Test && birdnetLiveTop20Test.enabled),
+                    trackedWindowNumbers: timing.trackedWindowNumbers,
+                });
+                console.table(timing.records);
+            }
+            if (birdnetLiveOverlapTest && birdnetLiveOverlapTest.enabled) {
+                const overlap = birdnetLiveOverlapTest;
+                const queueLengthAtStop = processor && processor._queue ? processor._queue.length : null;
+                const processingAtStop = processor ? processor._processing : null;
+                const retained = birdnetLiveCandidateAggregator ? birdnetLiveCandidateAggregator.getAll() : [];
+                const retainedBySci = new Map(retained.map((record) => [record.sci, record]));
+                const trackedSummary = {};
+                Object.keys(overlap.trackedWindowNumbers).forEach((key) => {
+                    const sciByKey = {
+                        brownHoodedKingfisher: 'Halcyon albiventris',
+                        forkTailedDrongo: 'Dicrurus adsimilis',
+                        southernBoubou: 'Laniarius ferrugineus',
+                        blackCollaredBarbet: 'Lybius torquatus',
+                    }[key];
+                    const record = retainedBySci.get(sciByKey);
+                    trackedSummary[key] = {
+                        bestScore: record ? record.bestScore : null,
+                        detectionCount: record ? record.detectionCount : 0,
+                        windowNumbers: overlap.trackedWindowNumbers[key],
+                    };
+                });
+                console.log('[BIRDNET OVERLAP TEST SUMMARY]', {
+                    strideSec: overlap.strideSec,
+                    windowSec: overlap.windowSec,
+                    completedWindows: overlap.completedWindows,
+                    droppedWindows: overlap.droppedWindows,
+                    failedWindows: overlap.failedWindows,
+                    expectedWindows: overlap.maxWindowIndex + 1,
+                    processingElapsedSec: (Date.now() - overlap.startedAt) / 1000,
+                    processingLagOrQueueBuildup: overlap.droppedWindows > 0 || overlap.failedWindows > 0 || queueLengthAtStop > 0 || processingAtStop === true,
+                    queueLengthAtStop,
+                    processingAtStop,
+                    uniqueRetainedCandidates: retained.length,
+                    tracked: trackedSummary,
+                });
+                console.table(overlap.records);
+            }
+            if (birdnetLiveTop20Test && birdnetLiveTop20Test.enabled) {
+                const top20 = birdnetLiveTop20Test;
+                const queueLengthAtStop = processor && processor._queue ? processor._queue.length : null;
+                const processingAtStop = processor ? processor._processing : null;
+                const retained = birdnetLiveCandidateAggregator ? birdnetLiveCandidateAggregator.getAll() : [];
+                const retainedBySci = new Map(retained.map((record) => [record.sci, record]));
+                const top20Summary = {};
+                Object.keys(top20.tracked).forEach((key) => {
+                    const sciByKey = {
+                        brownHoodedKingfisher: 'Halcyon albiventris',
+                        forkTailedDrongo: 'Dicrurus adsimilis',
+                        southernBoubou: 'Laniarius ferrugineus',
+                        blackCollaredBarbet: 'Lybius torquatus',
+                    }[key];
+                    const record = retainedBySci.get(sciByKey);
+                    top20Summary[key] = {
+                        ...top20.tracked[key],
+                        bestScore: record ? record.bestScore : null,
+                        detectionCount: record ? record.detectionCount : 0,
+                    };
+                });
+                console.log('[BIRDNET TOP20 TEST SUMMARY]', {
+                    windowSec: 3,
+                    strideSec: 3,
+                    topNRequested: 20,
+                    completedWindows: top20.completedWindows,
+                    droppedWindows: top20.droppedWindows,
+                    failedWindows: top20.failedWindows,
+                    expectedWindows: top20.maxWindowIndex + 1,
+                    processingElapsedSec: (Date.now() - top20.startedAt) / 1000,
+                    processingLagOrQueueBuildup: top20.droppedWindows > 0 || top20.failedWindows > 0 || queueLengthAtStop > 0 || processingAtStop === true,
+                    queueLengthAtStop,
+                    processingAtStop,
+                    maxQueueLength: top20.maxQueueLength,
+                    uniqueRetainedCandidates: retained.length,
+                    tracked: top20Summary,
+                });
+                console.table(top20.records);
+
+                const diagnosticAggregator = birdnetLiveTop20DiagnosticAggregator;
+                if (diagnosticAggregator) {
+                    const top20Ranking = rankBirdNetProductionRecords(diagnosticAggregator);
+                    const top20Rows = diagnosticRankingRows(top20Ranking);
+                    const top5Rows = diagnosticRankingRows(birdnetLiveLastRanking);
+                    const top5Records = birdnetLiveCandidateAggregator ? birdnetLiveCandidateAggregator.getAll() : [];
+                    const top5Keys = new Set(top5Records.map((record) => productionCandidateKey(record)));
+                    const top20Records = diagnosticAggregator.getAll();
+                    const top20Keys = new Set(top20Records.map((record) => productionCandidateKey(record)));
+                    const addedOnly = top20Records.filter((record) => record.top5Count === 0 && record.rank6to20Count > 0);
+                    const classificationCounts = top20Rows.reduce((counts, row) => {
+                        counts[row.geographicClassification] = (counts[row.geographicClassification] || 0) + 1;
+                        return counts;
+                    }, {});
+                    console.log('[BIRDNET TOP20 DIAGNOSTIC]', {
+                        totalCompletedWindows: top20.completedWindows,
+                        uniqueTop5Candidates: top5Records.length,
+                        uniqueTop20Candidates: top20Records.length,
+                        newCandidatesFromRanks6to20: addedOnly.length,
+                        supportedCandidates: classificationCounts.GEOGRAPHICALLY_SUPPORTED || 0,
+                        uncertainCandidates: classificationCounts.GEOGRAPHICALLY_UNCERTAIN || 0,
+                        unlikelyCandidates: classificationCounts.GEOGRAPHICALLY_UNLIKELY || 0,
+                        top5OnlyCandidates: top5Records.filter((record) => !top20Keys.has(productionCandidateKey(record))),
+                        top20AddedOnlyFromRanks6to20: addedOnly,
+                        top20CandidatesSurvivingProtectedAcoustic: top20Rows,
+                        top20SupportedButAcousticallyWeak: top20Rows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_SUPPORTED' && row.diagnosticCategory === 'BACKGROUND'),
+                        top20UnlikelyAndAcousticallyWeak: top20Rows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_UNLIKELY' && row.diagnosticCategory === 'BACKGROUND'),
+                    });
+                    console.table(top5Rows);
+                    console.table(top20Rows);
+                    console.table(['Halcyon albiventris', 'Dicrurus adsimilis', 'Laniarius ferrugineus', 'Lybius torquatus'].map((sci) => {
+                        const row = top20Rows.find((candidate) => candidate.scientificName === sci);
+                        return row || { scientificName: sci, notPresent: true };
+                    }));
+                    console.log('[BIRDNET TOP20 DIAGNOSTIC SET COMPARISON]', {
+                        top5OnlyCandidates: top5Records.filter((record) => !top20Keys.has(productionCandidateKey(record))),
+                        top20OnlyCandidates: top20Records.filter((record) => !top5Keys.has(productionCandidateKey(record))),
+                    });
+                    exportBirdNetTop20Diagnostic(
+                        top20,
+                        top20Ranking,
+                        diagnosticAggregator,
+                        top5Records,
+                        top20Rows,
+                        queueLengthAtStop,
+                        processingAtStop
+                    );
+                }
+            }
+            birdnetLiveTop20DiagnosticAggregator = null;
+            birdnetLiveBarbetSummary = null;
+            birdnetLiveWindowTiming = null;
+            birdnetLiveOverlapTest = null;
+            birdnetLiveTop20Test = null;
+            birdnetLiveTop20DiagnosticAggregator = null;
+            birdnetLiveProcessor = null;
+            birdnetLiveRecorder = null;
+            birdnetLiveCandidateAggregator = null;
+            if (liveRecorder) liveRecorder.onRawPcmChunk = null;
+            if (processor) processor.stop();
+            if (liveRecorder) await liveRecorder.stop();
+            stopBirdNetLiveSpectrogram();
+
+            document.getElementById('birdnetIdentifyBtn').textContent = 'Identify with BirdNET';
+            updateBirdNetButtonState();
+            document.getElementById('recordBtn').disabled = false;
+            if (birdnetLiveRevealedRecordArea) {
+                document.getElementById('recordArea').classList.add('hidden');
+                birdnetLiveRevealedRecordArea = false;
+            }
+        }
+
+        async function startBirdNetLiveIdentification() {
+            if (isRecording) {
+                birdnetSetProgress('Stop normal recording before starting BirdNET live listening.', null);
+                updateBirdNetButtonState();
+                return;
+            }
+            if (birdnetLiveActive || birdnetLiveStarting) return;
+            birdnetLiveStarting = true;
+            const runId = ++birdnetLiveRunId;
+            const btn = document.getElementById('birdnetIdentifyBtn');
+            btn.disabled = true;
+            document.getElementById('progressSection').classList.remove('hidden');
+            document.getElementById('engineIndicator').style.display = 'none';
+
+            try {
+                birdnetSetProgress('Loading BirdNET V3 model…', 5);
+                const loaded = await ensureBirdNetLoaded({ textContent: '' }, false, null, null);
+                if (!loaded) throw new Error('BirdNET model could not be loaded.');
+
+                birdnetSetProgress('Requesting microphone permission…', 10);
+                const liveRecorder = new BirdRecorder();
+                liveRecorder.setGain(gainDb);
+                const accumulator = new BirdDetectionAccumulator();
+                const candidateAggregator = createBirdNetProductionCandidateAggregator();
+                const overlapTestMode = birdnetOverlapTestEnabled();
+                const top20TestMode = birdnetTop20TestEnabled();
+                const processor = new ContinuousBirdNetProcessor(birdNetEngine, {
+                    windowSec: 3,
+                    strideSec: top20TestMode ? 3 : (overlapTestMode ? 1.5 : 3),
+                    maxQueueSize: 2,
+                    topNPerWindow: top20TestMode ? 20 : 5,
+                });
+                birdnetLiveRecorder = liveRecorder;
+                birdnetLiveProcessor = processor;
+                birdnetLiveAccumulator = accumulator;
+                birdnetLiveCandidateAggregator = candidateAggregator;
+                birdnetLiveBarbetSummary = {
+                    totalCompletedWindows: 0,
+                    windowsAppeared: 0,
+                    windowsTop5: 0,
+                    windowsTop1: 0,
+                    highestRawScore: null,
+                    highestScoreWindow: null,
+                    highestScoreRawRank: null,
+                };
+                birdnetLiveLastRanking = null;
+                birdnetLiveLastAudioInfo = null;
+
+                ensureGeoContext().then((context) => {
+                    logBirdNetProductionGeoContext('live', context);
+                }).catch((err) => {
+                    console.warn('[BirdNET production live] Geo unavailable; continuing:', err);
+                });
+
+                let windowsCompleted = 0;
+                let windowsDropped = 0;
+                let windowsFailed = 0;
+                const startedAt = Date.now();
+                birdnetLiveWindowTiming = {
+                    startedAt,
+                    completedWindows: 0,
+                    droppedWindows: 0,
+                    failedWindows: 0,
+                    firstCompletedWindowStartSec: null,
+                    firstCompletedWindowEndSec: null,
+                    lastCompletedWindowStartSec: null,
+                    lastCompletedWindowEndSec: null,
+                    trackedWindowNumbers: {
+                        brownHoodedKingfisher: [],
+                        forkTailedDrongo: [],
+                        southernBoubou: [],
+                        blackCollaredBarbet: [],
+                    },
+                    records: [],
+                };
+                birdnetLiveOverlapTest = overlapTestMode ? {
+                    enabled: true,
+                    startedAt,
+                    windowSec: 3,
+                    strideSec: processor.strideSec,
+                    completedWindows: 0,
+                    droppedWindows: 0,
+                    failedWindows: 0,
+                    maxWindowIndex: -1,
+                    records: [],
+                    trackedWindowNumbers: {
+                        brownHoodedKingfisher: [],
+                        forkTailedDrongo: [],
+                        southernBoubou: [],
+                        blackCollaredBarbet: [],
+                    },
+                } : null;
+                birdnetLiveTop20DiagnosticAggregator = top20TestMode
+                    ? createBirdNetTop20DiagnosticAggregator()
+                    : null;
+                birdnetLiveTop20Test = top20TestMode ? {
+                    enabled: true,
+                    startedAt,
+                    completedWindows: 0,
+                    droppedWindows: 0,
+                    failedWindows: 0,
+                    maxQueueLength: 0,
+                    maxWindowIndex: -1,
+                    records: [],
+                    tracked: {
+                        brownHoodedKingfisher: { top5: 0, ranks6to20: 0, top20: 0, absent: 0, highestRawScore: null, highestScoreWindow: null, bestRawRank: null, windowNumbers: [] },
+                        forkTailedDrongo: { top5: 0, ranks6to20: 0, top20: 0, absent: 0, highestRawScore: null, highestScoreWindow: null, bestRawRank: null, windowNumbers: [] },
+                        southernBoubou: { top5: 0, ranks6to20: 0, top20: 0, absent: 0, highestRawScore: null, highestScoreWindow: null, bestRawRank: null, windowNumbers: [] },
+                        blackCollaredBarbet: { top5: 0, ranks6to20: 0, top20: 0, absent: 0, highestRawScore: null, highestScoreWindow: null, bestRawRank: null, windowNumbers: [] },
+                    },
+                } : null;
+                processor.onWindowResult = (topN, windowInfo) => {
+                    if (!birdnetLiveActive || runId !== birdnetLiveRunId) return;
+                    windowsCompleted++;
+                    const productionTopN = top20TestMode ? topN.slice(0, 5) : topN;
+                    const barbetRaw = productionTopN.find((candidate) => candidate.sci === 'Lybius torquatus');
+                    const barbetPresent = !!barbetRaw;
+                    if (birdnetLiveBarbetSummary) {
+                        birdnetLiveBarbetSummary.totalCompletedWindows = windowsCompleted;
+                        if (barbetPresent) {
+                            birdnetLiveBarbetSummary.windowsAppeared++;
+                            if (barbetRaw.rank <= 5) birdnetLiveBarbetSummary.windowsTop5++;
+                            if (barbetRaw.rank === 1) birdnetLiveBarbetSummary.windowsTop1++;
+                            if (birdnetLiveBarbetSummary.highestRawScore === null ||
+                                barbetRaw.confidence > birdnetLiveBarbetSummary.highestRawScore) {
+                                birdnetLiveBarbetSummary.highestRawScore = barbetRaw.confidence;
+                                birdnetLiveBarbetSummary.highestScoreWindow = windowInfo.windowIndex + 1;
+                                birdnetLiveBarbetSummary.highestScoreRawRank = barbetRaw.rank;
+                            }
+                        }
+                    }
+                    const windowDurationSec = windowInfo.windowDurationSec || (windowInfo.numSamples / windowInfo.sampleRate);
+                    const windowStartSec = windowInfo.windowStartSec != null
+                        ? windowInfo.windowStartSec
+                        : windowInfo.windowIndex * windowDurationSec;
+                    const windowEndSec = windowInfo.windowEndSec != null
+                        ? windowInfo.windowEndSec
+                        : (windowInfo.windowIndex + 1) * windowDurationSec;
+                    const tracked = {
+                        brownHoodedKingfisher: productionTopN.find((candidate) => candidate.sci === 'Halcyon albiventris'),
+                        forkTailedDrongo: productionTopN.find((candidate) => candidate.sci === 'Dicrurus adsimilis'),
+                        southernBoubou: productionTopN.find((candidate) => candidate.sci === 'Laniarius ferrugineus'),
+                        blackCollaredBarbet: productionTopN.find((candidate) => candidate.sci === 'Lybius torquatus'),
+                    };
+                    const trackedRecord = (candidate) => ({
+                        presentInTop5: !!candidate,
+                        rawRank: candidate ? candidate.rank : null,
+                        rawScore: candidate ? candidate.confidence : null,
+                    });
+                    const timingRecord = {
+                        windowNumber: windowInfo.windowIndex + 1,
+                        windowStartSec,
+                        windowEndSec,
+                        isFirstCompletedWindow: windowsCompleted === 1,
+                        brownHoodedKingfisher: trackedRecord(tracked.brownHoodedKingfisher),
+                        forkTailedDrongo: trackedRecord(tracked.forkTailedDrongo),
+                        southernBoubou: trackedRecord(tracked.southernBoubou),
+                        blackCollaredBarbet: trackedRecord(tracked.blackCollaredBarbet),
+                        rawTop5: productionTopN.map((candidate) => ({
+                            rank: candidate.rank,
+                            commonName: candidate.com,
+                            scientificName: candidate.sci,
+                            rawScore: candidate.confidence,
+                        })),
+                        completedSuccessfully: true,
+                        droppedWindows: windowsDropped,
+                        failedWindows: windowsFailed,
+                        anyWindowDroppedOrFailed: windowsDropped > 0 || windowsFailed > 0,
+                        top20Available: top20TestMode,
+                    };
+                    if (birdnetLiveTop20Test) {
+                        birdnetLiveTop20Test.completedWindows = windowsCompleted;
+                        birdnetLiveTop20Test.maxWindowIndex = Math.max(birdnetLiveTop20Test.maxWindowIndex, windowInfo.windowIndex);
+                        birdnetLiveTop20Test.maxQueueLength = Math.max(
+                            birdnetLiveTop20Test.maxQueueLength,
+                            processor._queue ? processor._queue.length : 0
+                        );
+                        const top20Tracked = {
+                            brownHoodedKingfisher: topN.find((candidate) => candidate.sci === 'Halcyon albiventris'),
+                            forkTailedDrongo: topN.find((candidate) => candidate.sci === 'Dicrurus adsimilis'),
+                            southernBoubou: topN.find((candidate) => candidate.sci === 'Laniarius ferrugineus'),
+                            blackCollaredBarbet: topN.find((candidate) => candidate.sci === 'Lybius torquatus'),
+                        };
+                        Object.keys(top20Tracked).forEach((key) => {
+                            const candidate = top20Tracked[key];
+                            const stats = birdnetLiveTop20Test.tracked[key];
+                            if (!candidate) {
+                                stats.absent++;
+                                return;
+                            }
+                            stats.top20++;
+                            if (candidate.rank <= 5) stats.top5++;
+                            else stats.ranks6to20++;
+                            stats.windowNumbers.push(windowInfo.windowIndex + 1);
+                            if (stats.highestRawScore === null || candidate.confidence > stats.highestRawScore) {
+                                stats.highestRawScore = candidate.confidence;
+                                stats.highestScoreWindow = windowInfo.windowIndex + 1;
+                                stats.bestRawRank = candidate.rank;
+                            }
+                        });
+                        const overlapDiagnosticRecord = {
+                            ...timingRecord,
+                            top20Available: true,
+                            rawTop20: topN.map((candidate) => ({
+                                rank: candidate.rank,
+                                commonName: candidate.com,
+                                scientificName: candidate.sci,
+                                rawScore: candidate.confidence,
+                            })),
+                            trackedTop20: Object.keys(top20Tracked).reduce((out, key) => {
+                                const candidate = top20Tracked[key];
+                                out[key] = {
+                                    presentInTop5: !!candidate && candidate.rank <= 5,
+                                    presentInRanks6to20: !!candidate && candidate.rank >= 6,
+                                    presentInTop20: !!candidate,
+                                    rawRank: candidate ? candidate.rank : null,
+                                    rawScore: candidate ? candidate.confidence : null,
+                                };
+                                return out;
+                            }, {}),
+                        };
+                        birdnetLiveTop20Test.records.push(overlapDiagnosticRecord);
+                        console.log('[BIRDNET TOP20 WINDOW]', overlapDiagnosticRecord);
+                    }
+                    if (birdnetLiveWindowTiming) {
+                        birdnetLiveWindowTiming.completedWindows = windowsCompleted;
+                        birdnetLiveWindowTiming.firstCompletedWindowStartSec ??= windowStartSec;
+                        birdnetLiveWindowTiming.firstCompletedWindowEndSec ??= windowEndSec;
+                        birdnetLiveWindowTiming.lastCompletedWindowStartSec = windowStartSec;
+                        birdnetLiveWindowTiming.lastCompletedWindowEndSec = windowEndSec;
+                        Object.keys(tracked).forEach((key) => {
+                            if (tracked[key]) birdnetLiveWindowTiming.trackedWindowNumbers[key].push(windowInfo.windowIndex + 1);
+                        });
+                        birdnetLiveWindowTiming.records.push(timingRecord);
+                    }
+                    if (birdnetLiveOverlapTest) {
+                        birdnetLiveOverlapTest.completedWindows = windowsCompleted;
+                        birdnetLiveOverlapTest.maxWindowIndex = Math.max(birdnetLiveOverlapTest.maxWindowIndex, windowInfo.windowIndex);
+                        Object.keys(tracked).forEach((key) => {
+                            if (tracked[key]) birdnetLiveOverlapTest.trackedWindowNumbers[key].push(windowInfo.windowIndex + 1);
+                        });
+                        birdnetLiveOverlapTest.records.push(timingRecord);
+                        if (birdnetLiveOverlapTest.enabled) {
+                            console.log('[BIRDNET OVERLAP WINDOW]', timingRecord);
+                        }
+                    }
+                    console.log('[BIRDNET WINDOW]', timingRecord);
+                    const evidenceByKey = enrichBirdNetCandidates(productionTopN);
+                    const diagnosticEvidenceByKey = top20TestMode
+                        ? enrichBirdNetCandidates(topN)
+                        : evidenceByKey;
+                    const evidence = evidenceByKey.get(productionCandidateKey(productionTopN[0])) || null;
+                    accumulator.addWindowResult(productionTopN, windowInfo, evidence);
+                    candidateAggregator.addWindowResult(productionTopN, windowInfo, evidenceByKey);
+                    if (birdnetLiveTop20DiagnosticAggregator) {
+                        birdnetLiveTop20DiagnosticAggregator.addWindowResult(topN, windowInfo, diagnosticEvidenceByKey);
+                    }
+                    console.log('[BirdNET production live][accumulator after window]', {
+                        windowNumber: windowInfo.windowIndex + 1,
+                        windowsCompleted,
+                        windowsDropped,
+                        records: accumulator.getAll().map((record) => ({
+                            commonName: record.com,
+                            scientificName: record.sci,
+                            latestScore: record.latestScore,
+                            bestScore: record.bestScore,
+                            detectionCount: record.detectionCount,
+                        })),
+                    });
+                    console.log('[BirdNET production live][candidate aggregation]', {
+                        windowNumber: windowInfo.windowIndex + 1,
+                        rawTopN: productionTopN.map((candidate) => ({
+                            rawRank: candidate.rank,
+                            commonName: candidate.com,
+                            scientificName: candidate.sci,
+                            rawAcousticScore: candidate.confidence,
+                        })),
+                        candidates: candidateAggregator.getAll().map((record) => ({
+                            commonName: record.com,
+                            scientificName: record.sci,
+                            bestScore: record.bestScore,
+                            latestScore: record.latestScore,
+                            detectionCount: record.detectionCount,
+                        })),
+                    });
+                    renderBirdNetProductionRanking(candidateAggregator, {
+                        durationSec: (Date.now() - startedAt) / 1000,
+                        sampleRate: windowInfo.sampleRate,
+                        numWindows: windowsCompleted,
+                    }, runId);
+                    birdnetSetProgress(
+                        'Listening… window ' + (windowInfo.windowIndex + 1) +
+                        ' analyzed (' + windowsCompleted + ' completed, ' + windowsDropped + ' dropped).',
+                        null
+                    );
+                };
+                processor.onWindowDropped = (windowInfo) => {
+                    if (runId !== birdnetLiveRunId) return;
+                    windowsDropped++;
+                    if (birdnetLiveWindowTiming) birdnetLiveWindowTiming.droppedWindows = windowsDropped;
+                    if (birdnetLiveOverlapTest) {
+                        birdnetLiveOverlapTest.droppedWindows = windowsDropped;
+                        birdnetLiveOverlapTest.maxWindowIndex = Math.max(birdnetLiveOverlapTest.maxWindowIndex, windowInfo.windowIndex);
+                    }
+                    if (birdnetLiveTop20Test) {
+                        birdnetLiveTop20Test.droppedWindows = windowsDropped;
+                        birdnetLiveTop20Test.maxWindowIndex = Math.max(birdnetLiveTop20Test.maxWindowIndex, windowInfo.windowIndex);
+                    }
+                    console.warn('[BirdNET production live][window dropped]', {
+                        windowInfo,
+                        windowsCompleted,
+                        windowsDropped,
+                        queueLength: processor._queue ? processor._queue.length : null,
+                        processing: processor._processing,
+                    });
+                };
+                processor.onError = (err, windowInfo) => {
+                    if (runId !== birdnetLiveRunId) return;
+                    windowsFailed++;
+                    if (birdnetLiveWindowTiming) birdnetLiveWindowTiming.failedWindows = windowsFailed;
+                    if (birdnetLiveOverlapTest) {
+                        birdnetLiveOverlapTest.failedWindows = windowsFailed;
+                        birdnetLiveOverlapTest.maxWindowIndex = Math.max(birdnetLiveOverlapTest.maxWindowIndex, windowInfo.windowIndex);
+                    }
+                    if (birdnetLiveTop20Test) {
+                        birdnetLiveTop20Test.failedWindows = windowsFailed;
+                        birdnetLiveTop20Test.maxWindowIndex = Math.max(birdnetLiveTop20Test.maxWindowIndex, windowInfo.windowIndex);
+                    }
+                    console.error('[BirdNET production live][window failed]', {
+                        windowInfo,
+                        error: err,
+                        processedSuccessfully: false,
+                        windowsCompleted,
+                        windowsDropped,
+                        queueLength: processor._queue ? processor._queue.length : null,
+                        processing: processor._processing,
+                    });
+                };
+                liveRecorder.onRawPcmChunk = (samples, sampleRate) => {
+                    if (birdnetLiveActive && runId === birdnetLiveRunId) {
+                        processor.feedAudioStream(samples, sampleRate);
+                    }
+                };
+
+                const started = await liveRecorder.start();
+                if (!started) throw new Error('Microphone access denied or unavailable.');
+                if (runId !== birdnetLiveRunId) {
+                    liveRecorder.onRawPcmChunk = null;
+                    await liveRecorder.stop();
+                    return;
+                }
+
+                birdnetLiveActive = true;
+                birdnetLiveStarting = false;
+                birdnetLiveRevealedRecordArea = document.getElementById('recordArea').classList.contains('hidden');
+                document.getElementById('recordArea').classList.remove('hidden');
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('recordStatus').textContent = 'BirdNET listening… use the same button to stop';
+                document.getElementById('birdnetIdentifyBtn').textContent = 'Stop BirdNET Listening';
+                updateBirdNetButtonState();
+                startBirdNetLiveSpectrogram(liveRecorder, runId);
+                birdnetSetProgress('Listening… waiting for the first 3-second BirdNET window.', null);
+            } catch (err) {
+                console.error('[BirdNET production live] failed to start:', err);
+                birdnetLiveActive = false;
+                birdnetLiveStarting = false;
+                birdnetLiveRunId++;
+                if (birdnetLiveRecorder) birdnetLiveRecorder.onRawPcmChunk = null;
+                if (birdnetLiveProcessor) birdnetLiveProcessor.stop();
+                if (birdnetLiveRecorder) await birdnetLiveRecorder.stop();
+                birdnetLiveProcessor = null;
+                birdnetLiveRecorder = null;
+                birdnetLiveAccumulator = null;
+                birdnetLiveCandidateAggregator = null;
+                birdnetLiveBarbetSummary = null;
+                birdnetLiveWindowTiming = null;
+                birdnetLiveOverlapTest = null;
+                birdnetLiveTop20Test = null;
+                birdnetLiveTop20DiagnosticAggregator = null;
+                stopBirdNetLiveSpectrogram();
+                document.getElementById('birdnetIdentifyBtn').textContent = 'Identify with BirdNET';
+                updateBirdNetButtonState();
+                document.getElementById('recordBtn').disabled = false;
+                birdnetSetProgress('BirdNET live listening failed: ' + err.message, null);
+            }
+        }
+
+        async function processBirdNetUploadedFile() {
+            const file = audioFile;
+            const processor = new ContinuousBirdNetProcessor(birdNetEngine, {
+                windowSec: 3,
+                maxQueueSize: 2,
+                topNPerWindow: 5,
+            });
+            const accumulator = new BirdDetectionAccumulator();
+            const candidateAggregator = createBirdNetProductionCandidateAggregator();
+            let windowsCompleted = 0;
+            let windowsDropped = 0;
+            let sampleRate = 0;
+            let duration = 0;
+
+            ensureGeoContext().catch((err) => {
+                console.warn('[BirdNET upload] Geo unavailable; continuing:', err);
+            });
+            processor.onWindowResult = (topN, windowInfo) => {
+                windowsCompleted++;
+                sampleRate = windowInfo.sampleRate;
+                const evidenceByKey = enrichBirdNetCandidates(topN);
+                const evidence = evidenceByKey.get(productionCandidateKey(topN[0])) || null;
+                accumulator.addWindowResult(topN, windowInfo, evidence);
+                candidateAggregator.addWindowResult(topN, windowInfo, evidenceByKey);
+                console.log('[BirdNET upload][candidate aggregation]', {
+                    windowNumber: windowInfo.windowIndex + 1,
+                    rawTopN: topN.map((candidate) => ({
+                        rawRank: candidate.rank,
+                        commonName: candidate.com,
+                        scientificName: candidate.sci,
+                        rawAcousticScore: candidate.confidence,
+                    })),
+                    candidates: candidateAggregator.getAll().map((record) => ({
+                        commonName: record.com,
+                        scientificName: record.sci,
+                        bestScore: record.bestScore,
+                        latestScore: record.latestScore,
+                        detectionCount: record.detectionCount,
+                    })),
+                });
+                birdnetSetProgress('BirdNET upload processing… window ' + (windowInfo.windowIndex + 1) + ' done.', null);
+            };
+            processor.onWindowDropped = (windowInfo) => {
+                windowsDropped++;
+                console.warn('[BirdNET upload] window dropped:', windowInfo);
+            };
+            processor.onError = (err, windowInfo) => {
+                console.error('[BirdNET upload] window failed; continuing:', windowInfo, err);
+            };
+
+            try {
+                const decoded = await birdNetEngine.decodeMono(file);
+                const samples = decoded.samples;
+                sampleRate = decoded.sampleRate;
+                duration = decoded.duration;
+                const chunkSize = 4096;
+                for (let offset = 0; offset < samples.length; offset += chunkSize) {
+                    processor.feedAudioStream(samples.subarray(offset, Math.min(offset + chunkSize, samples.length)), sampleRate);
+                    await new Promise((resolve) => setTimeout(resolve, 0));
+                }
+                processor.flush();
+                await waitForBirdNetProcessorDrain(processor);
+                processor.stop();
+            } catch (err) {
+                processor.stop();
+                throw err;
+            }
+
+            if (!windowsCompleted) {
+                throw new Error('BirdNET produced no window results for the uploaded file.');
+            }
+            try {
+                const context = await ensureGeoContext();
+                logBirdNetProductionGeoContext('upload', context);
+            } catch (err) {
+                console.warn('[BirdNET upload] Geo context unavailable at final ranking; continuing:', err);
+            }
+            const ranking = rankBirdNetProductionRecords(candidateAggregator);
+            const selection = selectBirdNetNormalCandidates(ranking);
+            const diagnostics = birdnetProductionDiagnosticRows(ranking, candidateAggregator.getAll());
+            console.log('[BirdNET upload][final retained candidates]', diagnostics);
+            console.table(birdnetProductionDiagnosticTableRows(diagnostics));
+            console.table(birdnetProductionGeographicSummaryRows(diagnostics));
+            const result = birdnetRankingToLegacyResult(selection.visibleRanking, {
+                durationSec: duration,
+                sampleRate,
+                numWindows: windowsCompleted,
+            });
+            showQualityAssessment(result.quality);
+            mergeIdentifyOnlyResults(result);
+            showResults(result);
+            populateDebug(result);
+            generateUserSpectrogram();
+            showEngineIndicator('BirdNET V3 + Protected Acoustic');
+            birdnetLiveLastRanking = ranking;
+            birdnetLiveLastAudioInfo = { durationSec: duration, sampleRate, numWindows: windowsCompleted };
+            return { windowsCompleted, windowsDropped };
+        }
+
+        async function runBirdNetIdentification() {
+            if (birdnetLiveActive) {
+                await stopBirdNetLiveIdentification();
+                return;
+            }
+            if (birdnetLiveStarting) return;
+
+            const btn = document.getElementById('birdnetIdentifyBtn');
+            const hasUploadedFile = inputMode === 'upload' && audioFile instanceof File;
+            if (isRecording && !hasUploadedFile) {
+                birdnetSetProgress('Stop normal recording before starting BirdNET live listening.', null);
+                return;
+            }
+            btn.disabled = true;
+            document.getElementById('progressSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('qualitySection').classList.add('hidden');
+            document.getElementById('debugPanel').style.display = 'none';
+            document.getElementById('debugToggleBtn').style.display = 'none';
+            document.getElementById('engineIndicator').style.display = 'none';
+
+            if (!hasUploadedFile) {
+                await startBirdNetLiveIdentification();
+                return;
+            }
+
+            try {
+                birdnetSetProgress('Loading BirdNET V3 model…', 5);
+                const loaded = await ensureBirdNetLoaded({ textContent: '' }, false, null, null);
+                if (!loaded) throw new Error('BirdNET model could not be loaded.');
+                birdnetSetProgress('Processing uploaded audio with BirdNET…', 10);
+                await processBirdNetUploadedFile();
+                birdnetSetProgress('Done!', 100);
+            } catch (err) {
+                console.error('[BirdNET upload] BirdNET identification failed — using MFCC fallback:', err);
+                birdnetSetProgress('BirdNET failed: ' + err.message + ' — falling back to MFCC…', null);
+                showEngineIndicator('MFCC fallback (BirdNET failed)');
+                await runIdentification();
+                return;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Identify with BirdNET';
+            }
         }
 
         // ===========================
@@ -1531,12 +3855,56 @@
             result.results = mainResults;
         }
 
+        function formatHeardTime(seconds) {
+            const total = Math.max(0, Math.round(seconds || 0));
+            const minutes = Math.floor(total / 60);
+            const secs = total % 60;
+            return String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
+        function getBirdNetHeardTimes(resultRow) {
+            const meta = resultRow && resultRow._birdnet;
+            if (!meta) return [];
+            if (Array.isArray(meta.windowNumbers) && meta.windowNumbers.length > 0) {
+                return Array.from(new Set(meta.windowNumbers))
+                    .sort((a, b) => a - b)
+                    .map((windowNumber) => ({
+                        label: formatHeardTime((Number(windowNumber) - 1) * 3),
+                        seconds: Math.max(0, (Number(windowNumber) - 1) * 3),
+                    }));
+            }
+            const first = Number.isFinite(meta.firstWindow) ? meta.firstWindow : null;
+            const last = Number.isFinite(meta.lastWindow) ? meta.lastWindow : first;
+            if (first === null) return [];
+            const windows = first === last ? [first] : [first, last];
+            return windows.map((windowNumber) => ({
+                label: formatHeardTime(windowNumber * 3),
+                seconds: Math.max(0, windowNumber * 3),
+            }));
+        }
+
+        function toggleHeardTimes(idx, event) {
+            if (event) event.stopPropagation();
+            const times = document.getElementById('heardTimes' + idx);
+            const toggle = document.getElementById('heardToggle' + idx);
+            if (!times || !toggle) return;
+            const open = times.classList.toggle('open');
+            toggle.innerHTML = (open ? '&#9650;' : '&#9660;') + ' Heard in recording';
+        }
+
         // ===========================
         // Results Display
         // ===========================
         function showResults(result) {
             document.getElementById('progressSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
+            if (result._engine === 'birdnet-protected') {
+                document.getElementById('qualitySection').classList.add('hidden');
+                document.getElementById('debugPanel').style.display = 'none';
+                document.getElementById('debugToggleBtn').style.display = 'none';
+            } else {
+                document.getElementById('debugToggleBtn').style.display = '';
+            }
 
             // Confidence bar
             const confClass = result.confidence === 'high' ? 'confidence-high' :
@@ -1594,6 +3962,21 @@
 
                 // Extract call type from english name
                 const callType = extractCallType(bird.english);
+                const heardTimes = getBirdNetHeardTimes(r);
+                const heardTimesMarkup = heardTimes.length
+                    ? heardTimes.map((time) => `<span class="heard-time" data-seconds="${time.seconds}">${time.label}</span>`).join('')
+                    : '<span class="heard-times-empty">Timing not available yet</span>';
+                const mfccDetails = result._engine === 'birdnet-protected' ? '' : `
+                        <div style="font-size:0.75em; color:#888; margin: 4px 0;">
+                            Score: Fast ${r.fastScore || '—'}% | DTW ${r.dtwScore || '—'}% | Pitch ${r.pitchScore || '—'}% | Spectro ${r.spectrogramScore || '—'}% |
+                            Ref: ${Math.round(bird.features ? bird.features.dominantFreq : 0)} Hz
+                            (${Math.round(bird.features ? bird.features.freqLow : 0)}–${Math.round(bird.features ? bird.features.freqHigh : 0)} Hz)
+                        </div>`;
+                const referenceSpectrogram = result._engine === 'birdnet-protected' ? '' : `
+                        <div class="spectro-compare">
+                            <div class="spectro-label">Reference Spectrogram</div>
+                            <canvas class="spectro-canvas" id="refSpectro${idx}" data-audio="${bird.audio}"></canvas>
+                        </div>`;
 
                 const card = document.createElement('div');
                 card.className = 'result-card';
@@ -1606,6 +3989,8 @@
                             <div class="result-name">${getSpeciesName(bird.english)}</div>
                             <div class="result-afrikaans">${bird.afrikaans || ''}</div>
                             ${callType ? `<div class="result-call-type">${callType}</div>` : ''}
+                            <button type="button" class="heard-toggle" id="heardToggle${idx}" onclick="toggleHeardTimes(${idx}, event)">&#9660; Heard in recording</button>
+                            <div class="heard-times" id="heardTimes${idx}">${heardTimesMarkup}</div>
                         </div>
                         <div class="result-score">
                             <div class="score-circle ${scoreClass}">${Math.round(r.score)}%</div>
@@ -1615,25 +4000,22 @@
                         <div class="detail-row">
                             <button class="play-btn" onclick="playReferenceAudio('${bird.audio}', this, event)">&#9654; Play Reference</button>
                         </div>
-                        <div style="font-size:0.75em; color:#888; margin: 4px 0;">
-                            Score: Fast ${r.fastScore || '—'}% | DTW ${r.dtwScore || '—'}% | Pitch ${r.pitchScore || '—'}% | Spectro ${r.spectrogramScore || '—'}% |
-                            Ref: ${Math.round(bird.features ? bird.features.dominantFreq : 0)} Hz
-                            (${Math.round(bird.features ? bird.features.freqLow : 0)}–${Math.round(bird.features ? bird.features.freqHigh : 0)} Hz)
-                        </div>
-                        <div class="spectro-compare">
-                            <div class="spectro-label">Reference Spectrogram</div>
-                            <canvas class="spectro-canvas" id="refSpectro${idx}" data-audio="${bird.audio}"></canvas>
-                        </div>
+                        ${mfccDetails}
+                        ${referenceSpectrogram}
                     </div>
                 `;
                 listEl.appendChild(card);
             });
 
-            // Auto-expand first result
-            toggleResultDetails(0);
+            // Keep BirdNET result cards compact; legacy results retain their existing detail behavior.
+            if (result._engine !== 'birdnet-protected') toggleResultDetails(0);
         }
 
         function populateDebug(result) {
+            if (result && result._engine === 'birdnet-protected') {
+                document.getElementById('debugPanel').style.display = 'none';
+                return;
+            }
             var lines = [];
             var di = result.debugInfo || {};
 
@@ -2014,6 +4396,11 @@
 
         function playReferenceAudio(audioPath, btn, event) {
             event.stopPropagation();
+            if (!audioPath) {
+                btn.disabled = true;
+                btn.textContent = 'Reference audio unavailable';
+                return;
+            }
 
             if (currentPlayingAudio) {
                 currentPlayingAudio.pause();
@@ -2432,6 +4819,7 @@
         // Reset
         // ===========================
         function resetAll() {
+            if (birdnetLiveActive || birdnetLiveStarting) stopBirdNetLiveIdentification();
             audioBlob = null;
             audioFile = null;
             userAudioSource = null;
@@ -2460,6 +4848,7 @@
             document.getElementById('trimSection').classList.add('hidden');
             document.getElementById('liveSpectroCanvas').classList.add('hidden');
             document.getElementById('identifyBtn').disabled = true;
+            updateBirdNetButtonState();
             document.getElementById('recordTimer').textContent = '00:00';
             document.getElementById('recordTimer').style.color = '#e53935';
             document.getElementById('recordStatus').textContent = 'Tap to start recording';

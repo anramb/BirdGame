@@ -1,0 +1,94 @@
+{
+  "test_version": 1,
+  "description": "Bird Sound ID beta test recordings imported from the existing historical browser-run data in tools/real_test_fixtures.js. Blank location/date fields were not available in that source and are intentionally not inferred.",
+  "tests": [
+    {
+      "species": "Woodland Kingfisher",
+      "scientific_name": "Halcyon senegalensis",
+      "recording": "Historical browser run: Woodland Kingfisher (Live GPS)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Olive-tree Warbler",
+      "scientific_name": "Hippolais olivetorum",
+      "recording": "Historical browser run: Olive-tree Warbler (Live GPS)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Bar-throated Apalis",
+      "scientific_name": "Apalis thoracica",
+      "recording": "Historical browser run: Bar-throated Apalis (Live GPS)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Red-chested Cuckoo",
+      "scientific_name": "Cuculus solitarius",
+      "recording": "Historical browser run: Red-chested Cuckoo (Live GPS)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Brown-hooded Kingfisher",
+      "scientific_name": "Halcyon albiventris",
+      "recording": "Historical browser run: Brown-hooded Kingfisher (Live GPS)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Marsh Warbler",
+      "scientific_name": "Acrocephalus palustris",
+      "recording": "Historical browser run: Marsh Warbler (Live GPS)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Karoo Thrush",
+      "scientific_name": "Turdus smithi",
+      "recording": "Historical browser run: Karoo Thrush (uploaded)",
+      "location": "Uploaded / unknown in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; not a new inference run."
+    },
+    {
+      "species": "Lesser Moorhen",
+      "scientific_name": "Paragallinula angulata",
+      "recording": "Historical browser run: Lesser Moorhen (Live GPS, optional/diagnostic)",
+      "location": "GPS used; coordinates not preserved in source fixture",
+      "province": "",
+      "country": "",
+      "date": "",
+      "expected": true,
+      "notes": "Imported from existing real browser-run fixture; optional diagnostic run, not a new inference run."
+    }
+  ]
+}
