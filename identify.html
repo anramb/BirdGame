@@ -3188,6 +3188,13 @@
                 const loaded = await ensureBirdNetLoaded({ textContent: '' }, false, null, null);
                 if (!loaded) throw new Error('BirdNET model could not be loaded.');
 
+                try {
+                    const context = await ensureGeoContext((msg) => birdnetSetProgress(msg, null));
+                    logBirdNetProductionGeoContext('live', context);
+                } catch (err) {
+                    console.warn('[BirdNET production live] Geo unavailable; continuing:', err);
+                }
+
                 birdnetSetProgress('Requesting microphone permission…', 10);
                 const liveRecorder = new BirdRecorder();
                 liveRecorder.setGain(gainDb);
@@ -3216,12 +3223,6 @@
                 };
                 birdnetLiveLastRanking = null;
                 birdnetLiveLastAudioInfo = null;
-
-                ensureGeoContext().then((context) => {
-                    logBirdNetProductionGeoContext('live', context);
-                }).catch((err) => {
-                    console.warn('[BirdNET production live] Geo unavailable; continuing:', err);
-                });
 
                 let windowsCompleted = 0;
                 let windowsDropped = 0;
