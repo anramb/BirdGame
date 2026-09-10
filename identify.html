@@ -1788,11 +1788,14 @@
          */
         function enrichTopPrediction(pred) {
             let geoScore = null;
+            const taxonomicClass = birdNetEngine && birdNetEngine.labelRows && birdNetEngine.labelRows[pred.idx]
+                ? birdNetEngine.labelRows[pred.idx].cls
+                : null;
             if (geoContext && geoContext.computed && geoModel && geoModel.acousticToGeoIndex) {
                 geoScore = geoModel.scoreForAcousticIndex(pred.idx, geoContext.probs);
             }
             return SA_OCCURRENCE.enrichPrediction(
-                { rank: pred.rank, scientific_name: pred.sci, common_name: pred.com, birdnet_id: pred.id, idx: pred.idx, acoustic_score: pred.confidence },
+                { rank: pred.rank, scientific_name: pred.sci, common_name: pred.com, birdnet_id: pred.id, idx: pred.idx, acoustic_score: pred.confidence, taxonomic_class: taxonomicClass },
                 {
                     geoModelComputed: !!(geoContext && geoContext.computed && geoScore !== null),
                     geoModelScore: geoScore,
@@ -2108,6 +2111,8 @@
                         if (evidence) {
                             if (evidence.geo_model) record.geo_model = evidence.geo_model;
                             if (evidence.sabap2) record.sabap2 = evidence.sabap2;
+                            if (evidence.taxonomic_class !== undefined) record.taxonomic_class = evidence.taxonomic_class;
+                            if (evidence.region_membership) record.region_membership = evidence.region_membership;
                         }
                     });
                 },
@@ -2169,6 +2174,8 @@
                         if (evidence) {
                             if (evidence.geo_model) record.geo_model = evidence.geo_model;
                             if (evidence.sabap2) record.sabap2 = evidence.sabap2;
+                            if (evidence.taxonomic_class !== undefined) record.taxonomic_class = evidence.taxonomic_class;
+                            if (evidence.region_membership) record.region_membership = evidence.region_membership;
                         }
                     });
                 },
@@ -2281,6 +2288,8 @@
                     finalRank: row.protected_rank,
                     commonName: record.com,
                     scientificName: record.sci,
+                    taxonomicClass: record.taxonomic_class || null,
+                    region_membership: record.region_membership || null,
                     bestScorePercent: record.bestScore * 100,
                     detectionCount: record.detectionCount,
                     top5Count: record.top5Count,
@@ -2308,6 +2317,8 @@
                     evidenceByKey.set(productionCandidateKey(prediction), {
                         geo_model: enriched.geo_model,
                         sabap2: enriched.sabap2,
+                        taxonomic_class: enriched.taxonomic_class,
+                        region_membership: enriched.region_membership,
                     });
                 } catch (err) {
                     console.warn('[BirdNET production] candidate enrichment unavailable; continuing:', prediction, err);
@@ -2563,6 +2574,8 @@
                     // available for debugging)
                     _birdnet: {
                         scientific_name: r.sci,
+                        taxonomic_class: r.taxonomic_class || null,
+                        region_membership: r.region_membership || null,
                         detectionCount: r.detectionCount,
                         bestScore: r.bestScore,
                         latestScore: r.latestScore,
@@ -2869,6 +2882,8 @@
                 return {
                     commonName: record.com,
                     scientificName: record.sci,
+                    taxonomicClass: record.taxonomic_class || null,
+                    region_membership: record.region_membership || null,
                     bestScore: record.bestScore,
                     latestScore: record.latestScore,
                     detectionCount: record.detectionCount,

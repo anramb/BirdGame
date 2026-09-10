@@ -18,6 +18,58 @@ const SA_OCCURRENCE = (function () {
 
   const DEFAULT_URL = "data/southern_africa_occurrence.json";
   const COUNTRY_CODES = ["ZA", "NA", "BW", "ZW", "MZ", "ZM", "MW", "LS", "SZ"];
+  const REGION_RECOVERY_SCIENTIFIC_NAMES = new Set([
+    "anthropoides paradiseus",
+    "charadrius tricollaris",
+    "granatina granatina",
+    "milvus aegyptius",
+    "notopholia corusca",
+    "phalacrocorax lucidus",
+    "upupa africana",
+    "camaroptera brevicauda",
+  ]);
+  const REGION_TAXONOMY_REVIEW_SCIENTIFIC_NAMES = new Set([
+    "apalis fuscigularis",
+    "pycnonotus barbatus",
+  ]);
+
+  function buildRegionMembership(prediction, record) {
+    const taxonomicClass = String(prediction.taxonomic_class || "").trim();
+    if (taxonomicClass && taxonomicClass !== "Aves") {
+      return {
+        state: "NON_BIRD",
+        source: "birdnet_label_class",
+        taxonomy_review: false,
+      };
+    }
+    const scientificName = norm(prediction.scientific_name);
+    if (record && record.regional_occurrence === true) {
+      return {
+        state: "REGION_CONFIRMED",
+        source: "southern_africa_9_country_universe",
+        taxonomy_review: false,
+      };
+    }
+    if (REGION_RECOVERY_SCIENTIFIC_NAMES.has(scientificName)) {
+      return {
+        state: "REGION_CONFIRMED",
+        source: "southern_africa_9_country_universe_taxonomy_recovery",
+        taxonomy_review: true,
+      };
+    }
+    if (REGION_TAXONOMY_REVIEW_SCIENTIFIC_NAMES.has(scientificName)) {
+      return {
+        state: "REGION_TAXONOMY_REVIEW",
+        source: "southern_africa_9_country_universe_taxonomy_review",
+        taxonomy_review: true,
+      };
+    }
+    return {
+      state: "REGION_UNRESOLVED",
+      source: "not_in_current_southern_africa_universe",
+      taxonomy_review: false,
+    };
+  }
 
   let state = {
     loaded: false,
@@ -243,6 +295,7 @@ const SA_OCCURRENCE = (function () {
     }
 
     const sabap2 = buildSabap2Block(record, calendarMonth);
+    const region_membership = buildRegionMembership(prediction, record);
 
     // A species that BirdNET JUST predicted is, by definition, acoustically
     // supported right now — independent of whether the SABAP2/taxonomy join
@@ -268,12 +321,14 @@ const SA_OCCURRENCE = (function () {
       birdnet_id: prediction.birdnet_id,
       idx: prediction.idx,
       acoustic_score: prediction.acoustic_score,
+      taxonomic_class: prediction.taxonomic_class || null,
 
       // Enrichment (additive only):
       sabap2_match: !!record,
       sabap2_lookup_method: lookupMethod,
       sabap2,
       geo_model,
+      region_membership,
       allbirds: allbirds_result,
     };
   }
