@@ -3213,7 +3213,17 @@
             birdnetLiveCandidateAggregator = null;
             if (liveRecorder) liveRecorder.onRawPcmChunk = null;
             if (processor) processor.stop();
-            if (liveRecorder) await liveRecorder.stop();
+            if (liveRecorder) {
+                const liveRecordingBlob = await liveRecorder.stop();
+                console.log('[Save Debug][live recorder stop]', {
+                    returnedBlob: !!liveRecordingBlob,
+                    type: liveRecordingBlob && liveRecordingBlob.type,
+                    size: liveRecordingBlob && liveRecordingBlob.size,
+                    hasAudioBlob: !!audioBlob,
+                    hasUserAudioSource: !!userAudioSource,
+                    hasUserAudioURL: !!userAudioURL,
+                });
+            }
             stopBirdNetLiveSpectrogram();
 
             document.getElementById('birdnetIdentifyBtn').textContent = 'Identify with BirdNET';
@@ -4025,6 +4035,20 @@
             document.getElementById('resultsSummary').textContent =
                 `(${result.totalCandidates} recordings searched)`;
             updateSaveRecordingButtonState();
+            console.log('[Save Debug][results displayed]', {
+                hasUserAudioSource: !!userAudioSource,
+                hasAudioBlob: !!audioBlob,
+                hasAudioFile: !!audioFile,
+                hasUserAudioURL: !!userAudioURL,
+                userAudioSourceType: userAudioSource && userAudioSource.type,
+                audioBlobType: audioBlob && audioBlob.type,
+                audioBlobSize: audioBlob && audioBlob.size,
+                audioFileType: audioFile && audioFile.type,
+                audioFileSize: audioFile && audioFile.size,
+                userAudioURL,
+                saveButtonDisabled: document.getElementById('saveRecordingBtn') && document.getElementById('saveRecordingBtn').disabled,
+                saveButtonHidden: document.getElementById('saveRecordingBtn') && document.getElementById('saveRecordingBtn').offsetParent === null,
+            });
 
             // Build result cards
             const listEl = document.getElementById('resultsList');
@@ -4383,8 +4407,27 @@
         }
 
         function saveRecordingDirect() {
+            console.log('[Save Debug] click handler fired');
+            var saveButton = document.getElementById('saveRecordingBtn');
             var source = userAudioSource || audioBlob || audioFile;
-            if (!source) return;
+            console.log('[Save Debug]', {
+                hasUserAudioSource: !!userAudioSource,
+                hasAudioBlob: !!audioBlob,
+                hasAudioFile: !!audioFile,
+                hasUserAudioURL: !!userAudioURL,
+                userAudioSourceType: userAudioSource && userAudioSource.type,
+                audioBlobType: audioBlob && audioBlob.type,
+                audioBlobSize: audioBlob && audioBlob.size,
+                audioFileType: audioFile && audioFile.type,
+                audioFileSize: audioFile && audioFile.size,
+                userAudioURL,
+                buttonDisabled: saveButton && saveButton.disabled,
+                buttonHidden: saveButton && saveButton.offsetParent === null,
+            });
+            if (!source) {
+                console.log('[Save Debug] handler returned early: no recording source');
+                return;
+            }
 
             var extension = source instanceof File
                 ? (source.name.split('.').pop() || 'webm')
@@ -4396,14 +4439,22 @@
                 url = URL.createObjectURL(source);
                 temporaryUrl = true;
             }
-            if (!url) return;
+            if (!url) {
+                console.log('[Save Debug] handler returned early: no usable recording URL');
+                return;
+            }
 
             var link = document.createElement('a');
             link.href = url;
             link.download = getBirdNetRecordingFilename() + '.' + extension;
             link.style.display = 'none';
             document.body.appendChild(link);
+            console.log('[Save Debug] download link created', {
+                href: link.href,
+                download: link.download,
+            });
             link.click();
+            console.log('[Save Debug] download link click executed');
             link.remove();
             if (temporaryUrl) setTimeout(() => URL.revokeObjectURL(url), 1000);
 
