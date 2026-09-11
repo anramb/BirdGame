@@ -1142,7 +1142,7 @@
                     <canvas class="spectro-canvas" id="userSpectroCanvas"></canvas>
                     <div class="detail-row">
                         <button class="play-btn" id="playUserBtn" onclick="playUserRecording()">&#9654; Play Your Recording</button>
-                        <button class="play-btn" onclick="showSaveDialog()" style="margin-left:8px;">💾 Save Recording</button>
+                        <button class="play-btn" id="saveRecordingBtn" onclick="showSaveDialog()" style="margin-left:8px;">💾 Save Recording</button>
                     </div>
                 </div>
 
@@ -1156,11 +1156,11 @@
                         <label style="color:#aaa; font-size:0.8em;">Format:</label>
                         <select id="saveFormat" style="padding:4px 8px; border-radius:4px; border:1px solid #444; background:#222; color:#fff; font-size:0.8em;">
                             <option value="wav">.wav (best for eBird/Xeno-Canto)</option>
-                            <option value="original">Original format</option>
+                            <option value="original" selected>Original format (complete recording)</option>
                         </select>
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:8px;">
-                        <label style="color:#aaa; font-size:0.8em;"><input type="checkbox" id="saveTrimmed" checked> Save only trimmed section</label>
+                    <div style="display:none; gap:8px; margin-top:8px;">
+                        <label style="color:#aaa; font-size:0.8em;"><input type="checkbox" id="saveTrimmed"> Save only trimmed section</label>
                     </div>
                     <div style="display:flex; gap:8px; margin-top:10px;">
                         <button onclick="doSaveRecording()" style="background:#4caf50; color:#fff; border:none; border-radius:4px; padding:6px 16px; cursor:pointer; font-size:0.85em;">Download</button>
@@ -4016,6 +4016,10 @@
 
             document.getElementById('resultsSummary').textContent =
                 `(${result.totalCandidates} recordings searched)`;
+            const saveRecordingBtn = document.getElementById('saveRecordingBtn');
+            if (saveRecordingBtn) {
+                saveRecordingBtn.disabled = !(userAudioSource || audioBlob || audioFile);
+            }
 
             // Build result cards
             const listEl = document.getElementById('resultsList');
@@ -4348,13 +4352,28 @@
         // ===========================
         // Save Recording
         // ===========================
+        function getBirdNetRecordingFilename() {
+            const now = new Date();
+            const pad = (value) => String(value).padStart(2, '0');
+            return 'BirdNET_' + now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
+                '_' + pad(now.getHours()) + '-' + pad(now.getMinutes()) + '-' + pad(now.getSeconds());
+        }
+
         function showSaveDialog() {
+            var source = userAudioSource || audioBlob || audioFile;
             var dialog = document.getElementById('saveDialog');
+            var button = document.getElementById('saveRecordingBtn');
+            if (!source) {
+                if (button) button.disabled = true;
+                return;
+            }
             dialog.style.display = 'block';
             var nameInput = document.getElementById('saveFileName');
-            if (!nameInput.value) {
-                nameInput.value = 'bird_recording';
+            if (!nameInput.value || nameInput.value === 'bird_recording') {
+                nameInput.value = getBirdNetRecordingFilename();
             }
+            document.getElementById('saveFormat').value = 'original';
+            document.getElementById('saveTrimmed').checked = false;
             dialog.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -4365,7 +4384,7 @@
             var fileName = document.getElementById('saveFileName').value.trim() || 'bird_recording';
             fileName = fileName.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_');
             var format = document.getElementById('saveFormat').value;
-            var useTrim = document.getElementById('saveTrimmed').checked;
+            var useTrim = false; // Save always uses the complete original recording.
 
             if (format === 'wav') {
                 try {
@@ -4431,7 +4450,9 @@
                 var url = userAudioURL || URL.createObjectURL(source);
                 var a = document.createElement('a');
                 a.href = url;
-                var ext = (source instanceof File) ? source.name.split('.').pop() : 'webm';
+                var ext = source instanceof File
+                    ? source.name.split('.').pop()
+                    : ((source.type || 'audio/webm').split('/')[1] || 'webm').split(';')[0];
                 a.download = fileName + '.' + ext;
                 a.click();
                 document.getElementById('saveDialog').style.display = 'none';
