@@ -3214,11 +3214,18 @@
             if (liveRecorder) liveRecorder.onRawPcmChunk = null;
             if (processor) processor.stop();
             if (liveRecorder) {
-                const liveRecordingBlob = await liveRecorder.stop();
+                const returnedBlob = await liveRecorder.stop();
+                if (returnedBlob) {
+                    if (userAudioURL) URL.revokeObjectURL(userAudioURL);
+                    audioBlob = returnedBlob;
+                    userAudioSource = returnedBlob;
+                    userAudioURL = URL.createObjectURL(returnedBlob);
+                    updateSaveRecordingButtonState();
+                }
                 console.log('[Save Debug][live recorder stop]', {
-                    returnedBlob: !!liveRecordingBlob,
-                    type: liveRecordingBlob && liveRecordingBlob.type,
-                    size: liveRecordingBlob && liveRecordingBlob.size,
+                    returnedBlob: !!returnedBlob,
+                    type: returnedBlob && returnedBlob.type,
+                    size: returnedBlob && returnedBlob.size,
                     hasAudioBlob: !!audioBlob,
                     hasUserAudioSource: !!userAudioSource,
                     hasUserAudioURL: !!userAudioURL,
