@@ -2562,6 +2562,12 @@
                     ? SA_OCCURRENCE.lookupAllbirdsByCommonName(r.com)
                     : { found: false, entry: null });
                 const abEntry = ab && ab.found ? ab.entry : null;
+                const diagnosticEvidence = {
+                    geo: row.geo_model !== undefined ? row.geo_model : r.geo_model,
+                    sabap2: row.sabap2 !== undefined ? row.sabap2 : r.sabap2,
+                    evidence_labels: row.evidence_labels,
+                };
+                const geographicClassification = classifyBirdNetProductionGeography(diagnosticEvidence);
 
                 // BirdNET's common name is the user-facing standard-order
                 // display name. Keep allbirds' group-first English name only
@@ -2608,7 +2614,7 @@
                         protected_rank: row.protected_rank,
                         raw_rank: row.raw_rank,
                         rank_delta: row.rank_delta,
-                        geographicClassification: row.geographicClassification || null,
+                        geographicClassification,
                         evidence_labels: row.evidence_labels || [],
                         used_fallback: row.used_fallback,
                         geo_model: row.geo_model,
