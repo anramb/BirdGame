@@ -1104,6 +1104,8 @@
                 style="margin-top:8px; background:#1565c0;">
             Identify with BirdNET
         </button>
+        <button class="play-btn" id="saveRecordingBtn" onclick="saveRecordingDirect()" disabled
+                style="margin-top:6px; width:100%;">💾 Save Recording</button>
         <div id="birdnetLoadStatus" aria-live="polite" style="font-size:0.78em; color:#666; text-align:center; margin:6px 0 0;">
             Please wait — BirdNET is preparing the identification engine…
         </div>
@@ -1142,7 +1144,6 @@
                     <canvas class="spectro-canvas" id="userSpectroCanvas"></canvas>
                     <div class="detail-row">
                         <button class="play-btn" id="playUserBtn" onclick="playUserRecording()">&#9654; Play Your Recording</button>
-                        <button class="play-btn" id="saveRecordingBtn" onclick="showSaveDialog()" style="margin-left:8px;">💾 Save Recording</button>
                     </div>
                 </div>
 
@@ -1509,6 +1510,7 @@
                 document.getElementById('recordStatus').className = 'record-status';
                 document.getElementById('identifyBtn').disabled = false;
                 updateBirdNetButtonState();
+                updateSaveRecordingButtonState();
 
                 // Create URL for playback
                 if (userAudioURL) URL.revokeObjectURL(userAudioURL);
@@ -1709,6 +1711,11 @@
         function updateBirdNetButtonState() {
             const button = document.getElementById('birdnetIdentifyBtn');
             if (button) button.disabled = !(birdNetEngine && birdNetEngine.isLoaded);
+        }
+
+        function updateSaveRecordingButtonState() {
+            const button = document.getElementById('saveRecordingBtn');
+            if (button) button.disabled = !(userAudioSource || audioBlob || audioFile);
         }
 
         async function preloadBirdNet() {
@@ -2380,6 +2387,7 @@
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('identifyBtn').disabled = false;
             updateBirdNetButtonState();
+            updateSaveRecordingButtonState();
 
             if (userAudioURL) URL.revokeObjectURL(userAudioURL);
             userAudioURL = URL.createObjectURL(file);
@@ -4016,10 +4024,7 @@
 
             document.getElementById('resultsSummary').textContent =
                 `(${result.totalCandidates} recordings searched)`;
-            const saveRecordingBtn = document.getElementById('saveRecordingBtn');
-            if (saveRecordingBtn) {
-                saveRecordingBtn.disabled = !(userAudioSource || audioBlob || audioFile);
-            }
+            updateSaveRecordingButtonState();
 
             // Build result cards
             const listEl = document.getElementById('resultsList');
@@ -4377,9 +4382,24 @@
             dialog.scrollIntoView({ behavior: 'smooth' });
         }
 
+        async function saveRecordingDirect() {
+            var source = userAudioSource || audioBlob || audioFile;
+            if (!source) return;
+            var nameInput = document.getElementById('saveFileName');
+            nameInput.value = getBirdNetRecordingFilename();
+            document.getElementById('saveFormat').value = 'wav';
+            document.getElementById('saveTrimmed').checked = false;
+            const saved = await doSaveRecording();
+            const status = document.getElementById('recordStatus');
+            if (saved && status) {
+                status.textContent = 'Complete recording download started.';
+                status.className = 'record-status';
+            }
+        }
+
         async function doSaveRecording() {
             var source = userAudioSource || audioBlob || audioFile;
-            if (!source) { alert('No recording to save'); return; }
+            if (!source) { alert('No recording to save'); return false; }
 
             var fileName = document.getElementById('saveFileName').value.trim() || 'bird_recording';
             fileName = fileName.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_');
@@ -4441,9 +4461,11 @@
                     audioCtx.close();
 
                     document.getElementById('saveDialog').style.display = 'none';
+                    return true;
                 } catch (e) {
                     console.error('WAV export failed:', e);
                     alert('WAV export failed: ' + e.message);
+                    return false;
                 }
             } else {
                 // Save in original format
@@ -4456,6 +4478,7 @@
                 a.download = fileName + '.' + ext;
                 a.click();
                 document.getElementById('saveDialog').style.display = 'none';
+                return true;
             }
         }
 
