@@ -627,6 +627,29 @@
             font-size: 0.7em;
             color: white;
         }
+        .geographic-note {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.62em;
+            line-height: 1.15;
+            font-style: italic;
+            white-space: nowrap;
+        }
+        .geographic-note-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin-right: 3px;
+            border-radius: 50%;
+        }
+        .geographic-note-likely { color: #258b45; }
+        .geographic-note-likely .geographic-note-dot { background: #258b45; }
+        .geographic-note-possible { color: #aa7b00; }
+        .geographic-note-possible .geographic-note-dot { background: #d6a600; }
+        .geographic-note-limited { color: #b96800; }
+        .geographic-note-limited .geographic-note-dot { background: #e08400; }
+        .geographic-note-unlikely { color: #b33a32; }
+        .geographic-note-unlikely .geographic-note-dot { background: #c94b42; }
         .heard-toggle {
             display: block;
             margin-top: 2px;
@@ -2585,6 +2608,7 @@
                         protected_rank: row.protected_rank,
                         raw_rank: row.raw_rank,
                         rank_delta: row.rank_delta,
+                        geographicClassification: row.geographicClassification || null,
                         evidence_labels: row.evidence_labels || [],
                         used_fallback: row.used_fallback,
                         geo_model: row.geo_model,
@@ -2771,8 +2795,11 @@
                     .filter(({ row }) => visibility.visibleRows.includes(row))
                     .map(({ index }) => index)
             );
-            const visibleRows = allRows.filter((row, index) => visibleIndexes.has(index));
-            const filteredRows = allRows.filter((row, index) => !visibleIndexes.has(index));
+            const displayVisibleIndexes = new Set(
+                [...visibleIndexes].filter((index) => diagnosticRows[index].geographicClassification !== 'GEOGRAPHICALLY_UNCERTAIN')
+            );
+            const visibleRows = allRows.filter((row, index) => displayVisibleIndexes.has(index));
+            const filteredRows = allRows.filter((row, index) => !displayVisibleIndexes.has(index));
             const supportedCount = diagnosticRows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_SUPPORTED').length;
             const uncertainCount = diagnosticRows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_UNCERTAIN').length;
             const unlikelyCount = diagnosticRows.filter((row) => row.geographicClassification === 'GEOGRAPHICALLY_UNLIKELY').length;
@@ -3911,6 +3938,27 @@
         // ===========================
         // Results Display
         // ===========================
+        function birdNetGeographicNote(resultRow) {
+            const evidence = resultRow && resultRow._birdnet;
+            if (!evidence) return null;
+            const classification = evidence.geographicClassification;
+            const labels = evidence.evidence_labels || [];
+            if (classification === 'GEOGRAPHICALLY_UNCERTAIN') return null;
+            if (classification === 'GEOGRAPHICALLY_UNLIKELY') {
+                return { className: 'geographic-note-unlikely', label: 'Unlikely here' };
+            }
+            if (classification !== 'GEOGRAPHICALLY_SUPPORTED') return null;
+            const membership = evidence.region_membership || {};
+            const taxonomyReview = membership.taxonomy_review === true || membership.state === 'REGION_TAXONOMY_REVIEW';
+            if (taxonomyReview || labels.some((label) => /weak geographic support|possible seasonal migrant/i.test(label))) {
+                return { className: 'geographic-note-possible', label: 'Possible here' };
+            }
+            if (labels.some((label) => /geographic disagreement|limited geographic support/i.test(label))) {
+                return { className: 'geographic-note-limited', label: 'Geographic support is limited' };
+            }
+            return { className: 'geographic-note-likely', label: 'Likely here' };
+        }
+
         function showResults(result) {
             document.getElementById('progressSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
@@ -3988,6 +4036,10 @@
                             Ref: ${Math.round(bird.features ? bird.features.dominantFreq : 0)} Hz
                             (${Math.round(bird.features ? bird.features.freqLow : 0)}–${Math.round(bird.features ? bird.features.freqHigh : 0)} Hz)
                         </div>`;
+                const geographicNote = result._engine === 'birdnet-protected' ? birdNetGeographicNote(r) : null;
+                const geographicNoteMarkup = geographicNote
+                    ? `<div class="geographic-note ${geographicNote.className}"><span class="geographic-note-dot"></span>${geographicNote.label}</div>`
+                    : '';
                 const referenceSpectrogram = result._engine === 'birdnet-protected' ? '' : `
                         <div class="spectro-compare">
                             <div class="spectro-label">Reference Spectrogram</div>
@@ -4010,6 +4062,7 @@
                         </div>
                         <div class="result-score">
                             <div class="score-circle ${scoreClass}">${Math.round(r.score)}%</div>
+                            ${geographicNoteMarkup}
                         </div>
                     </div>
                     <div class="result-details" id="resultDetail${idx}">
