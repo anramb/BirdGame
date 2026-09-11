@@ -4382,16 +4382,33 @@
             dialog.scrollIntoView({ behavior: 'smooth' });
         }
 
-        async function saveRecordingDirect() {
+        function saveRecordingDirect() {
             var source = userAudioSource || audioBlob || audioFile;
             if (!source) return;
-            var nameInput = document.getElementById('saveFileName');
-            nameInput.value = getBirdNetRecordingFilename();
-            document.getElementById('saveFormat').value = 'wav';
-            document.getElementById('saveTrimmed').checked = false;
-            const saved = await doSaveRecording();
+
+            var extension = source instanceof File
+                ? (source.name.split('.').pop() || 'webm')
+                : ((source.type || 'audio/webm').split('/')[1] || 'webm').split(';')[0];
+            extension = extension.replace(/[^a-zA-Z0-9]/g, '') || 'webm';
+            var url = userAudioURL;
+            var temporaryUrl = false;
+            if (!url && source instanceof Blob) {
+                url = URL.createObjectURL(source);
+                temporaryUrl = true;
+            }
+            if (!url) return;
+
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = getBirdNetRecordingFilename() + '.' + extension;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            if (temporaryUrl) setTimeout(() => URL.revokeObjectURL(url), 1000);
+
             const status = document.getElementById('recordStatus');
-            if (saved && status) {
+            if (status) {
                 status.textContent = 'Complete recording download started.';
                 status.className = 'record-status';
             }
