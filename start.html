@@ -197,13 +197,13 @@
     <div class="container">
         <h1>Chirp Coach</h1>
         
-        <div class="mode-selection">
+        <div class="mode-selection" id="mainMenu">
             <button class="mode-card" onclick="window.location.href='single-select.html'">
                 <div class="mode-icon">🎵</div>
                 <div class="mode-title">Single Bird Select</div>
                 <div class="mode-description">Select and play any bird</div>
             </button>
-            
+
             <button class="mode-card" onclick="window.location.href='learn.html'">
                 <div class="mode-icon">📚</div>
                 <div class="mode-title">Learning Mode</div>
@@ -215,33 +215,21 @@
                 <div class="mode-title">Bird Recording Studio</div>
                 <div class="mode-description">Record high-quality WAV field recordings</div>
             </button>
-  
-            <button class="mode-card" onclick="window.location.href='soundscape.html'">
-                <div class="mode-icon">🌿</div>
-                <div class="mode-title">Soundscape ID Training - NEW soundscape</div>
-                <div class="mode-description">Identify birds in field recordings</div>
+
+            <button class="mode-card" onclick="window.location.href='identify.html'" style="background: linear-gradient(135deg, #1a8f4a 0%, #0d6b3a 100%);">
+                <div class="mode-icon"> ️</div>
+                <div class="mode-title">Sound ID</div>
+                <div class="mode-description">Identify birds by their sound - Coming Soon</div>
             </button>
-          
-            <button class="mode-card" onclick="window.location.href='index.html'">
+
+            <button class="mode-card" onclick="showGameMode()">
                 <div class="mode-icon">🎮</div>
                 <div class="mode-title">Game Mode</div>
                 <div class="mode-description">Test your knowledge</div>
             </button>
-            
-            <button class="mode-card" onclick="window.location.href='multiplayer.html'" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">
-                <div class="mode-icon">👥</div>
-                <div class="mode-title">Multiplayer Quiz</div>
-                <div class="mode-description">Challenge friends — pass & play!</div>
-            </button>
-                      
-            <button class="mode-card" onclick="window.location.href='spectro-challenge.html'" style="background: linear-gradient(135deg, #7b2ff7 0%, #f107a3 100%);">
-                <div class="mode-icon">📊</div>
-                <div class="mode-title">Super Spectro Challenge</div>
-                <div class="mode-description">Identify birds from spectrograms only!</div>
-            </button>
-            
+
             <button class="mode-card" onclick="window.location.href='downloads.html'" style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);">
-                <div class="mode-icon">📦</div>
+                <div class="mode-icon"> </div>
                 <div class="mode-title">Offline Packs</div>
                 <div class="mode-description">Download bird sounds for offline use</div>
             </button>
@@ -251,11 +239,35 @@
                 <div class="mode-title">About</div>
                 <div class="mode-description">How to use this app</div>
             </button>
-            
-            <button class="mode-card" id="birdIdBtn" onclick="window.location.href='identify.html'" style="background: linear-gradient(135deg, #1a8f4a 0%, #0d6b3a 100%); color: #1a8f4a;">
-                <div class="mode-icon" style="opacity:0;">🎙️</div>
-                <div class="mode-title" style="color:#1a8f4a;">Sound ID - Coming Soon</div>
-                <div class="mode-description" style="color:#0d6b3a;">Identify birds by their sound</div>
+        </div>
+
+        <div class="mode-selection" id="gameModeMenu" style="display:none;">
+            <button class="mode-card" onclick="window.location.href='soundscape.html'">
+                <div class="mode-icon">🌿</div>
+                <div class="mode-title">Soundscape ID Training</div>
+                <div class="mode-description">Identify birds in field recordings</div>
+            </button>
+
+            <button class="mode-card" onclick="window.location.href='index.html'">
+                <div class="mode-icon">🎮</div>
+                <div class="mode-title">Multiple Choice Game</div>
+                <div class="mode-description">Test your knowledge</div>
+            </button>
+
+            <button class="mode-card" onclick="window.location.href='multiplayer.html'" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">
+                <div class="mode-icon">👥</div>
+                <div class="mode-title">Multiplayer Quiz</div>
+                <div class="mode-description">Challenge friends — pass & play!</div>
+            </button>
+
+            <button class="mode-card" onclick="window.location.href='spectro-challenge.html'" style="background: linear-gradient(135deg, #7b2ff7 0%, #f107a3 100%);">
+                <div class="mode-icon">📊</div>
+                <div class="mode-title">Super Spectro Challenge</div>
+                <div class="mode-description">Identify birds from spectrograms only!</div>
+            </button>
+
+            <button class="mode-card" onclick="showMainMenu()" style="min-height:80px;">
+                <div class="mode-title">← Back</div>
             </button>
         </div>
         
