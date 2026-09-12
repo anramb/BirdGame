@@ -279,6 +279,18 @@
             navigator.serviceWorker.register('service-worker.js').catch(function() {});
         }
         
+        function showGameMode() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameModeMenu').style.display = 'grid';
+            window.scrollTo(0, 0);
+        }
+
+        function showMainMenu() {
+            document.getElementById('gameModeMenu').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'grid';
+            window.scrollTo(0, 0);
+        }
+
         // Intercept browser install prompt — show custom "Add to Home Screen" button instead
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', function(e) {
