@@ -3034,6 +3034,152 @@
             liveSpectroCtx = null;
         }
 
+        const SABAP2_EVIDENCE_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        let sabap2EvidenceIndexPromise = null;
+
+        function loadSabap2EvidenceIndex() {
+            if (sabap2EvidenceIndexPromise) return sabap2EvidenceIndexPromise;
+            sabap2EvidenceIndexPromise = fetch('data/sabap2_evidence_index.json')
+                .then((response) => {
+                    if (!response.ok) throw new Error('SABAP2 evidence index HTTP ' + response.status);
+                    return response.json();
+                })
+                .catch((error) => {
+                    console.warn('[BirdNET diagnostic] SABAP2 evidence index unavailable:', error);
+                    return null;
+                });
+            return sabap2EvidenceIndexPromise;
+        }
+
+        function recordingMetadataForDiagnostic(source) {
+            if (source === 'upload' && birdnetUploadSession) {
+                return {
+                    inputMode: 'upload',
+                    ...(birdnetUploadSession.recordingMetadata || {}),
+                };
+            }
+            if (source === 'live' && geoContext && geoContext.computed) {
+                const now = new Date();
+                return {
+                    inputMode: 'record',
+                    recordingLocationType: 'gps',
+                    recordingLatitude: geoContext.lat,
+                    recordingLongitude: geoContext.lon,
+                    recordingProvince: null,
+                    recordingCountry: null,
+                    recordingDate: now.toISOString().slice(0, 10),
+                    recordingMonth: now.getMonth() + 1,
+                    source: 'live_device_gps',
+                };
+            }
+            return {
+                inputMode: source,
+                recordingLocationType: 'unknown',
+                recordingLatitude: null,
+                recordingLongitude: null,
+                recordingProvince: null,
+                recordingCountry: null,
+                recordingDate: null,
+                recordingMonth: null,
+                source: 'unavailable',
+            };
+        }
+
+        function sabap2MonthlyEvidence(compactRecord) {
+            if (!compactRecord) return { available: false };
+            const sparse = compactRecord[3] || {};
+            const monthlyRates = {};
+            SABAP2_EVIDENCE_MONTH_NAMES.forEach((name, index) => {
+                monthlyRates[name] = Object.prototype.hasOwnProperty.call(sparse, String(index + 1))
+                    ? sparse[String(index + 1)]
+                    : null;
+            });
+            return {
+                available: true,
+                records: compactRecord[0],
+                cards: compactRecord[1],
+                reportingRate: compactRecord[2],
+                monthlyRates,
+            };
+        }
+
+        function sabap2LastReportedEvidence(compactRecord) {
+            if (!compactRecord) return { available: false };
+            return {
+                available: true,
+                fp: compactRecord[0],
+                fpn: compactRecord[1],
+                fpLast: compactRecord[2],
+                ad: compactRecord[3],
+                adn: compactRecord[4],
+                adLast: compactRecord[5],
+            };
+        }
+
+        function enrichDiagnosticRowsWithSabap2Evidence(rows, source) {
+            return loadSabap2EvidenceIndex().then((index) => {
+                const metadata = recordingMetadataForDiagnostic(source);
+                const speciesIds = index && index.speciesNames
+                    ? new Map(index.speciesNames.map((name, id) => [String(name).trim().toLowerCase(), String(id)]))
+                    : new Map();
+                const scientificFor = (row) => String(row.scientificName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
+                let pentadCode = null;
+                let pentadEntry = null;
+                let pentadProvince = [];
+                if (metadata.recordingLocationType === 'gps' && Number.isFinite(Number(metadata.recordingLatitude)) && Number.isFinite(Number(metadata.recordingLongitude))) {
+                    const latitudeBlock = Math.floor((-Number(metadata.recordingLatitude)) * 12 + 1e-9) * 5;
+                    const longitudeBlock = Math.floor(Number(metadata.recordingLongitude) * 12 + 1e-9) * 5;
+                    if (latitudeBlock >= 0 && longitudeBlock >= 0) {
+                        const latDegrees = Math.floor(latitudeBlock / 60);
+                        const latMinutes = latitudeBlock % 60;
+                        const lonDegrees = Math.floor(longitudeBlock / 60);
+                        const lonMinutes = longitudeBlock % 60;
+                        pentadCode = String(latDegrees).padStart(2, '0') + String(latMinutes).padStart(2, '0') + '_' +
+                            String(lonDegrees).padStart(2, '0') + String(lonMinutes).padStart(2, '0');
+                        pentadEntry = index && index.pentads ? index.pentads[pentadCode] || null : null;
+                        pentadProvince = pentadEntry ? (pentadEntry.provinces || []) : [];
+                    }
+                }
+                return (rows || []).map((row) => {
+                    const speciesId = speciesIds.get(scientificFor(row));
+                    const pentadRecord = pentadEntry && speciesId !== undefined
+                        ? pentadEntry.species[String(speciesId)]
+                        : null;
+                    const provinceCode = metadata.recordingLocationType === 'province'
+                        ? metadata.recordingProvince
+                        : (metadata.recordingLocationType === 'gps' && pentadProvince.length === 1 ? pentadProvince[0] : null);
+                    const countryCode = metadata.recordingLocationType === 'country' ? metadata.recordingCountry : null;
+                    const provinceIndex = index && provinceCode && index.provinces ? index.provinces[provinceCode] : null;
+                    const countryIndex = index && countryCode && index.countries ? index.countries[countryCode] : null;
+                    const provinceMonthly = provinceIndex && speciesId !== undefined ? provinceIndex.monthly[String(speciesId)] : null;
+                    const provinceLast = provinceIndex && speciesId !== undefined ? provinceIndex.lastReported[String(speciesId)] : null;
+                    const countryMonthly = countryIndex && speciesId !== undefined ? countryIndex.monthly[String(speciesId)] : null;
+                    const countryLast = countryIndex && speciesId !== undefined ? countryIndex.lastReported[String(speciesId)] : null;
+                    row.sabap2Evidence = {
+                        recordingPentad: pentadCode,
+                        pentadExists: pentadCode === null ? null : pentadEntry !== null,
+                        pentadProvince: pentadProvince,
+                        pentad: pentadCode === null ? { available: false } : {
+                            available: !!pentadRecord,
+                            ...sabap2MonthlyEvidence(pentadRecord),
+                        },
+                        province: provinceCode ? {
+                            name: provinceCode,
+                            monthly: sabap2MonthlyEvidence(provinceMonthly),
+                            lastReported: sabap2LastReportedEvidence(provinceLast),
+                        } : { available: false, name: null },
+                        country: countryCode ? {
+                            name: countryCode,
+                            monthly: sabap2MonthlyEvidence(countryMonthly),
+                            lastReported: sabap2LastReportedEvidence(countryLast),
+                        } : { available: false, name: null },
+                        recordingMonth: metadata.recordingMonth ?? null,
+                    };
+                    return row;
+                });
+            });
+        }
+
         function birdnetProductionDiagnosticRows(ranking, fallbackRecords) {
             const rows = ranking && ranking.rows && ranking.rows.length
                 ? ranking.rows
@@ -3104,6 +3250,7 @@
                 sabapCurrentState: row.sabap2 && row.sabap2.current_month_state,
                 matchType: row.sabap2 && row.sabap2.match_type,
                 sppCode: row.sabap2 && row.sabap2.sabap2_spp_code,
+                sabap2Evidence: row.sabap2Evidence,
                 evidenceLabels: row.evidence_labels,
             }));
         }
@@ -3158,14 +3305,12 @@
 
             const processor = birdnetLiveProcessor;
             const liveRecorder = birdnetLiveRecorder;
+            let finalDiagnostics = null;
             if (birdnetLiveCandidateAggregator) {
-                const diagnostics = birdnetProductionDiagnosticRows(
+                finalDiagnostics = birdnetProductionDiagnosticRows(
                     birdnetLiveLastRanking,
                     birdnetLiveCandidateAggregator.getAll()
                 );
-                console.log('[BirdNET production live][final retained candidates]', diagnostics);
-                console.table(birdnetProductionDiagnosticTableRows(diagnostics));
-                console.table(birdnetProductionGeographicSummaryRows(diagnostics));
             }
             if (birdnetLiveBarbetSummary) {
                 console.log('[BirdNET production live][Black-collared Barbet summary]', {
@@ -3352,6 +3497,12 @@
                     hasUserAudioSource: !!userAudioSource,
                     hasUserAudioURL: !!userAudioURL,
                 });
+            }
+            if (finalDiagnostics) {
+                const diagnosticsWithSabap2 = await enrichDiagnosticRowsWithSabap2Evidence(finalDiagnostics, 'live');
+                console.log('[BirdNET production live][final retained candidates]', diagnosticsWithSabap2);
+                console.table(birdnetProductionDiagnosticTableRows(diagnosticsWithSabap2));
+                console.table(birdnetProductionGeographicSummaryRows(diagnosticsWithSabap2));
             }
             stopBirdNetLiveSpectrogram();
 
@@ -3847,9 +3998,10 @@
             });
             const selection = selectBirdNetNormalCandidates(ranking);
             const diagnostics = birdnetProductionDiagnosticRows(ranking, candidateAggregator.getAll());
-            console.log('[BirdNET upload][final retained candidates]', diagnostics);
-            console.table(birdnetProductionDiagnosticTableRows(diagnostics));
-            console.table(birdnetProductionGeographicSummaryRows(diagnostics));
+            const diagnosticsWithSabap2 = await enrichDiagnosticRowsWithSabap2Evidence(diagnostics, 'upload');
+            console.log('[BirdNET upload][final retained candidates]', diagnosticsWithSabap2);
+            console.table(birdnetProductionDiagnosticTableRows(diagnosticsWithSabap2));
+            console.table(birdnetProductionGeographicSummaryRows(diagnosticsWithSabap2));
             const result = birdnetRankingToLegacyResult(selection.visibleRanking, {
                 durationSec: duration,
                 sampleRate,
