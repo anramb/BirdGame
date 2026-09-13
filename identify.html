@@ -923,6 +923,42 @@
                 </label>
                 <input type="file" id="fileInput" accept="audio/*" onchange="handleFileUpload(event)">
                 <div class="file-name" id="fileName"></div>
+                <div id="uploadRecordingMetadata" style="display:none; margin-top:10px; padding:10px; background:#f8f9ff; border:1px solid #d9def5; border-radius:8px; text-align:left;">
+                    <div style="font-size:0.82em; color:#444; font-weight:600; margin-bottom:6px;">Original recording details</div>
+                    <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Where was this recording made?
+                        <select id="uploadRecordingLocationType" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="unknown">Unknown</option>
+                            <option value="gps">Use my current location as the recording location</option>
+                            <option value="province">Province</option>
+                            <option value="country">Country</option>
+                            <option value="southern_africa">Southern Africa</option>
+                        </select>
+                    </label>
+                    <button type="button" id="uploadRecordingGpsBtn" onclick="useCurrentLocationForUploadedRecording()" style="display:none; font-size:0.75em; padding:5px 8px; margin-bottom:6px;">Confirm current location</button>
+                    <label id="uploadRecordingCountryRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Country
+                        <select id="uploadRecordingCountry" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="ZA">South Africa</option><option value="NA">Namibia</option><option value="BW">Botswana</option><option value="ZW">Zimbabwe</option><option value="ZM">Zambia</option><option value="MZ">Mozambique</option><option value="MW">Malawi</option><option value="LS">Lesotho</option><option value="SZ">Eswatini</option>
+                        </select>
+                    </label>
+                    <label id="uploadRecordingProvinceRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Province
+                        <select id="uploadRecordingProvince" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="EC">Eastern Cape</option><option value="FS">Free State</option><option value="GP">Gauteng</option><option value="KZN">KwaZulu-Natal</option><option value="LP">Limpopo</option><option value="MP">Mpumalanga</option><option value="NC">Northern Cape</option><option value="NW">North West</option><option value="WC">Western Cape</option>
+                        </select>
+                    </label>
+                    <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        When was this recording made?
+                        <input type="date" id="uploadRecordingDate" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                    </label>
+                    <label style="display:block; font-size:0.78em; color:#555;">
+                        Month only, if exact date is unknown
+                        <select id="uploadRecordingMonth" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="">Unknown</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                        </select>
+                    </label>
+                </div>
             </div>
 
             <!-- Spectrogram Trimmer (appears after record/upload) -->
@@ -2077,6 +2113,7 @@
         let birdnetLiveLastRanking = null;
         let birdnetLiveLastAudioInfo = null;
         let birdnetLiveCandidateAggregator = null;
+        let birdnetUploadSession = null;
         let birdnetLiveBarbetSummary = null;
         let birdnetLiveWindowTiming = null;
         let birdnetLiveOverlapTest = null;
@@ -2378,12 +2415,97 @@
         // ===========================
         // File Upload
         // ===========================
+        function defaultUploadRecordingMetadata() {
+            return {
+                recordingLocationType: 'unknown',
+                recordingLatitude: null,
+                recordingLongitude: null,
+                recordingProvince: null,
+                recordingCountry: null,
+                recordingDate: null,
+                recordingMonth: null,
+                source: 'user_supplied',
+            };
+        }
+
+        function getUploadedRecordingMetadataFromControls() {
+            const type = document.getElementById('uploadRecordingLocationType').value;
+            const dateValue = document.getElementById('uploadRecordingDate').value || null;
+            const monthValue = document.getElementById('uploadRecordingMonth').value;
+            return {
+                recordingLocationType: type,
+                recordingLatitude: birdnetUploadSession && birdnetUploadSession.recordingMetadata
+                    ? birdnetUploadSession.recordingMetadata.recordingLatitude : null,
+                recordingLongitude: birdnetUploadSession && birdnetUploadSession.recordingMetadata
+                    ? birdnetUploadSession.recordingMetadata.recordingLongitude : null,
+                recordingProvince: type === 'province' ? document.getElementById('uploadRecordingProvince').value : null,
+                recordingCountry: type === 'country' ? document.getElementById('uploadRecordingCountry').value : null,
+                recordingDate: dateValue,
+                recordingMonth: dateValue ? Number(dateValue.slice(5, 7)) : (monthValue ? Number(monthValue) : null),
+                source: 'user_supplied',
+            };
+        }
+
+        function updateUploadedRecordingMetadata() {
+            if (!birdnetUploadSession) {
+                birdnetUploadSession = {
+                    inputMode: 'upload',
+                    recordingMetadata: defaultUploadRecordingMetadata(),
+                    ranking: null,
+                    candidateRecords: null,
+                    audioInfo: null,
+                };
+            }
+            const metadata = getUploadedRecordingMetadataFromControls();
+            if (metadata.recordingLocationType !== 'gps') {
+                metadata.recordingLatitude = null;
+                metadata.recordingLongitude = null;
+            }
+            birdnetUploadSession.recordingMetadata = metadata;
+            const type = metadata.recordingLocationType;
+            document.getElementById('uploadRecordingCountryRow').style.display = type === 'country' ? 'block' : 'none';
+            document.getElementById('uploadRecordingProvinceRow').style.display = type === 'province' ? 'block' : 'none';
+            document.getElementById('uploadRecordingGpsBtn').style.display = type === 'gps' && metadata.recordingLatitude === null ? 'inline-block' : 'none';
+            console.log('[BirdNET upload][recording metadata]', metadata);
+            return metadata;
+        }
+
+        function useCurrentLocationForUploadedRecording() {
+            if (!confirm('I confirm this is where the recording was made. Use the current device location as the recording location?')) return;
+            if (!navigator.geolocation) {
+                console.warn('[BirdNET upload] Geolocation is unavailable for the recording location.');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition((position) => {
+                if (!birdnetUploadSession) updateUploadedRecordingMetadata();
+                birdnetUploadSession.recordingMetadata.recordingLocationType = 'gps';
+                birdnetUploadSession.recordingMetadata.recordingLatitude = position.coords.latitude;
+                birdnetUploadSession.recordingMetadata.recordingLongitude = position.coords.longitude;
+                updateUploadedRecordingMetadata();
+            }, (error) => {
+                console.warn('[BirdNET upload] Recording-location GPS failed:', error);
+            }, { timeout: 8000, maximumAge: 5 * 60 * 1000 });
+        }
+
+        function getBirdNetUploadSession() {
+            return birdnetUploadSession;
+        }
+
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             audioFile = file;
             userAudioSource = file;
+            birdnetUploadSession = {
+                inputMode: 'upload',
+                recordingMetadata: defaultUploadRecordingMetadata(),
+                ranking: null,
+                candidateRecords: null,
+                audioInfo: null,
+            };
+            document.getElementById('uploadRecordingMetadata').style.display = 'block';
+            updateUploadedRecordingMetadata();
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('identifyBtn').disabled = false;
             updateBirdNetButtonState();
@@ -3708,6 +3830,21 @@
                 console.warn('[BirdNET upload] Geo context unavailable at final ranking; continuing:', err);
             }
             const ranking = rankBirdNetProductionRecords(candidateAggregator);
+            const uploadAudioInfo = { durationSec: duration, sampleRate, numWindows: windowsCompleted };
+            birdnetUploadSession = {
+                inputMode: 'upload',
+                recordingMetadata: birdnetUploadSession
+                    ? birdnetUploadSession.recordingMetadata
+                    : getUploadedRecordingMetadataFromControls(),
+                ranking,
+                candidateRecords: candidateAggregator.getAll(),
+                audioInfo: uploadAudioInfo,
+            };
+            console.log('[BirdNET upload][session retained]', {
+                candidateCount: birdnetUploadSession.candidateRecords.length,
+                recordingMetadata: birdnetUploadSession.recordingMetadata,
+                audioInfo: uploadAudioInfo,
+            });
             const selection = selectBirdNetNormalCandidates(ranking);
             const diagnostics = birdnetProductionDiagnosticRows(ranking, candidateAggregator.getAll());
             console.log('[BirdNET upload][final retained candidates]', diagnostics);
