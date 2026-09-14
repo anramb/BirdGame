@@ -1860,9 +1860,14 @@
             if (geoContext && geoContext.computed && geoModel && geoModel.acousticToGeoIndex) {
                 geoScore = geoModel.scoreForAcousticIndex(pred.idx, geoContext.probs);
             }
+            const uploadRecordingMonth = inputMode === 'upload' && birdnetUploadSession &&
+                Number.isInteger(birdnetUploadSession.recordingMetadata && birdnetUploadSession.recordingMetadata.recordingMonth)
+                ? birdnetUploadSession.recordingMetadata.recordingMonth
+                : undefined;
             return SA_OCCURRENCE.enrichPrediction(
                 { rank: pred.rank, scientific_name: pred.sci, common_name: pred.com, birdnet_id: pred.id, idx: pred.idx, acoustic_score: pred.confidence, taxonomic_class: taxonomicClass },
                 {
+                    calendarMonth: uploadRecordingMonth,
                     geoModelComputed: !!(geoContext && geoContext.computed && geoScore !== null),
                     geoModelScore: geoScore,
                     geoModelReasonNotComputed: geoContext && !geoContext.computed ? geoContext.reason : 'no_scientific_name_match_to_geo_model',
@@ -2698,6 +2703,9 @@
                     evidence_labels: row.evidence_labels,
                 };
                 const geographicClassification = classifyBirdNetProductionGeography(diagnosticEvidence);
+                const geographicSemantics = birdnetSemanticByScientificName.get(
+                    String(r.sci || '').trim().toLowerCase().replace(/\\s+/g, ' ')
+                ) || null;
 
                 // BirdNET's common name is the user-facing standard-order
                 // display name. Keep allbirds' group-first English name only
@@ -2745,6 +2753,7 @@
                         raw_rank: row.raw_rank,
                         rank_delta: row.rank_delta,
                         geographicClassification,
+                        geographicSemantics,
                         evidence_labels: row.evidence_labels || [],
                         used_fallback: row.used_fallback,
                         geo_model: row.geo_model,
@@ -2968,6 +2977,7 @@
 
         function renderBirdNetProductionRanking(accumulator, audioInfo, runId) {
             if (!accumulator || (runId != null && runId !== birdnetLiveRunId)) return null;
+            birdnetSemanticByScientificName = new Map();
             const ranking = rankBirdNetProductionRecords(accumulator);
             birdnetLiveLastAudioInfo = audioInfo || {};
             const selection = selectBirdNetNormalCandidates(ranking);
@@ -3036,19 +3046,71 @@
 
         const SABAP2_EVIDENCE_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         let sabap2EvidenceIndexPromise = null;
+        const SABAP2_RUNTIME_SHARDS = {
+            EC: 'easterncape', FS: 'freestate', GP: 'gauteng', KZN: 'kwazulu-natal',
+            LP: 'limpopo', MP: 'mpumalanga', NC: 'northerncape', NW: 'northwest', WC: 'westerncape',
+        };
+        const SABAP2_RUNTIME_PROVINCE_CODES = {
+            easterncape: 'EC', freestate: 'FS', gauteng: 'GP', 'kwazulu-natal': 'KZN',
+            limpopo: 'LP', mpumalanga: 'MP', northerncape: 'NC', northwest: 'NW', westerncape: 'WC',
+        };
+        const sabap2RuntimeShardPromises = new Map();
+        let birdnetSemanticByScientificName = new Map();
+
+        function setBirdNetSemanticDiagnostics(rows) {
+            birdnetSemanticByScientificName = new Map((rows || [])
+                .filter((row) => row && row.geographicSemantics && row.scientificName)
+                .map((row) => [String(row.scientificName).trim().toLowerCase().replace(/\\s+/g, ' '), row.geographicSemantics]));
+        }
 
         function loadSabap2EvidenceIndex() {
             if (sabap2EvidenceIndexPromise) return sabap2EvidenceIndexPromise;
-            sabap2EvidenceIndexPromise = fetch('data/sabap2_evidence_index.json')
-                .then((response) => {
-                    if (!response.ok) throw new Error('SABAP2 evidence index HTTP ' + response.status);
+            sabap2EvidenceIndexPromise = Promise.all([
+                fetch('data/canonical_taxonomy.json').then((response) => {
+                    if (!response.ok) throw new Error('Canonical taxonomy HTTP ' + response.status);
                     return response.json();
-                })
+                }),
+                fetch('data/sabap2_species_lookup.json').then((response) => {
+                    if (!response.ok) throw new Error('SABAP2 species lookup HTTP ' + response.status);
+                    return response.json();
+                }),
+                fetch('data/sabap2_province_country_evidence.json').then((response) => {
+                    if (!response.ok) throw new Error('SABAP2 province/country evidence HTTP ' + response.status);
+                    return response.json();
+                }),
+            ]).then(([canonical, speciesLookup, provinceCountry]) => ({ canonical, speciesLookup, provinceCountry }))
                 .catch((error) => {
-                    console.warn('[BirdNET diagnostic] SABAP2 evidence index unavailable:', error);
+                    console.warn('[BirdNET diagnostic] SABAP2 runtime evidence unavailable:', error);
                     return null;
                 });
             return sabap2EvidenceIndexPromise;
+        }
+
+        function loadSabap2RuntimeShard(shardName) {
+            if (!sabap2RuntimeShardPromises.has(shardName)) {
+                sabap2RuntimeShardPromises.set(shardName, fetch('data/sabap2_pentads_' + shardName + '.json')
+                    .then((response) => {
+                        if (!response.ok) throw new Error('SABAP2 pentad shard HTTP ' + response.status);
+                        return response.json();
+                    })
+                    .catch((error) => {
+                        console.warn('[BirdNET diagnostic] SABAP2 pentad shard unavailable:', shardName, error);
+                        return null;
+                    }));
+            }
+            return sabap2RuntimeShardPromises.get(shardName);
+        }
+
+        async function findSabap2RuntimePentad(pentadCode, provinceCodes) {
+            const preferred = (provinceCodes || []).map((code) => SABAP2_RUNTIME_SHARDS[code]).filter(Boolean);
+            const candidates = preferred.length ? preferred : Object.values(SABAP2_RUNTIME_SHARDS);
+            for (const shardName of candidates) {
+                const shard = await loadSabap2RuntimeShard(shardName);
+                if (shard && shard.pentads && shard.pentads[pentadCode]) {
+                    return shard.pentads[pentadCode];
+                }
+            }
+            return null;
         }
 
         function recordingMetadataForDiagnostic(source) {
@@ -3116,68 +3178,210 @@
             };
         }
 
-        function enrichDiagnosticRowsWithSabap2Evidence(rows, source) {
-            return loadSabap2EvidenceIndex().then((index) => {
-                const metadata = recordingMetadataForDiagnostic(source);
-                const speciesIds = index && index.speciesNames
-                    ? new Map(index.speciesNames.map((name, id) => [String(name).trim().toLowerCase(), String(id)]))
-                    : new Map();
-                const scientificFor = (row) => String(row.scientificName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
-                let pentadCode = null;
-                let pentadEntry = null;
-                let pentadProvince = [];
-                if (metadata.recordingLocationType === 'gps' && Number.isFinite(Number(metadata.recordingLatitude)) && Number.isFinite(Number(metadata.recordingLongitude))) {
-                    const latitudeBlock = Math.floor((-Number(metadata.recordingLatitude)) * 12 + 1e-9) * 5;
-                    const longitudeBlock = Math.floor(Number(metadata.recordingLongitude) * 12 + 1e-9) * 5;
-                    if (latitudeBlock >= 0 && longitudeBlock >= 0) {
-                        const latDegrees = Math.floor(latitudeBlock / 60);
-                        const latMinutes = latitudeBlock % 60;
-                        const lonDegrees = Math.floor(longitudeBlock / 60);
-                        const lonMinutes = longitudeBlock % 60;
-                        pentadCode = String(latDegrees).padStart(2, '0') + String(latMinutes).padStart(2, '0') + '_' +
-                            String(lonDegrees).padStart(2, '0') + String(lonMinutes).padStart(2, '0');
-                        pentadEntry = index && index.pentads ? index.pentads[pentadCode] || null : null;
-                        pentadProvince = pentadEntry ? (pentadEntry.provinces || []) : [];
-                    }
+        function classifyBirdNetGeographicSemantics(row) {
+            const evidence = row && row.sabap2Evidence || {};
+            const sources = Array.isArray(evidence.sabapSources) ? evidence.sabapSources : [];
+            const monthlyValues = [];
+            let hasPentadRecord = false;
+            let hasPentadRow = false;
+            let hasProvinceRecord = false;
+            let hasProvinceEvidence = false;
+            let hasCountryRecord = false;
+            let hasCountryEvidence = false;
+            let hasLastReported = false;
+
+            sources.forEach((source) => {
+                const pentad = source.pentad || {};
+                if (pentad.available) {
+                    hasPentadRow = true;
+                    hasPentadRecord = hasPentadRecord || Number(pentad.records) > 0;
+                    Object.values(pentad.monthlyRates || {}).forEach((value) => monthlyValues.push(value));
                 }
-                return (rows || []).map((row) => {
-                    const speciesId = speciesIds.get(scientificFor(row));
-                    const pentadRecord = pentadEntry && speciesId !== undefined
-                        ? pentadEntry.species[String(speciesId)]
+                Object.values(source.province || {}).forEach((province) => {
+                    if (!province) return;
+                    if (province.lastReported && province.lastReported.available) hasLastReported = true;
+                    if (!province.monthly || !province.monthly.available) return;
+                    hasProvinceEvidence = true;
+                    hasProvinceRecord = hasProvinceRecord || Number(province.monthly.records) > 0;
+                    Object.values(province.monthly.monthlyRates || {}).forEach((value) => monthlyValues.push(value));
+                });
+                const country = source.country || {};
+                if (country.monthly && country.monthly.available) {
+                    hasCountryEvidence = true;
+                    hasCountryRecord = hasCountryRecord || Number(country.monthly.records) > 0;
+                    Object.values(country.monthly.monthlyRates || {}).forEach((value) => monthlyValues.push(value));
+                }
+            });
+
+            const month = evidence.recordingMonth;
+            const monthKnown = Number.isInteger(month) && month >= 1 && month <= 12;
+            const currentMonthName = monthKnown ? SABAP2_EVIDENCE_MONTH_NAMES[month - 1] : null;
+            const hasPentadMonthlyLayer = sources.some((source) => source.pentad && source.pentad.available);
+            const hasProvinceMonthlyLayer = sources.some((source) =>
+                Object.values(source.province || {}).some((province) => province && province.monthly && province.monthly.available)
+            );
+            const currentMonthValues = currentMonthName
+                ? sources.flatMap((source) => {
+                    const values = [];
+                    if (hasPentadMonthlyLayer) {
+                        if (source.pentad && source.pentad.available) values.push(source.pentad.monthlyRates && source.pentad.monthlyRates[currentMonthName]);
+                    } else if (hasProvinceMonthlyLayer) {
+                        Object.values(source.province || {}).forEach((province) => {
+                            if (province && province.monthly && province.monthly.available) values.push(province.monthly.monthlyRates && province.monthly.monthlyRates[currentMonthName]);
+                        });
+                    } else {
+                        const country = source.country || {};
+                        if (country.monthly && country.monthly.available) values.push(country.monthly.monthlyRates && country.monthly.monthlyRates[currentMonthName]);
+                    }
+                    return values;
+                }).filter((value) => value !== null && value !== undefined)
+                : [];
+            const monthPositive = currentMonthValues.some((value) => Number(value) > 0);
+            const monthZero = monthKnown && currentMonthValues.length > 0 && currentMonthValues.every((value) => Number(value) === 0);
+            const recordingContextKnown = evidence.recordingPentad !== null || hasProvinceEvidence || hasCountryEvidence;
+            const regional = row && row.sabap2 && row.sabap2.regional_occurrence === true;
+            const modifiers = [];
+            if (!row || !row.geo || row.geo.computed !== true) modifiers.push('geo_unavailable');
+            if (monthKnown && monthZero) modifiers.push('recording_month_zero');
+            if (!monthKnown) modifiers.push('recording_month_unknown');
+            if (hasLastReported) modifiers.push('last_reported_available');
+            if (hasPentadRow && !hasPentadRecord) modifiers.push('pentad_row_without_positive_records');
+
+            const lastDates = [];
+            sources.forEach((source) => {
+                Object.values(source.province || {}).forEach((province) => {
+                    if (province && province.lastReported && province.lastReported.available) {
+                        if (province.lastReported.fpLast) lastDates.push(province.lastReported.fpLast);
+                        if (province.lastReported.adLast) lastDates.push(province.lastReported.adLast);
+                    }
+                });
+            });
+            const referenceDate = evidence.recordingDate ? new Date(evidence.recordingDate + 'T00:00:00Z') : null;
+            const parsedLastDates = lastDates.map((value) => new Date(value + 'T00:00:00Z')).filter((value) => !Number.isNaN(value.getTime()));
+            const latestLastDate = parsedLastDates.length ? new Date(Math.max(...parsedLastDates.map((value) => value.getTime()))) : null;
+            const sameRecordingMonth = referenceDate && latestLastDate &&
+                latestLastDate.getUTCFullYear() === referenceDate.getUTCFullYear() &&
+                latestLastDate.getUTCMonth() === referenceDate.getUTCMonth();
+            const temporalStatus = referenceDate && latestLastDate
+                ? (latestLastDate >= referenceDate || sameRecordingMonth ? 'recent' : 'old')
+                : 'unknown';
+            if (temporalStatus !== 'unknown') modifiers.push(temporalStatus);
+
+            let state;
+            if (hasPentadRecord) {
+                if (monthZero && temporalStatus === 'old') state = 'LOCAL_HISTORICAL';
+                else if (monthZero && temporalStatus === 'recent') {
+                    state = 'LOCAL_CURRENT';
+                    modifiers.push('seasonal_disagreement');
+                } else if (monthZero) state = 'INSUFFICIENT_DATA';
+                else if (monthKnown && monthPositive) state = 'LOCAL_CURRENT';
+                else state = 'INSUFFICIENT_DATA';
+            } else if (hasProvinceRecord) {
+                if (monthZero && temporalStatus === 'old') state = 'LOCAL_HISTORICAL';
+                else if (monthZero && temporalStatus === 'recent') {
+                    state = 'PROVINCE_SUPPORTED';
+                    modifiers.push('seasonal_disagreement');
+                } else if (monthZero) state = 'INSUFFICIENT_DATA';
+                else state = 'PROVINCE_SUPPORTED';
+            } else if (hasCountryRecord || regional) {
+                state = 'REGIONAL_ONLY';
+            } else if (!recordingContextKnown) {
+                state = 'NO_LOCAL_DATA';
+            } else {
+                state = 'INSUFFICIENT_DATA';
+            }
+
+            return { state, modifiers };
+        }
+
+        async function enrichDiagnosticRowsWithSabap2Evidence(rows, source) {
+            const runtime = await loadSabap2EvidenceIndex();
+            const metadata = recordingMetadataForDiagnostic(source);
+            const canonical = runtime && runtime.canonical;
+            const speciesLookup = runtime && runtime.speciesLookup;
+            const provinceCountry = runtime && runtime.provinceCountry;
+            const birdnetMappings = new Map((canonical && canonical.birdnetMappings || [])
+                .map((mapping) => [String(mapping.scientificName).trim().toLowerCase().replace(/\\s+/g, ' '), mapping]));
+            const lookupNames = speciesLookup && speciesLookup.speciesNames || [];
+            const pentadProvinceCodes = [];
+            let pentadCode = null;
+            let pentadEntry = null;
+            if (metadata.recordingLocationType === 'gps' && Number.isFinite(Number(metadata.recordingLatitude)) && Number.isFinite(Number(metadata.recordingLongitude))) {
+                const latitudeBlock = Math.floor((-Number(metadata.recordingLatitude)) * 12 + 1e-9) * 5;
+                const longitudeBlock = Math.floor(Number(metadata.recordingLongitude) * 12 + 1e-9) * 5;
+                if (latitudeBlock >= 0 && longitudeBlock >= 0) {
+                    const latDegrees = Math.floor(latitudeBlock / 60);
+                    const latMinutes = latitudeBlock % 60;
+                    const lonDegrees = Math.floor(longitudeBlock / 60);
+                    const lonMinutes = longitudeBlock % 60;
+                    pentadCode = String(latDegrees).padStart(2, '0') + String(latMinutes).padStart(2, '0') + '_' +
+                        String(lonDegrees).padStart(2, '0') + String(lonMinutes).padStart(2, '0');
+                    pentadEntry = await findSabap2RuntimePentad(pentadCode, []);
+                    (pentadEntry && pentadEntry.provinces || []).forEach((name) => {
+                        if (SABAP2_RUNTIME_PROVINCE_CODES[name]) pentadProvinceCodes.push(SABAP2_RUNTIME_PROVINCE_CODES[name]);
+                    });
+                }
+            }
+            const scientificFor = (row) => String(row.scientificName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
+            const enrichedRows = (rows || []).map((row) => {
+                const mapping = birdnetMappings.get(scientificFor(row));
+                const canonicalSpeciesId = mapping && mapping.canonicalSpeciesId || null;
+                const sourceMappings = canonical && canonical.sabap2Mappings
+                    ? canonical.sabap2Mappings.filter((item) => item.canonicalSpeciesId === canonicalSpeciesId)
+                    : [];
+                const provinceCodes = metadata.recordingLocationType === 'province'
+                    ? [metadata.recordingProvince]
+                    : pentadProvinceCodes;
+                const countryCode = metadata.recordingLocationType === 'country' ? metadata.recordingCountry : null;
+                const sources = sourceMappings.map((sourceMapping) => {
+                    const sourceId = String(sourceMapping.sabap2Id);
+                    const provinceEvidence = {};
+                    provinceCodes.filter(Boolean).forEach((provinceCode) => {
+                        const province = provinceCountry && provinceCountry.provinces && provinceCountry.provinces[provinceCode];
+                        if (province) {
+                            provinceEvidence[provinceCode] = {
+                                monthly: sabap2MonthlyEvidence(province.monthly[sourceId]),
+                                lastReported: sabap2LastReportedEvidence(province.lastReported[sourceId]),
+                            };
+                        }
+                    });
+                    const country = countryCode && provinceCountry && provinceCountry.countries
+                        ? provinceCountry.countries[countryCode]
                         : null;
-                    const provinceCode = metadata.recordingLocationType === 'province'
-                        ? metadata.recordingProvince
-                        : (metadata.recordingLocationType === 'gps' && pentadProvince.length === 1 ? pentadProvince[0] : null);
-                    const countryCode = metadata.recordingLocationType === 'country' ? metadata.recordingCountry : null;
-                    const provinceIndex = index && provinceCode && index.provinces ? index.provinces[provinceCode] : null;
-                    const countryIndex = index && countryCode && index.countries ? index.countries[countryCode] : null;
-                    const provinceMonthly = provinceIndex && speciesId !== undefined ? provinceIndex.monthly[String(speciesId)] : null;
-                    const provinceLast = provinceIndex && speciesId !== undefined ? provinceIndex.lastReported[String(speciesId)] : null;
-                    const countryMonthly = countryIndex && speciesId !== undefined ? countryIndex.monthly[String(speciesId)] : null;
-                    const countryLast = countryIndex && speciesId !== undefined ? countryIndex.lastReported[String(speciesId)] : null;
-                    row.sabap2Evidence = {
-                        recordingPentad: pentadCode,
-                        pentadExists: pentadCode === null ? null : pentadEntry !== null,
-                        pentadProvince: pentadProvince,
+                    const pentadRecord = pentadEntry && pentadEntry.species
+                        ? pentadEntry.species[sourceId]
+                        : null;
+                    const sourceIdNumber = Number(sourceMapping.sabap2Id);
+                    return {
+                        sourceId: sourceIdNumber,
+                        scientificName: sourceMapping.scientificName,
+                        lookupAvailable: lookupNames[sourceIdNumber] != null,
+                        relationship: sourceMapping.relationship,
                         pentad: pentadCode === null ? { available: false } : {
                             available: !!pentadRecord,
                             ...sabap2MonthlyEvidence(pentadRecord),
                         },
-                        province: provinceCode ? {
-                            name: provinceCode,
-                            monthly: sabap2MonthlyEvidence(provinceMonthly),
-                            lastReported: sabap2LastReportedEvidence(provinceLast),
-                        } : { available: false, name: null },
-                        country: countryCode ? {
-                            name: countryCode,
-                            monthly: sabap2MonthlyEvidence(countryMonthly),
-                            lastReported: sabap2LastReportedEvidence(countryLast),
-                        } : { available: false, name: null },
-                        recordingMonth: metadata.recordingMonth ?? null,
+                        province: provinceEvidence,
+                        country: country ? {
+                            monthly: sabap2MonthlyEvidence(country.monthly[sourceId]),
+                            lastReported: sabap2LastReportedEvidence(country.lastReported[sourceId]),
+                        } : { available: false },
                     };
-                    return row;
                 });
+                row.sabap2Evidence = {
+                    canonicalSpeciesId,
+                    recordingPentad: pentadCode,
+                    pentadExists: pentadCode === null ? null : pentadEntry !== null,
+                    pentadProvince: pentadProvinceCodes,
+                    recordingDate: metadata.recordingDate ?? null,
+                    recordingMonth: metadata.recordingMonth ?? null,
+                    sabapSources: sources,
+                };
+                row.geographicSemantics = classifyBirdNetGeographicSemantics(row);
+                return row;
             });
+            setBirdNetSemanticDiagnostics(enrichedRows);
+            return enrichedRows;
         }
 
         function birdnetProductionDiagnosticRows(ranking, fallbackRecords) {
@@ -3251,6 +3455,7 @@
                 matchType: row.sabap2 && row.sabap2.match_type,
                 sppCode: row.sabap2 && row.sabap2.sabap2_spp_code,
                 sabap2Evidence: row.sabap2Evidence,
+                geographicSemantics: row.geographicSemantics,
                 evidenceLabels: row.evidence_labels,
             }));
         }
@@ -3503,6 +3708,7 @@
                 console.log('[BirdNET production live][final retained candidates]', diagnosticsWithSabap2);
                 console.table(birdnetProductionDiagnosticTableRows(diagnosticsWithSabap2));
                 console.table(birdnetProductionGeographicSummaryRows(diagnosticsWithSabap2));
+                refreshBirdNetVisibility();
             }
             stopBirdNetLiveSpectrogram();
 
@@ -4261,6 +4467,27 @@
         function birdNetGeographicNote(resultRow) {
             const evidence = resultRow && resultRow._birdnet;
             if (!evidence) return null;
+            const semantic = evidence.geographicSemantics;
+            if (semantic && semantic.state) {
+                const semanticNotes = {
+                    LOCAL_CURRENT: { className: 'geographic-note-likely', label: 'Local evidence supports this species' },
+                    LOCAL_HISTORICAL: { className: 'geographic-note-possible', label: 'Historical local record' },
+                    PROVINCE_SUPPORTED: { className: 'geographic-note-possible', label: 'Province-level evidence' },
+                    REGIONAL_ONLY: { className: 'geographic-note-limited', label: 'Regional evidence only' },
+                    NO_LOCAL_DATA: { className: 'geographic-note-limited', label: 'Location evidence unavailable' },
+                    INSUFFICIENT_DATA: { className: 'geographic-note-limited', label: 'Insufficient local evidence' },
+                };
+                const note = semanticNotes[semantic.state];
+                if (note) {
+                    if (semantic.modifiers && semantic.modifiers.includes('seasonal_disagreement')) {
+                        note.detail = 'Recent local records exist, but no records are available for the recording month.';
+                    }
+                    return note;
+                }
+                if (semantic.state === 'LOCAL_DISAGREEMENT') {
+                    return { className: 'geographic-note-limited', label: 'Geographic evidence requires further review' };
+                }
+            }
             const classification = evidence.geographicClassification;
             const labels = evidence.evidence_labels || [];
             if (classification === 'GEOGRAPHICALLY_UNCERTAIN') return null;
@@ -4373,7 +4600,7 @@
                         </div>`;
                 const geographicNote = result._engine === 'birdnet-protected' ? birdNetGeographicNote(r) : null;
                 const geographicNoteMarkup = geographicNote
-                    ? `<div class="geographic-note ${geographicNote.className}"><span class="geographic-note-dot"></span>${geographicNote.label}</div>`
+                    ? `<div class="geographic-note ${geographicNote.className}"><span class="geographic-note-dot"></span>${geographicNote.label}${geographicNote.detail ? `<div class="geographic-note-detail">${geographicNote.detail}</div>` : ''}</div>`
                     : '';
                 const referenceSpectrogram = result._engine === 'birdnet-protected' ? '' : `
                         <div class="spectro-compare">
