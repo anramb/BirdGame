@@ -2754,6 +2754,9 @@
                         rank_delta: row.rank_delta,
                         geographicClassification,
                         geographicSemantics,
+                        displayEligibility: birdnetDisplayEligibilityByScientificName.get(
+                            String(r.sci || '').trim().toLowerCase().replace(/\\s+/g, ' ')
+                        ) || null,
                         evidence_labels: row.evidence_labels || [],
                         used_fallback: row.used_fallback,
                         geo_model: row.geo_model,
@@ -2978,6 +2981,7 @@
         function renderBirdNetProductionRanking(accumulator, audioInfo, runId) {
             if (!accumulator || (runId != null && runId !== birdnetLiveRunId)) return null;
             birdnetSemanticByScientificName = new Map();
+            birdnetDisplayEligibilityByScientificName = new Map();
             const ranking = rankBirdNetProductionRecords(accumulator);
             birdnetLiveLastAudioInfo = audioInfo || {};
             const selection = selectBirdNetNormalCandidates(ranking);
@@ -3056,11 +3060,16 @@
         };
         const sabap2RuntimeShardPromises = new Map();
         let birdnetSemanticByScientificName = new Map();
+        let birdnetDisplayEligibilityByScientificName = new Map();
 
         function setBirdNetSemanticDiagnostics(rows) {
+            const keyFor = (row) => String(row && row.scientificName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
             birdnetSemanticByScientificName = new Map((rows || [])
                 .filter((row) => row && row.geographicSemantics && row.scientificName)
-                .map((row) => [String(row.scientificName).trim().toLowerCase().replace(/\\s+/g, ' '), row.geographicSemantics]));
+                .map((row) => [keyFor(row), row.geographicSemantics]));
+            birdnetDisplayEligibilityByScientificName = new Map((rows || [])
+                .filter((row) => row && row.displayEligibility && row.scientificName)
+                .map((row) => [keyFor(row), row.displayEligibility]));
         }
 
         function loadSabap2EvidenceIndex() {
@@ -3294,6 +3303,109 @@
             return { state, modifiers };
         }
 
+        function computeBirdNetDisplayEligibility(row) {
+            const DISPLAY_ELIGIBILITY_HIGH_EFFORT_CARDS = 1000;
+            const evidence = row && row.sabap2Evidence || {};
+            const semantics = row && row.geographicSemantics || {};
+            const sources = Array.isArray(evidence.sabapSources) ? evidence.sabapSources : [];
+            const locationType = evidence.recordingLocationType || 'unknown';
+            const knownLocation = locationType === 'gps' || locationType === 'province' || locationType === 'country';
+            const pentadPositive = sources.some((source) => source.pentad && source.pentad.available && Number(source.pentad.records) > 0);
+            const provinceEntries = sources.flatMap((source) => Object.values(source.province || {}));
+            const provincePositive = provinceEntries.some((province) => province && province.monthly && province.monthly.available && Number(province.monthly.records) > 0);
+            const countryPositive = sources.some((source) => source.country && source.country.monthly && source.country.monthly.available && Number(source.country.monthly.records) > 0);
+            const regional = row && row.sabap2 && row.sabap2.regional_occurrence === true;
+            const validDate = (value) => {
+                if (!value || typeof value !== 'string') return null;
+                const parsed = new Date(value + 'T00:00:00Z');
+                return Number.isNaN(parsed.getTime()) ? null : parsed;
+            };
+            const protocolEvidence = provinceEntries.flatMap((province) => {
+                const lastReported = province && province.lastReported;
+                if (!lastReported || !lastReported.available) return [];
+                const fpDate = validDate(lastReported.fpLast);
+                const adDate = validDate(lastReported.adLast);
+                return [
+                    { protocol: 'FP', positive: Number(lastReported.fpn) > 0 && !!fpDate, date: fpDate },
+                    { protocol: 'AD', positive: Number(lastReported.adn) > 0 && !!adDate, date: adDate },
+                ];
+            });
+            const lastDates = protocolEvidence.filter((entry) => entry.positive).map((entry) => entry.date);
+            const latestDate = lastDates.length ? new Date(Math.max(...lastDates.map((value) => value.getTime()))) : null;
+            const recordingDate = evidence.recordingDate ? new Date(evidence.recordingDate + 'T00:00:00Z') : null;
+            const recencyReferenceDate = recordingDate || (knownLocation ? new Date() : null);
+            let recency = 'unknown';
+            if (latestDate && recencyReferenceDate) {
+                const boundary = new Date(recencyReferenceDate.getTime());
+                boundary.setUTCFullYear(boundary.getUTCFullYear() - 3);
+                recency = latestDate >= boundary ? 'recent' : 'stale';
+            }
+            const localEvidence = sources.map((source) => source.pentad && source.pentad.available ? source.pentad : null).concat(provinceEntries.map((province) => province && province.monthly)).filter(Boolean);
+            const records = localEvidence.map((item) => Number(item.records)).filter(Number.isFinite);
+            const cards = localEvidence.map((item) => Number(item.cards)).filter(Number.isFinite);
+            const rates = localEvidence.map((item) => Number(item.reportingRate)).filter(Number.isFinite);
+            const highEffortSignal = cards.some((value) => value >= DISPLAY_ELIGIBILITY_HIGH_EFFORT_CARDS);
+            const coverageSignal = highEffortSignal;
+            const isolated = records.length > 0 && records.every((value) => value <= 1);
+            const zeroEvidence = rates.length > 0 && rates.every((value) => value === 0);
+            const modifiers = [];
+            if (recency === 'recent') modifiers.push('recent');
+            if (recency === 'stale') modifiers.push('old');
+            if (semantics.modifiers && semantics.modifiers.includes('recording_month_zero')) modifiers.push('recording_month_zero');
+
+            if (!knownLocation) {
+                return {
+                    eligible: Boolean(countryPositive || regional),
+                    reason: countryPositive || regional ? 'DISPLAY_UNKNOWN_LOCATION' : 'REVIEW_INSUFFICIENT_EVIDENCE',
+                    context: 'UNKNOWN',
+                    modifiers,
+                };
+            }
+            if (locationType === 'country') {
+                return {
+                    eligible: countryPositive || regional,
+                    reason: countryPositive || regional ? 'DISPLAY_COUNTRY_CONTEXT' : 'REVIEW_INSUFFICIENT_EVIDENCE',
+                    context: 'KNOWN_COUNTRY',
+                    modifiers,
+                };
+            }
+            if (pentadPositive) {
+                if (recency === 'stale' && !coverageSignal) {
+                    return { eligible: false, reason: 'REVIEW_INSUFFICIENT_COVERAGE', context: 'KNOWN_LOCAL', modifiers };
+                }
+                if (recency === 'stale' && coverageSignal && isolated && zeroEvidence) {
+                    return { eligible: false, reason: 'HIDE_HIGH_EFFORT_ZERO_LOCAL', context: 'KNOWN_LOCAL', modifiers };
+                }
+                if (recency === 'stale') {
+                    return { eligible: false, reason: 'HIDE_STALE_SPARSE_LOCAL', context: 'KNOWN_LOCAL', modifiers };
+                }
+                return { eligible: true, reason: 'DISPLAY_LOCAL_CURRENT', context: 'KNOWN_LOCAL', modifiers };
+            }
+            if (provincePositive) {
+                if (recency === 'stale' && !coverageSignal) {
+                    return { eligible: false, reason: 'REVIEW_INSUFFICIENT_COVERAGE', context: 'KNOWN_PROVINCE', modifiers };
+                }
+                if (recency === 'stale' && coverageSignal && isolated && zeroEvidence) {
+                    return { eligible: false, reason: 'HIDE_HIGH_EFFORT_ZERO_LOCAL', context: 'KNOWN_PROVINCE', modifiers };
+                }
+                if (recency === 'stale') {
+                    return { eligible: false, reason: 'HIDE_STALE_PROVINCE', context: 'KNOWN_PROVINCE', modifiers };
+                }
+                return { eligible: true, reason: 'DISPLAY_PROVINCE_CURRENT', context: 'KNOWN_PROVINCE', modifiers };
+            }
+            if (countryPositive || regional) {
+                return { eligible: false, reason: 'HIDE_NO_RELEVANT_LOCAL_SUPPORT', context: 'KNOWN_LOCAL', modifiers };
+            }
+            return { eligible: false, reason: 'REVIEW_INSUFFICIENT_COVERAGE', context: 'KNOWN_LOCAL', modifiers };
+        }
+
+        function shouldDisplayBirdNetResult(result) {
+            const eligibility = result && result._birdnet && result._birdnet.displayEligibility;
+            if (!eligibility) return true;
+            if (String(eligibility.reason || '').startsWith('REVIEW_')) return true;
+            return eligibility.eligible !== false;
+        }
+
         async function enrichDiagnosticRowsWithSabap2Evidence(rows, source) {
             const runtime = await loadSabap2EvidenceIndex();
             const metadata = recordingMetadataForDiagnostic(source);
@@ -3370,6 +3482,9 @@
                 });
                 row.sabap2Evidence = {
                     canonicalSpeciesId,
+                    recordingLocationType: metadata.recordingLocationType ?? 'unknown',
+                    recordingProvince: metadata.recordingProvince ?? null,
+                    recordingCountry: metadata.recordingCountry ?? null,
                     recordingPentad: pentadCode,
                     pentadExists: pentadCode === null ? null : pentadEntry !== null,
                     pentadProvince: pentadProvinceCodes,
@@ -3378,6 +3493,7 @@
                     sabapSources: sources,
                 };
                 row.geographicSemantics = classifyBirdNetGeographicSemantics(row);
+                row.displayEligibility = computeBirdNetDisplayEligibility(row);
                 return row;
             });
             setBirdNetSemanticDiagnostics(enrichedRows);
@@ -3456,6 +3572,8 @@
                 sppCode: row.sabap2 && row.sabap2.sabap2_spp_code,
                 sabap2Evidence: row.sabap2Evidence,
                 geographicSemantics: row.geographicSemantics,
+                displayEligibility: row.displayEligibility,
+                displayEligibilityDecision: row.displayEligibility && String(row.displayEligibility.reason || '').startsWith('HIDE_') ? 'HIDE' : 'DISPLAY',
                 evidenceLabels: row.evidence_labels,
             }));
         }
@@ -4573,16 +4691,18 @@
                 saveButtonHidden: document.getElementById('saveRecordingBtn') && document.getElementById('saveRecordingBtn').offsetParent === null,
             });
 
-            // Build result cards
+            // Build result cards. Display eligibility is applied only at this final
+            // rendering boundary; result.results remains the complete ranked set.
             const listEl = document.getElementById('resultsList');
             listEl.innerHTML = '';
+            const displayedResults = (result.results || []).filter(shouldDisplayBirdNetResult);
 
-            if (result.results.length === 0) {
+            if (displayedResults.length === 0) {
                 listEl.innerHTML = '<div class="no-results">No matching birds found. Try a clearer recording or adjust filters.</div>';
                 return;
             }
 
-            result.results.forEach((r, idx) => {
+            displayedResults.forEach((r, idx) => {
                 const bird = r.bird;
                 const scoreClass = r.score >= 60 ? 'score-high' : r.score >= 40 ? 'score-medium' : 'score-low';
 
