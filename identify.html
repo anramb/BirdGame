@@ -3679,6 +3679,10 @@
         function shouldDisplayBirdNetResult(result) {
             const eligibility = result && result._birdnet && result._birdnet.displayEligibility;
             if (!eligibility) return true;
+            if (
+                eligibility.reason === 'REVIEW_INSUFFICIENT_COVERAGE' ||
+                eligibility.reason === 'REVIEW_INSUFFICIENT_EVIDENCE'
+            ) return false;
             if (String(eligibility.reason || '').startsWith('REVIEW_')) return true;
             return eligibility.eligible !== false;
         }
@@ -4934,9 +4938,9 @@
             // Confidence bar
             const confClass = result.confidence === 'high' ? 'confidence-high' :
                              result.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
-            const confText = result.confidence === 'high' ? 'High confidence match found!' :
-                            result.confidence === 'medium' ? 'Possible matches found (medium confidence)' :
-                            'Low confidence — results may not be accurate';
+            const confText = result.confidence === 'high' ? 'Strong BirdNET match' :
+                            result.confidence === 'medium' ? 'Possible BirdNET match' :
+                            'Weak BirdNET match';
 
             document.getElementById('confidenceBar').innerHTML =
                 `<div class="confidence-bar ${confClass}">${confText}</div>`;
@@ -4969,8 +4973,7 @@
                 }
             }
 
-            document.getElementById('resultsSummary').textContent =
-                `(${result.totalCandidates} recordings searched)`;
+            document.getElementById('resultsSummary').textContent = '';
             updateSaveRecordingButtonState();
             console.log('[Save Debug][results displayed]', {
                 hasUserAudioSource: !!userAudioSource,
