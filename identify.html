@@ -936,16 +936,29 @@
                         </select>
                     </label>
                     <button type="button" id="uploadRecordingGpsBtn" onclick="useCurrentLocationForUploadedRecording()" style="display:none; font-size:0.75em; padding:5px 8px; margin-bottom:6px;">Confirm current location</button>
-                    <label id="uploadRecordingCountryRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
-                        Country
-                        <select id="uploadRecordingCountry" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
-                            <option value="ZA">South Africa</option><option value="NA">Namibia</option><option value="BW">Botswana</option><option value="ZW">Zimbabwe</option><option value="ZM">Zambia</option><option value="MZ">Mozambique</option><option value="MW">Malawi</option><option value="LS">Lesotho</option><option value="SZ">Eswatini</option>
-                        </select>
-                    </label>
                     <label id="uploadRecordingProvinceRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
                         Province
                         <select id="uploadRecordingProvince" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
                             <option value="EC">Eastern Cape</option><option value="FS">Free State</option><option value="GP">Gauteng</option><option value="KZN">KwaZulu-Natal</option><option value="LP">Limpopo</option><option value="MP">Mpumalanga</option><option value="NC">Northern Cape</option><option value="NW">North West</option><option value="WC">Western Cape</option>
+                        </select>
+                    </label>
+                    <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Recording latitude (optional)
+                        <input id="uploadRecordingLatitude" type="number" min="-90" max="90" step="any" placeholder="Optional, -90 to 90" onchange="updateUploadedRecordingCoordinateInputs()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                    </label>
+                    <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Recording longitude (optional)
+                        <input id="uploadRecordingLongitude" type="number" min="-180" max="180" step="any" placeholder="Optional, -180 to 180" onchange="updateUploadedRecordingCoordinateInputs()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                    </label>
+                    <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        SABAP2 Pentad (optional)
+                        <input id="uploadRecordingPentad" type="text" pattern="[0-9]{4}_[0-9]{4}" placeholder="Optional, e.g. 2505_2835" onchange="updateUploadedRecordingPentadInput()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                    </label>
+                    <div id="uploadRecordingCoordinatePentadNote" style="font-size:0.72em; color:#777; margin:-2px 0 6px;"></div>
+                    <label id="uploadRecordingCountryRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Country
+                        <select id="uploadRecordingCountry" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="ZA">South Africa</option><option value="NA">Namibia</option><option value="BW">Botswana</option><option value="ZW">Zimbabwe</option><option value="ZM">Zambia</option><option value="MZ">Mozambique</option><option value="MW">Malawi</option><option value="LS">Lesotho</option><option value="SZ">Eswatini</option>
                         </select>
                     </label>
                     <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
@@ -1112,6 +1125,22 @@
                     <option value="WC">Western Cape</option>
                 </select>
             </label>
+            <div id="recordingCoordinatesSettingSection" style="margin:8px 0; padding:8px; border:1px solid #e4e4e4; border-radius:8px;">
+                <div style="font-size:0.82em; color:#555; margin-bottom:6px;">Optional recording coordinates / SABAP2 pentad</div>
+                <label style="display:block; font-size:0.82em; margin-bottom:6px;">
+                    Latitude
+                    <input id="recordingLatitudeSetting" type="number" min="-90" max="90" step="any" placeholder="Optional, -90 to 90" onchange="updateRecordingCoordinateInputs()" style="width:100%; margin-top:3px; padding:6px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
+                </label>
+                <label style="display:block; font-size:0.82em; margin-bottom:6px;">
+                    Longitude
+                    <input id="recordingLongitudeSetting" type="number" min="-180" max="180" step="any" placeholder="Optional, -180 to 180" onchange="updateRecordingCoordinateInputs()" style="width:100%; margin-top:3px; padding:6px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
+                </label>
+                <label style="display:block; font-size:0.82em; margin-bottom:4px;">
+                    SABAP2 Pentad
+                    <input id="recordingPentadSetting" type="text" pattern="[0-9]{4}_[0-9]{4}" placeholder="Optional, e.g. 2505_2835" onchange="updateRecordingPentadInput()" style="width:100%; margin-top:3px; padding:6px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
+                </label>
+                <div id="recordingCoordinatePentadNote" style="font-size:0.72em; color:#777; margin-top:5px;"></div>
+            </div>
             <label style="display:block; font-size:0.85em; margin-bottom:8px;">
                 Uncommon species
                 <select id="uncommonSpeciesSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
@@ -1294,10 +1323,87 @@
 
         const BIRD_SOUND_SETTINGS_KEY = 'birdSoundIdVisibilitySettings';
         let birdSoundSettings = BirdNetVisibility.normalize();
+        let recordingPentadInputMode = 'none';
 
         function loadBirdSoundSettings() {
             birdSoundSettings = BirdNetVisibility.loadSettings(localStorage, BIRD_SOUND_SETTINGS_KEY);
             return birdSoundSettings;
+        }
+
+        function optionalCoordinateValue(id, min, max) {
+            const input = document.getElementById(id);
+            const raw = input ? String(input.value || '').trim() : '';
+            if (!raw) return null;
+            const value = Number(raw);
+            return Number.isFinite(value) && value >= min && value <= max ? value : null;
+        }
+
+        function validSabap2Pentad(value) {
+            return /^\d{4}_\d{4}$/.test(String(value || '').trim());
+        }
+
+        function sabap2PentadFromCoordinates(latitude, longitude) {
+            const lat = Number(latitude);
+            const lon = Number(longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat >= 0 || lon < 0 || lat < -90 || lat > 90 || lon > 180) return null;
+            const latitudeBlock = Math.floor((-lat) * 12 + 1e-9) * 5;
+            const longitudeBlock = Math.floor(lon * 12 + 1e-9) * 5;
+            if (latitudeBlock < 0 || longitudeBlock < 0) return null;
+            const latDegrees = Math.floor(latitudeBlock / 60);
+            const latMinutes = latitudeBlock % 60;
+            const lonDegrees = Math.floor(longitudeBlock / 60);
+            const lonMinutes = longitudeBlock % 60;
+            return String(latDegrees).padStart(2, '0') + String(latMinutes).padStart(2, '0') + '_' +
+                String(lonDegrees).padStart(2, '0') + String(lonMinutes).padStart(2, '0');
+        }
+
+        function updateRecordingCoordinateInputs(persist = true) {
+            const latitudeInput = document.getElementById('recordingLatitudeSetting');
+            const longitudeInput = document.getElementById('recordingLongitudeSetting');
+            const pentadInput = document.getElementById('recordingPentadSetting');
+            const note = document.getElementById('recordingCoordinatePentadNote');
+            const latitudeRaw = latitudeInput ? String(latitudeInput.value || '').trim() : '';
+            const longitudeRaw = longitudeInput ? String(longitudeInput.value || '').trim() : '';
+            const latitude = optionalCoordinateValue('recordingLatitudeSetting', -90, 90);
+            const longitude = optionalCoordinateValue('recordingLongitudeSetting', -180, 180);
+            if (latitudeRaw && latitude === null) latitudeInput.setCustomValidity('Latitude must be between -90 and 90.');
+            else latitudeInput.setCustomValidity('');
+            if (longitudeRaw && longitude === null) longitudeInput.setCustomValidity('Longitude must be between -180 and 180.');
+            else longitudeInput.setCustomValidity('');
+            if ((latitude === null || longitude === null) && recordingPentadInputMode === 'auto') {
+                pentadInput.value = '';
+                recordingPentadInputMode = 'none';
+            }
+            const calculated = latitude !== null && longitude !== null
+                ? sabap2PentadFromCoordinates(latitude, longitude)
+                : null;
+            if (calculated && recordingPentadInputMode !== 'manual') {
+                pentadInput.value = calculated;
+                recordingPentadInputMode = 'auto';
+            }
+            const pentad = pentadInput ? String(pentadInput.value || '').trim() : '';
+            if (pentad && !validSabap2Pentad(pentad)) pentadInput.setCustomValidity('Pentad must use the format DDMM_ddmm.');
+            else pentadInput.setCustomValidity('');
+            if (note) {
+                if (calculated && pentad && calculated !== pentad) {
+                    note.textContent = 'Warning: the entered pentad does not match the pentad calculated from these coordinates (' + calculated + ').';
+                    note.style.color = '#a45a00';
+                } else if (calculated && recordingPentadInputMode === 'auto') {
+                    note.textContent = 'Pentad calculated from coordinates: ' + calculated + '.';
+                    note.style.color = '#777';
+                } else {
+                    note.textContent = '';
+                }
+            }
+            if (persist) saveBirdSoundSettings();
+            return calculated;
+        }
+
+        function updateRecordingPentadInput() {
+            const pentadInput = document.getElementById('recordingPentadSetting');
+            const value = String(pentadInput && pentadInput.value || '').trim();
+            recordingPentadInputMode = value ? 'manual' : 'none';
+            updateRecordingCoordinateInputs();
         }
 
         function currentBirdSoundSettingsFromControls() {
@@ -1305,6 +1411,13 @@
                 recordingLocation: document.getElementById('recordingLocationSetting').value,
                 country: document.getElementById('recordingCountrySetting').value,
                 province: document.getElementById('recordingProvinceSetting').value,
+                recordingLatitude: optionalCoordinateValue('recordingLatitudeSetting', -90, 90),
+                recordingLongitude: optionalCoordinateValue('recordingLongitudeSetting', -180, 180),
+                recordingPentad: (() => {
+                    const value = String(document.getElementById('recordingPentadSetting').value || '').trim();
+                    return validSabap2Pentad(value) ? value : null;
+                })(),
+                recordingPentadSource: recordingPentadInputMode,
                 uncommonSpecies: document.getElementById('uncommonSpeciesSetting').value,
                 showVagrants: document.getElementById('showVagrantsSetting').checked,
             });
@@ -1335,6 +1448,23 @@
             document.getElementById('recordingLocationSetting').value = birdSoundSettings.recordingLocation;
             document.getElementById('recordingCountrySetting').value = birdSoundSettings.country;
             document.getElementById('recordingProvinceSetting').value = birdSoundSettings.province;
+            document.getElementById('recordingLatitudeSetting').value = birdSoundSettings.recordingLatitude ?? '';
+            document.getElementById('recordingLongitudeSetting').value = birdSoundSettings.recordingLongitude ?? '';
+            document.getElementById('recordingPentadSetting').value = birdSoundSettings.recordingPentad ?? '';
+            const savedLatitude = optionalCoordinateValue('recordingLatitudeSetting', -90, 90);
+            const savedLongitude = optionalCoordinateValue('recordingLongitudeSetting', -180, 180);
+            const savedPentad = String(birdSoundSettings.recordingPentad || '').trim();
+            const calculatedSavedPentad = savedLatitude !== null && savedLongitude !== null
+                ? sabap2PentadFromCoordinates(savedLatitude, savedLongitude)
+                : null;
+            recordingPentadInputMode = savedPentad
+                ? (birdSoundSettings.recordingPentadSource === 'manual'
+                    ? 'manual'
+                    : birdSoundSettings.recordingPentadSource === 'auto'
+                        ? 'auto'
+                        : (calculatedSavedPentad && savedPentad === calculatedSavedPentad ? 'auto' : 'manual'))
+                : 'none';
+            updateRecordingCoordinateInputs(false);
             document.getElementById('uncommonSpeciesSetting').value = birdSoundSettings.uncommonSpecies;
             document.getElementById('showVagrantsSetting').checked = birdSoundSettings.showVagrants;
             updateRecordingLocationControls();
@@ -2119,6 +2249,7 @@
         let birdnetLiveLastAudioInfo = null;
         let birdnetLiveCandidateAggregator = null;
         let birdnetUploadSession = null;
+        let uploadRecordingPentadInputMode = 'none';
         let birdnetLiveBarbetSummary = null;
         let birdnetLiveWindowTiming = null;
         let birdnetLiveOverlapTest = null;
@@ -2425,6 +2556,8 @@
                 recordingLocationType: 'unknown',
                 recordingLatitude: null,
                 recordingLongitude: null,
+                recordingPentad: null,
+                recordingPentadSource: 'none',
                 recordingProvince: null,
                 recordingCountry: null,
                 recordingDate: null,
@@ -2433,16 +2566,139 @@
             };
         }
 
+        function resolveUploadRecordingMetadata(metadata, settings) {
+            const resolved = { ...(metadata || {}) };
+            const currentSettings = settings || birdSoundSettings || {};
+            const hasLatitude = resolved.recordingLatitude !== null && resolved.recordingLatitude !== undefined && String(resolved.recordingLatitude).trim() !== '';
+            const hasLongitude = resolved.recordingLongitude !== null && resolved.recordingLongitude !== undefined && String(resolved.recordingLongitude).trim() !== '';
+            const existingCoordinates = hasLatitude && hasLongitude && Number.isFinite(Number(resolved.recordingLatitude)) && Number.isFinite(Number(resolved.recordingLongitude));
+            const existingPentad = validSabap2Pentad(resolved.recordingPentad);
+            if (resolved.recordingLocationType && resolved.recordingLocationType !== 'unknown') return resolved;
+            if (existingCoordinates) {
+                return {
+                    ...resolved,
+                    recordingLocationType: 'gps',
+                    recordingPentad: resolved.recordingPentad || sabap2PentadFromCoordinates(resolved.recordingLatitude, resolved.recordingLongitude),
+                    recordingPentadSource: resolved.recordingPentadSource || 'auto',
+                };
+            }
+            if (existingPentad) {
+                return {
+                    ...resolved,
+                    recordingLocationType: 'pentad',
+                    recordingPentad: String(resolved.recordingPentad).trim(),
+                    recordingPentadSource: resolved.recordingPentadSource || 'manual',
+                };
+            }
+
+            const settingsLatitude = optionalCoordinateValueValue(currentSettings.recordingLatitude, -90, 90);
+            const settingsLongitude = optionalCoordinateValueValue(currentSettings.recordingLongitude, -180, 180);
+            if (settingsLatitude !== null && settingsLongitude !== null) {
+                return {
+                    ...resolved,
+                    recordingLocationType: 'gps',
+                    recordingLatitude: settingsLatitude,
+                    recordingLongitude: settingsLongitude,
+                    recordingPentad: sabap2PentadFromCoordinates(settingsLatitude, settingsLongitude),
+                    recordingPentadSource: 'auto',
+                    source: 'settings_default',
+                };
+            }
+            if (validSabap2Pentad(currentSettings.recordingPentad)) {
+                return {
+                    ...resolved,
+                    recordingLocationType: 'pentad',
+                    recordingLatitude: null,
+                    recordingLongitude: null,
+                    recordingPentad: String(currentSettings.recordingPentad).trim(),
+                    recordingPentadSource: 'manual',
+                    source: 'settings_default',
+                };
+            }
+            if (currentSettings.recordingLocation === 'province' && currentSettings.province) {
+                return { ...resolved, recordingLocationType: 'province', recordingProvince: currentSettings.province, source: 'settings_default' };
+            }
+            if (currentSettings.recordingLocation === 'country' && currentSettings.country) {
+                return { ...resolved, recordingLocationType: 'country', recordingCountry: currentSettings.country, source: 'settings_default' };
+            }
+            if (currentSettings.recordingLocation === 'southern_africa') {
+                return { ...resolved, recordingLocationType: 'southern_africa', source: 'settings_default' };
+            }
+            return resolved;
+        }
+
+        function optionalCoordinateValueValue(value, min, max) {
+            if (value === null || value === undefined || String(value).trim() === '') return null;
+            const numeric = Number(value);
+            return Number.isFinite(numeric) && numeric >= min && numeric <= max ? numeric : null;
+        }
+
+        function optionalUploadCoordinateValue(id, min, max) {
+            const input = document.getElementById(id);
+            const raw = String(input && input.value || '').trim();
+            if (!raw) return null;
+            const value = Number(raw);
+            return Number.isFinite(value) && value >= min && value <= max ? value : null;
+        }
+
+        function updateUploadedRecordingCoordinateInputs() {
+            const latitudeInput = document.getElementById('uploadRecordingLatitude');
+            const longitudeInput = document.getElementById('uploadRecordingLongitude');
+            const pentadInput = document.getElementById('uploadRecordingPentad');
+            const note = document.getElementById('uploadRecordingCoordinatePentadNote');
+            const latitudeRaw = String(latitudeInput && latitudeInput.value || '').trim();
+            const longitudeRaw = String(longitudeInput && longitudeInput.value || '').trim();
+            const latitude = optionalUploadCoordinateValue('uploadRecordingLatitude', -90, 90);
+            const longitude = optionalUploadCoordinateValue('uploadRecordingLongitude', -180, 180);
+            if (latitudeInput) latitudeInput.setCustomValidity(latitudeRaw && latitude === null ? 'Latitude must be between -90 and 90.' : '');
+            if (longitudeInput) longitudeInput.setCustomValidity(longitudeRaw && longitude === null ? 'Longitude must be between -180 and 180.' : '');
+            const calculated = latitude !== null && longitude !== null
+                ? sabap2PentadFromCoordinates(latitude, longitude)
+                : null;
+            if ((latitude === null || longitude === null) && uploadRecordingPentadInputMode === 'auto') {
+                if (pentadInput) pentadInput.value = '';
+                uploadRecordingPentadInputMode = 'none';
+            }
+            if (calculated && uploadRecordingPentadInputMode !== 'manual' && pentadInput && !String(pentadInput.value || '').trim()) {
+                pentadInput.value = calculated;
+                uploadRecordingPentadInputMode = 'auto';
+            }
+            const pentad = String(pentadInput && pentadInput.value || '').trim();
+            if (pentadInput) pentadInput.setCustomValidity(pentad && !validSabap2Pentad(pentad) ? 'Pentad must use the format DDMM_ddmm.' : '');
+            if (note) {
+                if (calculated && pentad && calculated !== pentad) {
+                    note.textContent = 'Warning: the entered pentad does not match the pentad calculated from these coordinates (' + calculated + ').';
+                    note.style.color = '#a45a00';
+                } else if (calculated && uploadRecordingPentadInputMode === 'auto') {
+                    note.textContent = 'Pentad calculated from coordinates: ' + calculated + '.';
+                    note.style.color = '#777';
+                } else {
+                    note.textContent = '';
+                }
+            }
+            updateUploadedRecordingMetadata();
+        }
+
+        function updateUploadedRecordingPentadInput() {
+            const pentadInput = document.getElementById('uploadRecordingPentad');
+            const value = String(pentadInput && pentadInput.value || '').trim();
+            uploadRecordingPentadInputMode = value ? 'manual' : 'none';
+            updateUploadedRecordingCoordinateInputs();
+        }
+
         function getUploadedRecordingMetadataFromControls() {
             const type = document.getElementById('uploadRecordingLocationType').value;
             const dateValue = document.getElementById('uploadRecordingDate').value || null;
             const monthValue = document.getElementById('uploadRecordingMonth').value;
             return {
                 recordingLocationType: type,
-                recordingLatitude: birdnetUploadSession && birdnetUploadSession.recordingMetadata
-                    ? birdnetUploadSession.recordingMetadata.recordingLatitude : null,
-                recordingLongitude: birdnetUploadSession && birdnetUploadSession.recordingMetadata
-                    ? birdnetUploadSession.recordingMetadata.recordingLongitude : null,
+                recordingLatitude: optionalUploadCoordinateValue('uploadRecordingLatitude', -90, 90),
+                recordingLongitude: optionalUploadCoordinateValue('uploadRecordingLongitude', -180, 180),
+                recordingPentad: (() => {
+                    const value = String(document.getElementById('uploadRecordingPentad').value || '').trim();
+                    return validSabap2Pentad(value) ? value : null;
+                })(),
+                recordingPentadSource: uploadRecordingPentadInputMode,
                 recordingProvince: type === 'province' ? document.getElementById('uploadRecordingProvince').value : null,
                 recordingCountry: type === 'country' ? document.getElementById('uploadRecordingCountry').value : null,
                 recordingDate: dateValue,
@@ -2461,7 +2717,7 @@
                     audioInfo: null,
                 };
             }
-            const metadata = getUploadedRecordingMetadataFromControls();
+            const metadata = resolveUploadRecordingMetadata(getUploadedRecordingMetadataFromControls(), birdSoundSettings);
             if (metadata.recordingLocationType !== 'gps') {
                 metadata.recordingLatitude = null;
                 metadata.recordingLongitude = null;
@@ -2502,6 +2758,7 @@
 
             audioFile = file;
             userAudioSource = file;
+            uploadRecordingPentadInputMode = 'none';
             birdnetUploadSession = {
                 inputMode: 'upload',
                 recordingMetadata: defaultUploadRecordingMetadata(),
@@ -2978,14 +3235,33 @@
             populateDebug(result);
         }
 
-        function renderBirdNetProductionRanking(accumulator, audioInfo, runId) {
+        async function renderBirdNetLiveWindowWithEligibility(accumulator, audioInfo, runId) {
             if (!accumulator || (runId != null && runId !== birdnetLiveRunId)) return null;
-            birdnetSemanticByScientificName = new Map();
-            birdnetDisplayEligibilityByScientificName = new Map();
             const ranking = rankBirdNetProductionRecords(accumulator);
+            const diagnostics = birdnetProductionDiagnosticRows(ranking, accumulator.getAll());
+            try {
+                await enrichDiagnosticRowsWithSabap2Evidence(diagnostics, 'live');
+            } catch (error) {
+                console.warn('[BirdNET production live] eligibility enrichment unavailable; retaining candidates:', error);
+                birdnetSemanticByScientificName = new Map();
+                birdnetDisplayEligibilityByScientificName = new Map();
+            }
+            if (!birdnetLiveActive || runId !== birdnetLiveRunId) return null;
+            return renderBirdNetProductionRanking(accumulator, audioInfo, runId, ranking);
+        }
+
+        function renderBirdNetProductionRanking(accumulator, audioInfo, runId, existingRanking) {
+            if (!accumulator || (runId != null && runId !== birdnetLiveRunId)) return null;
+            const ranking = existingRanking || rankBirdNetProductionRecords(accumulator);
             birdnetLiveLastAudioInfo = audioInfo || {};
             const selection = selectBirdNetNormalCandidates(ranking);
             const result = birdnetRankingToLegacyResult(selection.visibleRanking, audioInfo);
+            result._livePresentation = {
+                active: true,
+                currentWindowIndex: Number.isFinite(Number(audioInfo && audioInfo.numWindows))
+                    ? Number(audioInfo.numWindows) - 1
+                    : null,
+            };
             birdnetLiveLastRanking = ranking;
             showQualityAssessment(result.quality);
             mergeIdentifyOnlyResults(result);
@@ -3309,7 +3585,8 @@
             const semantics = row && row.geographicSemantics || {};
             const sources = Array.isArray(evidence.sabapSources) ? evidence.sabapSources : [];
             const locationType = evidence.recordingLocationType || 'unknown';
-            const knownLocation = locationType === 'gps' || locationType === 'province' || locationType === 'country';
+            const validPentadContext = locationType === 'pentad' && validSabap2Pentad(evidence.recordingPentad);
+            const knownLocation = validPentadContext || locationType === 'gps' || locationType === 'province' || locationType === 'country';
             const pentadPositive = sources.some((source) => source.pentad && source.pentad.available && Number(source.pentad.records) > 0);
             const provinceEntries = sources.flatMap((source) => Object.values(source.province || {}));
             const provincePositive = provinceEntries.some((province) => province && province.monthly && province.monthly.available && Number(province.monthly.records) > 0);
@@ -3406,6 +3683,28 @@
             return eligibility.eligible !== false;
         }
 
+        function sortBirdNetLiveDisplayResults(results, currentWindowIndex) {
+            if (!Number.isFinite(currentWindowIndex)) return results.slice();
+            return results.map((result, index) => ({ result, index })).sort((a, b) => {
+                const aInfo = a.result._birdnet || {};
+                const bInfo = b.result._birdnet || {};
+                const aLastWindow = Number(aInfo.lastWindow);
+                const bLastWindow = Number(bInfo.lastWindow);
+                const aActive = aLastWindow === currentWindowIndex;
+                const bActive = bLastWindow === currentWindowIndex;
+                if (aActive !== bActive) return aActive ? -1 : 1;
+                if (aActive && bActive) {
+                    const scoreDelta = Number(bInfo.latestScore || 0) - Number(aInfo.latestScore || 0);
+                    if (scoreDelta !== 0) return scoreDelta;
+                } else {
+                    const aRecent = Number.isFinite(aLastWindow) ? aLastWindow : -1;
+                    const bRecent = Number.isFinite(bLastWindow) ? bLastWindow : -1;
+                    if (aRecent !== bRecent) return bRecent - aRecent;
+                }
+                return a.index - b.index;
+            }).map(({ result }) => result);
+        }
+
         async function enrichDiagnosticRowsWithSabap2Evidence(rows, source) {
             const runtime = await loadSabap2EvidenceIndex();
             const metadata = recordingMetadataForDiagnostic(source);
@@ -3419,20 +3718,15 @@
             let pentadCode = null;
             let pentadEntry = null;
             if (metadata.recordingLocationType === 'gps' && Number.isFinite(Number(metadata.recordingLatitude)) && Number.isFinite(Number(metadata.recordingLongitude))) {
-                const latitudeBlock = Math.floor((-Number(metadata.recordingLatitude)) * 12 + 1e-9) * 5;
-                const longitudeBlock = Math.floor(Number(metadata.recordingLongitude) * 12 + 1e-9) * 5;
-                if (latitudeBlock >= 0 && longitudeBlock >= 0) {
-                    const latDegrees = Math.floor(latitudeBlock / 60);
-                    const latMinutes = latitudeBlock % 60;
-                    const lonDegrees = Math.floor(longitudeBlock / 60);
-                    const lonMinutes = longitudeBlock % 60;
-                    pentadCode = String(latDegrees).padStart(2, '0') + String(latMinutes).padStart(2, '0') + '_' +
-                        String(lonDegrees).padStart(2, '0') + String(lonMinutes).padStart(2, '0');
-                    pentadEntry = await findSabap2RuntimePentad(pentadCode, []);
-                    (pentadEntry && pentadEntry.provinces || []).forEach((name) => {
-                        if (SABAP2_RUNTIME_PROVINCE_CODES[name]) pentadProvinceCodes.push(SABAP2_RUNTIME_PROVINCE_CODES[name]);
-                    });
-                }
+                pentadCode = sabap2PentadFromCoordinates(metadata.recordingLatitude, metadata.recordingLongitude);
+            } else if (validSabap2Pentad(metadata.recordingPentad)) {
+                pentadCode = String(metadata.recordingPentad).trim();
+            }
+            if (pentadCode) {
+                pentadEntry = await findSabap2RuntimePentad(pentadCode, []);
+                (pentadEntry && pentadEntry.provinces || []).forEach((name) => {
+                    if (SABAP2_RUNTIME_PROVINCE_CODES[name]) pentadProvinceCodes.push(SABAP2_RUNTIME_PROVINCE_CODES[name]);
+                });
             }
             const scientificFor = (row) => String(row.scientificName || '').trim().toLowerCase().replace(/\\s+/g, ' ');
             const enrichedRows = (rows || []).map((row) => {
@@ -3848,6 +4142,8 @@
             if (birdnetLiveActive || birdnetLiveStarting) return;
             birdnetLiveStarting = true;
             const runId = ++birdnetLiveRunId;
+            birdnetSemanticByScientificName = new Map();
+            birdnetDisplayEligibilityByScientificName = new Map();
             const btn = document.getElementById('birdnetIdentifyBtn');
             btn.disabled = true;
             document.getElementById('progressSection').classList.remove('hidden');
@@ -4125,7 +4421,7 @@
                             detectionCount: record.detectionCount,
                         })),
                     });
-                    renderBirdNetProductionRanking(candidateAggregator, {
+                    renderBirdNetLiveWindowWithEligibility(candidateAggregator, {
                         durationSec: (Date.now() - startedAt) / 1000,
                         sampleRate: windowInfo.sampleRate,
                         numWindows: windowsCompleted,
@@ -4695,7 +4991,10 @@
             // rendering boundary; result.results remains the complete ranked set.
             const listEl = document.getElementById('resultsList');
             listEl.innerHTML = '';
-            const displayedResults = (result.results || []).filter(shouldDisplayBirdNetResult);
+            const eligibleResults = (result.results || []).filter(shouldDisplayBirdNetResult);
+            const displayedResults = result._livePresentation && result._livePresentation.active
+                ? sortBirdNetLiveDisplayResults(eligibleResults, result._livePresentation.currentWindowIndex)
+                : eligibleResults;
 
             if (displayedResults.length === 0) {
                 listEl.innerHTML = '<div class="no-results">No matching birds found. Try a clearer recording or adjust filters.</div>';
