@@ -627,7 +627,7 @@
         .result-info { flex: 1; min-width: 0; }
         .result-name {
             font-weight: 700;
-            font-size: 0.84em;
+            font-size: 0.76em;
             line-height: 1.15;
             color: #333;
             white-space: nowrap;
@@ -635,7 +635,7 @@
             text-overflow: ellipsis;
         }
         .result-afrikaans {
-            font-size: 0.84em;
+            font-size: 0.76em;
             line-height: 1.15;
             color: #888;
             font-style: italic;
@@ -3006,7 +3006,9 @@
                     ? (abEntry.afrikaansDisplayName || abEntry.afrikaans || '')
                     : '';
                 const audioPath = abEntry ? (abEntry.audio || null) : null;
-                const imagePath = abEntry ? (abEntry.image || null) : null;
+                const imagePath = abEntry && abEntry.image
+                    ? encodeURI(abEntry.image)
+                    : null;
 
                 return {
                     bird: {
