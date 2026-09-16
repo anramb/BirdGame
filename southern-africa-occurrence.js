@@ -233,12 +233,18 @@ const SA_OCCURRENCE = (function () {
    */
   function spacelessNameKeys(name) {
     if (!name) return [];
-    const lower = name.toLowerCase();
-    const noSpaces = lower.replace(/\s+/g, "");
-    const words = lower.split(/\s+/);
-    if (words.length <= 1) return [noSpaces];
-    const rotatedRight = [words[words.length - 1], ...words.slice(0, -1)].join("");
-    return [noSpaces, rotatedRight];
+    const words = String(name)
+      .toLowerCase()
+      .replace(/[-\u2010\u2011\u2012\u2013\u2014]/g, " ")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!words.length) return [];
+    const keys = [];
+    for (let offset = 0; offset < words.length; offset++) {
+      keys.push(words.slice(offset).concat(words.slice(0, offset)).join(""));
+    }
+    return [...new Set(keys)];
   }
 
   /**
@@ -257,16 +263,32 @@ const SA_OCCURRENCE = (function () {
     if (typeof allbirds === "undefined" || !Array.isArray(allbirds) || !commonName) {
       return { found: false, entry: null, reason: "allbirds.js not loaded or empty" };
     }
-    const queryKeys = spacelessNameKeys(commonName);
-    const entry = allbirds.find((b) => {
+    const queryKeys = new Set(spacelessNameKeys(commonName));
+    const matches = allbirds.filter((b) => {
       if (!b || !b.english) return false;
       const bKeys = spacelessNameKeys(b.english);
-      return queryKeys.some((qk) => bKeys.includes(qk));
+      return bKeys.some((key) => queryKeys.has(key));
     });
-    if (entry) {
-      return { found: true, entry: { english: entry.english, afrikaans: entry.afrikaans, audio: entry.audio || null, image: entry.image || null } };
+    if (!matches.length) return { found: false, entry: null };
+
+    const distinctEnglishNames = new Set(
+      matches.map((b) => String(b.english).trim().toLowerCase())
+    );
+    if (distinctEnglishNames.size > 1) {
+      return { found: false, entry: null, reason: "ambiguous common-name lookup" };
     }
-    return { found: false, entry: null };
+
+    const entry = matches[0];
+    return {
+      found: true,
+      entry: {
+        english: entry.english,
+        afrikaans: entry.afrikaans,
+        afrikaansDisplayName: entry.afrikaansDisplayName || entry.afrikaans || "",
+        audio: entry.audio || null,
+        image: entry.image || null,
+      },
+    };
   }
 
   /**
