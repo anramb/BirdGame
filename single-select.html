@@ -314,7 +314,10 @@
     <div class="container">
         <div class="header">
             <h1>Single Bird Select</h1>
-            <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                <button id="returnToSoundIdBtn" onclick="returnToSoundId()" class="btn" style="display:none;">← Return to Sound ID</button>
+                <button onclick="window.location.href='start.html'" class="btn">← Back</button>
+            </div>
         </div>
         
         <div class="controls">
@@ -374,6 +377,7 @@
     <script data-goatcounter="https://anramb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     
     <script src="allbirds.js"></script>
+    <script src="southern-africa-occurrence.js"></script>
     <script src="maintenance-check.js"></script>
     <script src="spectrogram-generator.js"></script>
     
@@ -862,10 +866,56 @@
             function() { return spectrogramReady; }
         );
         
+        async function openRequestedBirdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const scientificName = params.get('scientificName');
+            let commonName = params.get('commonName');
+            if (!scientificName && !commonName) return false;
+
+            if (scientificName) {
+                try {
+                    const response = await fetch('data/canonical_taxonomy.json');
+                    if (response.ok) {
+                        const canonical = await response.json();
+                        const mapping = (canonical.birdnetMappings || []).find((item) =>
+                            String(item.scientificName || '').trim().toLowerCase() ===
+                            String(scientificName).trim().toLowerCase()
+                        );
+                        if (mapping && mapping.commonName) commonName = mapping.commonName;
+                    }
+                } catch (error) {
+                    console.warn('[Single Select] canonical bird identity unavailable:', error);
+                }
+            }
+            if (!commonName || typeof SA_OCCURRENCE === 'undefined') return false;
+
+            const lookup = SA_OCCURRENCE.lookupAllbirdsByCommonName(commonName);
+            if (!lookup.found || !lookup.entry) return false;
+            const groups = groupBirdsBySpecies();
+            const baseName = getBaseName(lookup.entry.english);
+            const entries = groups[baseName];
+            if (!entries || !entries.length) return false;
+
+            currentBird = entries[0];
+            currentSpeciesGroup = entries;
+            currentBirdIndex = -1;
+            document.getElementById('birdSearch').value = baseName;
+            displayBird();
+            return true;
+        }
+
+        function returnToSoundId() {
+            window.location.href = 'identify.html';
+        }
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // Set language from localStorage
             document.getElementById('languageSelector').value = currentLanguage;
+            const openedRequestedBird = await openRequestedBirdFromUrl();
+            if (openedRequestedBird) {
+                document.getElementById('returnToSoundIdBtn').style.display = 'inline-block';
+            }
             populateSpeciesFilter();
             populateBirdSelector();
             if (typeof allbirds !== 'undefined') {

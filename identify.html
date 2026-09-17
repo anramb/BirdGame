@@ -745,6 +745,18 @@
             cursor: pointer;
         }
         .heard-toggle:hover { color: #1a8f4a; }
+        .view-bird-details {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 6px;
+            border: 1px solid #1a8f4a;
+            border-radius: 4px;
+            background: transparent;
+            color: #1a8f4a;
+            font-size: 0.66em;
+            cursor: pointer;
+        }
+        .view-bird-details:hover { background: #f0f8f2; }
         .heard-times {
             display: none;
             gap: 4px;
@@ -5239,6 +5251,7 @@
                             ${callType ? `<div class="result-call-type">${callType}</div>` : ''}
                             <button type="button" class="heard-toggle" id="heardToggle${idx}" onclick="toggleHeardTimes(${idx}, event)">&#9660; Heard in recording</button>
                             <div class="heard-times" id="heardTimes${idx}">${heardTimesMarkup}</div>
+                            <button type="button" class="view-bird-details" data-bird-scientific-name="${encodeURIComponent(r._birdnet && r._birdnet.scientific_name || '')}" data-bird-common-name="${encodeURIComponent(bird.english || '')}" onclick="openSingleSelectBird(this, event)">View Bird Details</button>
                         </div>
                         <div class="result-score">
                             <div class="score-circle ${scoreClass}">${Math.round(r.score)}%</div>
@@ -5328,6 +5341,18 @@
             document.getElementById('debugContent').textContent = lines.join('\n');
             // Also auto-show debug panel since we're debugging
             document.getElementById('debugPanel').style.display = 'block';
+        }
+
+        function openSingleSelectBird(button, event) {
+            if (event) event.stopPropagation();
+            if (!button) return;
+            const params = new URLSearchParams();
+            const scientificName = decodeURIComponent(button.dataset.birdScientificName || '');
+            const commonName = decodeURIComponent(button.dataset.birdCommonName || '');
+            if (scientificName) params.set('scientificName', scientificName);
+            if (commonName) params.set('commonName', commonName);
+            if (!params.toString()) return;
+            window.location.href = 'single-select.html?' + params.toString();
         }
 
         function openBirdImageOverlay(image, event) {
