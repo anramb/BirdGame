@@ -3716,6 +3716,14 @@
         }
 
         function shouldDisplayBirdNetResult(result) {
+            const settings = getBirdSoundSettings();
+            if (settings && settings.uncommonSpecies === 'strict') {
+                const score = Number(result && result.score);
+                const state = result && result._birdnet && result._birdnet.geographicSemantics
+                    ? result._birdnet.geographicSemantics.state
+                    : null;
+                return score >= 30 && state === 'LOCAL_CURRENT';
+            }
             const eligibility = result && result._birdnet && result._birdnet.displayEligibility;
             if (!eligibility) return true;
             if (
