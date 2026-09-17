@@ -627,7 +627,7 @@
         .result-info { flex: 1 1 auto; min-width: 0; }
         .result-name {
             font-weight: 700;
-            font-size: 0.84em;
+            font-size: 0.78em;
             line-height: 1.15;
             color: #333;
             white-space: normal;
@@ -3722,7 +3722,7 @@
                 const state = result && result._birdnet && result._birdnet.geographicSemantics
                     ? result._birdnet.geographicSemantics.state
                     : null;
-                return score >= 30 && state === 'LOCAL_CURRENT';
+                return score >= 50 && state === 'LOCAL_CURRENT';
             }
             const eligibility = result && result._birdnet && result._birdnet.displayEligibility;
             if (!eligibility) return true;
