@@ -1460,6 +1460,7 @@
         let userAudioSource = null;     // The source to analyze (blob or file)
         let userAudioURL = null;        // Object URL for playback
         let userAudioElement = null;    // <audio> for playback
+        let soundIdCurrentResult = null;
         let isRecording = false;
         let recordStartTime = null;
         let recordTimerInterval = null;
@@ -1695,6 +1696,9 @@
         // ===========================
         async function initApp() {
             initBirdSoundSettings();
+            const returnRequested = new URLSearchParams(window.location.search).get('returnToSoundId') === '1';
+            if (returnRequested) await restoreSoundIdReturnSession();
+            else await clearSoundIdReturnSession();
             analyzer = new BirdAudioAnalyzer();
             recorder = new BirdRecorder();
             document.getElementById('birdnetIdentifyBtn').disabled = true;
@@ -5143,6 +5147,7 @@
         }
 
         function showResults(result) {
+            soundIdCurrentResult = result;
             document.getElementById('progressSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
             if (result._engine === 'birdnet-protected') {
@@ -5358,7 +5363,125 @@
             document.getElementById('debugPanel').style.display = 'block';
         }
 
-        function openSingleSelectBird(button, event) {
+        const SOUND_ID_SESSION_KEY = 'soundIdReturnSessionId';
+        const SOUND_ID_DB_NAME = 'SoundIdReturnSessions';
+        const SOUND_ID_DB_VERSION = 1;
+
+        function openSoundIdSessionDb() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) {
+                    reject(new Error('IndexedDB unavailable'));
+                    return;
+                }
+                const request = indexedDB.open(SOUND_ID_DB_NAME, SOUND_ID_DB_VERSION);
+                request.onupgradeneeded = () => {
+                    if (!request.result.objectStoreNames.contains('recordings')) {
+                        request.result.createObjectStore('recordings', { keyPath: 'sessionId' });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error('Sound ID session database unavailable'));
+            });
+        }
+
+        async function saveSoundIdReturnSession() {
+            if (!soundIdCurrentResult) return null;
+            let sessionId = sessionStorage.getItem(SOUND_ID_SESSION_KEY);
+            if (!sessionId) {
+                sessionId = (crypto.randomUUID ? crypto.randomUUID() : 'sound-id-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+                sessionStorage.setItem(SOUND_ID_SESSION_KEY, sessionId);
+            }
+            const source = userAudioSource || audioBlob || audioFile || null;
+            const session = {
+                sessionId,
+                version: 1,
+                savedAt: Date.now(),
+                inputMode,
+                result: soundIdCurrentResult,
+                recordingMetadata: birdnetUploadSession && birdnetUploadSession.recordingMetadata
+                    ? birdnetUploadSession.recordingMetadata
+                    : null,
+                audioInfo: birdnetUploadSession && birdnetUploadSession.audioInfo
+                    ? birdnetUploadSession.audioInfo
+                    : null,
+                audioName: source && source.name ? source.name : null,
+                audioType: source && source.type ? source.type : null,
+            };
+            sessionStorage.setItem(SOUND_ID_SESSION_KEY + ':metadata', JSON.stringify(session));
+            const db = await openSoundIdSessionDb();
+            await new Promise((resolve, reject) => {
+                const transaction = db.transaction('recordings', 'readwrite');
+                transaction.objectStore('recordings').put({ sessionId, blob: source });
+                transaction.oncomplete = resolve;
+                transaction.onerror = () => reject(transaction.error || new Error('Sound ID recording save failed'));
+            });
+            db.close();
+            return sessionId;
+        }
+
+        async function restoreSoundIdReturnSession() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('returnToSoundId') !== '1') return false;
+            const sessionId = params.get('soundIdSessionId') || sessionStorage.getItem(SOUND_ID_SESSION_KEY);
+            if (!sessionId) return false;
+            const raw = sessionStorage.getItem(SOUND_ID_SESSION_KEY + ':metadata');
+            if (!raw) return false;
+            let session;
+            try { session = JSON.parse(raw); } catch (error) { return false; }
+            if (!session || session.sessionId !== sessionId || !session.result) return false;
+
+            try {
+                const db = await openSoundIdSessionDb();
+                const stored = await new Promise((resolve, reject) => {
+                    const request = db.transaction('recordings', 'readonly').objectStore('recordings').get(sessionId);
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error);
+                });
+                db.close();
+                if (stored && stored.blob) {
+                    audioBlob = stored.blob;
+                    userAudioSource = stored.blob;
+                    if (userAudioURL) URL.revokeObjectURL(userAudioURL);
+                    userAudioURL = URL.createObjectURL(stored.blob);
+                }
+            } catch (error) {
+                console.warn('[Sound ID session] recording restore unavailable:', error);
+            }
+            if (session.recordingMetadata) {
+                birdnetUploadSession = {
+                    inputMode: session.inputMode || 'upload',
+                    recordingMetadata: session.recordingMetadata,
+                    ranking: null,
+                    candidateRecords: null,
+                    audioInfo: session.audioInfo || null,
+                };
+            }
+            soundIdCurrentResult = session.result;
+            showResults(session.result);
+            updateSaveRecordingButtonState();
+            return true;
+        }
+
+        async function clearSoundIdReturnSession() {
+            const sessionId = sessionStorage.getItem(SOUND_ID_SESSION_KEY);
+            sessionStorage.removeItem(SOUND_ID_SESSION_KEY);
+            sessionStorage.removeItem(SOUND_ID_SESSION_KEY + ':metadata');
+            if (!sessionId) return;
+            try {
+                const db = await openSoundIdSessionDb();
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction('recordings', 'readwrite');
+                    transaction.objectStore('recordings').delete(sessionId);
+                    transaction.oncomplete = resolve;
+                    transaction.onerror = () => reject(transaction.error);
+                });
+                db.close();
+            } catch (error) {
+                console.warn('[Sound ID session] cleanup unavailable:', error);
+            }
+        }
+
+        async function openSingleSelectBird(button, event) {
             if (event) event.stopPropagation();
             if (!button) return;
             const params = new URLSearchParams();
@@ -5367,6 +5490,15 @@
             if (scientificName) params.set('scientificName', scientificName);
             if (commonName) params.set('commonName', commonName);
             if (!params.toString()) return;
+            try {
+                const sessionId = await saveSoundIdReturnSession();
+                if (sessionId) {
+                    params.set('soundIdSessionId', sessionId);
+                    params.set('returnToSoundId', '1');
+                }
+            } catch (error) {
+                console.warn('[Sound ID session] save unavailable; opening bird detail without session restore:', error);
+            }
             window.location.href = 'single-select.html?' + params.toString();
         }
 
