@@ -1122,6 +1122,18 @@
                 BirdNET's underlying results remain available in diagnostics.
             </div>
             <label style="display:block; font-size:0.85em; margin-bottom:8px;">
+                Uncommon species
+                <select id="uncommonSpeciesSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                    <option value="light">Light — show more possibilities</option>
+                    <option value="normal">Normal — recommended</option>
+                    <option value="strict">Strict — show mainly strongly supported birds</option>
+                </select>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.85em; color:#555; cursor:pointer;">
+                <input type="checkbox" id="showVagrantsSetting" onchange="saveBirdSoundSettings()">
+                Show vagrants and extremely unusual species
+            </label>
+            <label style="display:block; font-size:0.85em; margin-bottom:8px;">
                 Recording location
                 <select id="recordingLocationSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
                     <option value="automatic">Automatic / GPS</option>
@@ -1176,18 +1188,6 @@
                 </label>
                 <div id="recordingCoordinatePentadNote" style="font-size:0.72em; color:#777; margin-top:5px;"></div>
             </div>
-            <label style="display:block; font-size:0.85em; margin-bottom:8px;">
-                Uncommon species
-                <select id="uncommonSpeciesSetting" onchange="saveBirdSoundSettings()" style="width:100%; margin-top:4px; padding:8px; border:1px solid #ddd; border-radius:8px;">
-                    <option value="light">Light — show more possibilities</option>
-                    <option value="normal">Normal — recommended</option>
-                    <option value="strict">Strict — show mainly strongly supported birds</option>
-                </select>
-            </label>
-            <label style="display:flex; align-items:center; gap:6px; font-size:0.85em; color:#555; cursor:pointer;">
-                <input type="checkbox" id="showVagrantsSetting" onchange="saveBirdSoundSettings()">
-                Show vagrants and extremely unusual species
-            </label>
             <div style="font-size:0.72em; color:#888; margin-top:6px;">
                 Province information is province-level evidence. It does not prove that a bird was recorded at the exact GPS point.
             </div>
@@ -3723,6 +3723,14 @@
                     ? result._birdnet.geographicSemantics.state
                     : null;
                 return score >= 50 && state === 'LOCAL_CURRENT';
+            }
+            if (settings && settings.uncommonSpecies === 'light') {
+                const state = result && result._birdnet && result._birdnet.geographicSemantics
+                    ? result._birdnet.geographicSemantics.state
+                    : null;
+                return state === 'LOCAL_CURRENT' ||
+                    state === 'LOCAL_HISTORICAL' ||
+                    state === 'PROVINCE_SUPPORTED';
             }
             const eligibility = result && result._birdnet && result._birdnet.displayEligibility;
             if (!eligibility) return true;
