@@ -42,7 +42,13 @@
             gap: 8px;
             margin-bottom: 15px;
         }
-        .home-btn, .settings-btn {
+        .top-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .home-btn, .settings-btn, .about-sound-id-btn { 
             display: inline-block;
             border-radius: 20px;
             padding: 8px 16px;
@@ -59,7 +65,47 @@
             border: 1px solid #1a8f4a;
             color: #1a8f4a;
         }
-        .home-btn:hover, .settings-btn:hover { opacity: 0.9; }
+        .home-btn:hover, .settings-btn:hover, .about-sound-id-btn:hover { opacity: 0.9; }
+        .about-sound-id-btn {
+            background: white;
+            border: 1px solid #1a8f4a;
+            color: #1a8f4a;
+        }
+        .about-sound-id-panel {
+            display: none;
+            margin: -5px 0 15px;
+            padding: 10px;
+            background: #f8f9ff;
+            border: 1px solid #d9def5;
+            border-radius: 10px;
+        }
+        .about-sound-id-panel.open { display: block; }
+        .about-accordion-item + .about-accordion-item { margin-top: 5px; }
+        .about-accordion-heading {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d9def5;
+            border-radius: 7px;
+            background: #fff;
+            color: #333;
+            text-align: left;
+            font-size: 0.84em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .about-accordion-content {
+            display: none;
+            padding: 8px 10px 10px;
+            color: #555;
+            font-size: 0.8em;
+            line-height: 1.45;
+        }
+        .about-accordion-content.open { display: block; }
+        .about-accordion-content p { margin: 0 0 7px; }
+        .about-accordion-content ul,
+        .about-accordion-content ol { margin: 4px 0 8px 20px; padding: 0; }
+        .about-accordion-content a { color: #1a8f4a; }
+        .about-accordion-subheading { font-weight: 700; color: #333; margin: 7px 0 4px; }
 
         /* --- Sections --- */
         .section {
@@ -907,8 +953,76 @@
 <body>
     <div class="container">
         <div class="top-actions">
-            <a href="start.html" class="home-btn">&larr; Home</a>
+            <div class="top-actions-left">
+                <a href="start.html" class="home-btn">&larr; Home</a>
+                <button type="button" class="about-sound-id-btn" id="aboutSoundIdToggleBtn" onclick="toggleAboutSoundId()" aria-expanded="false" aria-controls="aboutSoundIdPanel">About Sound ID</button>
+            </div>
             <button type="button" class="settings-btn" id="settingsToggleBtn" onclick="toggleBirdSoundSettings()" aria-expanded="false" aria-controls="visibilitySettingsSection">&#9881; Settings</button>
+        </div>
+        <div id="aboutSoundIdPanel" class="about-sound-id-panel" aria-hidden="true">
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ About Sound ID</button>
+                <div class="about-accordion-content">
+                    <p>Sound ID is a bird sound identification tool that uses acoustic analysis together with geographic information to help identify birds from their calls and songs.</p>
+                    <p>BirdNET provides the acoustic identification. Sound ID combines the acoustic prediction with geographic information to help determine which results are relevant to the selected recording location.</p>
+                    <p>Geographic information provides additional context; it does not replace the acoustic identification.</p>
+                </div>
+            </div>
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ BirdNET — Acoustic Identification</button>
+                <div class="about-accordion-content">
+                    <p>BirdNET analyses the recorded sound and produces an acoustic score for possible bird species.</p>
+                    <p>The percentage shown is an acoustic model score. A 50% score does <strong>not</strong> mean there is a 50% certainty that the bird is present.</p>
+                    <p>Acoustic results can be affected by:</p>
+                    <ul><li>recording quality</li><li>background noise</li><li>distance from the bird</li><li>overlapping bird calls</li><li>other environmental sounds</li></ul>
+                    <p>BirdNET predictions are identification assistance and should not automatically be treated as confirmed observations.</p>
+                    <div class="about-accordion-subheading">BirdNET acknowledgement</div>
+                    <p>Sound ID uses BirdNET technology; it is not an official BirdNET application and is not endorsed by BirdNET, Cornell Lab, or Chemnitz University of Technology.</p>
+                    <p><a href="https://github.com/BirdNET-Team/BirdNET-Analyzer" target="_blank" rel="noopener noreferrer">BirdNET on GitHub</a></p>
+                    <p>Recommended citation: Kahl, S., Wood, C. M., Eibl, M., &amp; Klinck, H. (2021). BirdNET: A deep learning solution for avian diversity monitoring. <em>Ecological Informatics</em>, 61, 101236.</p>
+                </div>
+            </div>
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ Light / Normal / Strict</button>
+                <div class="about-accordion-content">
+                    <p><strong>Light:</strong> Shows more possibilities. Lower acoustic scores may still be shown when there is meaningful geographic evidence supporting the species.</p>
+                    <p><strong>Normal:</strong> Provides a balance between acoustic results and geographic relevance.</p>
+                    <p><strong>Strict:</strong> Shows only strong acoustic matches of 50% or higher that also have supporting current local evidence for the selected location.</p>
+                    <p><strong>Example:</strong> If BirdNET gives a species an acoustic score of 50%, Strict mode can show it only when the available geographic evidence also supports the species locally.</p>
+                    <p>Higher acoustic scores represent stronger acoustic matches, but they are not direct percentages of certainty.</p>
+                </div>
+            </div>
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ Geographic Information — SABAP2</button>
+                <div class="about-accordion-content">
+                    <p>Sound ID can use bird records from the South African Bird Atlas Project (SABAP2) to provide geographic context for BirdNET predictions.</p>
+                    <p>SABAP2 contains bird observations collected through bird atlas surveys. The region is divided into geographic areas called pentads.</p>
+                    <p>A SABAP2 pentad is a 5 × 5 minute geographic grid cell. When a recording location or SABAP2 pentad is available, Sound ID can compare a BirdNET prediction with available geographic evidence.</p>
+                    <p>SABAP2 does not change the BirdNET acoustic score. Geographic evidence provides additional context that helps determine whether an acoustic prediction is geographically relevant.</p>
+                    <p><a href="https://sabap2.birdmap.africa/" target="_blank" rel="noopener noreferrer">Official SABAP2 project</a></p>
+                </div>
+            </div>
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ Recording Location</button>
+                <div class="about-accordion-content">
+                    <p>The same bird sound can have different geographic significance depending on where and when it was recorded.</p>
+                    <ul><li>Automatic / GPS</li><li>Country</li><li>Province</li><li>Southern Africa</li><li>No location filtering</li><li>Recording latitude/longitude</li><li>SABAP2 Pentad</li></ul>
+                    <p>For an older recording, provide the location where the recording was actually made. Use that recording location rather than your current phone location.</p>
+                </div>
+            </div>
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ Quick User Guide</button>
+                <div class="about-accordion-content">
+                    <ol><li><strong>Record or upload a sound.</strong> Record a bird call/song or upload an existing recording.</li><li><strong>Choose the recording location.</strong> Use GPS, select a geographic context, or provide a SABAP2 Pentad where appropriate.</li><li><strong>Choose a result mode.</strong> Light, Normal or Strict.</li><li><strong>Read the acoustic score.</strong> The percentage is BirdNET’s acoustic model score.</li><li><strong>Check the geographic status.</strong> The message below the result describes the available geographic evidence.</li><li><strong>Listen and compare.</strong> Use the available playback/reference options to compare the sound.</li><li><strong>Verify unusual results.</strong> Listen again and, where possible, confirm the bird visually or using another reliable source.</li></ol>
+                    <p>Sound ID cannot guarantee an identification.</p>
+                </div>
+            </div>
+            <div class="about-accordion-item">
+                <button type="button" class="about-accordion-heading" aria-expanded="false" onclick="toggleAboutSection(this)">▸ Sources &amp; Credits</button>
+                <div class="about-accordion-content">
+                    <ul><li><a href="https://github.com/BirdNET-Team/BirdNET-Analyzer" target="_blank" rel="noopener noreferrer">BirdNET</a> acoustic identification technology.</li><li><a href="https://sabap2.birdmap.africa/" target="_blank" rel="noopener noreferrer">SABAP2</a> geographic occurrence context.</li><li><a href="https://xeno-canto.org/" target="_blank" rel="noopener noreferrer">Xeno-canto</a> reference audio where applicable.</li><li>Project canonical taxonomy, reference images, audio and associated per-record credits included in the application data.</li></ul>
+                </div>
+            </div>
         </div>
         <h1>Bird Sound ID</h1>
         <p class="subtitle">Upload a bird sound or listen live with BirdNET to identify it</p>
@@ -1515,6 +1629,30 @@
 
         function getBirdSoundSettings() {
             return birdSoundSettings;
+        }
+
+        function toggleAboutSoundId(forceOpen) {
+            const panel = document.getElementById('aboutSoundIdPanel');
+            const button = document.getElementById('aboutSoundIdToggleBtn');
+            if (!panel || !button) return;
+            const open = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('open');
+            panel.classList.toggle('open', open);
+            panel.setAttribute('aria-hidden', String(!open));
+            button.setAttribute('aria-expanded', String(open));
+        }
+
+        function toggleAboutSection(button) {
+            const content = button && button.nextElementSibling;
+            if (!button || !content) return;
+            const open = !content.classList.contains('open');
+            document.querySelectorAll('.about-accordion-content.open').forEach((item) => item.classList.remove('open'));
+            document.querySelectorAll('.about-accordion-heading[aria-expanded="true"]').forEach((item) => {
+                item.setAttribute('aria-expanded', 'false');
+                item.textContent = '▸ ' + item.textContent.slice(2);
+            });
+            content.classList.toggle('open', open);
+            button.setAttribute('aria-expanded', String(open));
+            button.textContent = (open ? '▾ ' : '▸ ') + button.textContent.slice(2);
         }
 
         function toggleBirdSoundSettings(forceOpen) {
