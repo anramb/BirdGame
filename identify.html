@@ -613,10 +613,21 @@
             border: 1px solid #1a8f4a;
             box-shadow: 0 1px 5px rgba(26,143,74,0.12);
         }
+        .result-name-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 7px 10px 4px;
+            cursor: pointer;
+        }
+        .result-name-area {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         .result-header {
             display: flex;
-            align-items: center;
-            padding: 5px 6px;
+            align-items: flex-start;
+            padding: 5px 6px 7px;
             gap: 6px;
             cursor: pointer;
         }
@@ -670,7 +681,7 @@
             font-size: 1.1em;
             cursor: pointer;
         }
-        .result-info { flex: 1 1 0; min-width: 0; }
+        .result-info { flex: 1 1 auto; min-width: 0; }
         .result-name {
             font-weight: 700;
             font-size: 0.78em;
@@ -5240,22 +5251,26 @@
                 const card = document.createElement('div');
                 card.className = 'result-card';
                 card.innerHTML = `
+                    <div class="result-name-row" onclick="toggleResultDetails(${idx})">
+                        <div class="result-name-area">
+                            <div class="result-name">${getSpeciesName(bird.english)}</div>
+                            <div class="result-afrikaans">${bird.afrikaans || ''}</div>
+                        </div>
+                        <div class="result-score">
+                            <div class="score-circle ${scoreClass}">${Math.round(r.score)}%</div>
+                        </div>
+                    </div>
                     <div class="result-header" onclick="toggleResultDetails(${idx})">
                         <div class="result-rank">#${idx + 1}</div>
                         <img class="result-photo" src="${bird.image || ''}" alt="${bird.english}"
                              onclick="openBirdImageOverlay(this, event)"
                              onerror="this.style.display='none'">
                         <div class="result-info">
-                            <div class="result-name">${getSpeciesName(bird.english)}</div>
-                            <div class="result-afrikaans">${bird.afrikaans || ''}</div>
                             ${callType ? `<div class="result-call-type">${callType}</div>` : ''}
                             <button type="button" class="heard-toggle" id="heardToggle${idx}" onclick="toggleHeardTimes(${idx}, event)">&#9660; Heard in recording</button>
                             <div class="heard-times" id="heardTimes${idx}">${heardTimesMarkup}</div>
-                            <button type="button" class="view-bird-details" data-bird-scientific-name="${encodeURIComponent(r._birdnet && r._birdnet.scientific_name || '')}" data-bird-common-name="${encodeURIComponent(bird.english || '')}" onclick="openSingleSelectBird(this, event)">View Bird Details</button>
-                        </div>
-                        <div class="result-score">
-                            <div class="score-circle ${scoreClass}">${Math.round(r.score)}%</div>
                             ${geographicNoteMarkup}
+                            <button type="button" class="view-bird-details" data-bird-scientific-name="${encodeURIComponent(r._birdnet && r._birdnet.scientific_name || '')}" data-bird-common-name="${encodeURIComponent(bird.english || '')}" onclick="openSingleSelectBird(this, event)">View Bird Details</button>
                         </div>
                     </div>
                     <div class="result-details" id="resultDetail${idx}">
