@@ -1461,6 +1461,7 @@
         let userAudioURL = null;        // Object URL for playback
         let userAudioElement = null;    // <audio> for playback
         let soundIdCurrentResult = null;
+        let soundIdRecordingTimestamp = null;
         let isRecording = false;
         let recordStartTime = null;
         let recordTimerInterval = null;
@@ -1844,6 +1845,7 @@
 
             isRecording = true;
             recordStartTime = Date.now();
+            soundIdRecordingTimestamp = new Date(recordStartTime).toISOString();
             document.getElementById('recordBtn').classList.add('recording');
             document.getElementById('recordStatus').textContent = 'Recording... Tap to stop';
             document.getElementById('recordStatus').className = 'record-status';
@@ -2960,6 +2962,7 @@
 
             audioFile = file;
             userAudioSource = file;
+            soundIdRecordingTimestamp = new Date().toISOString();
             uploadRecordingPentadInputMode = 'none';
             birdnetUploadSession = {
                 inputMode: 'upload',
@@ -5396,6 +5399,7 @@
                 sessionId,
                 version: 1,
                 savedAt: Date.now(),
+                recordingTimestamp: soundIdRecordingTimestamp || new Date().toISOString(),
                 inputMode,
                 result: soundIdCurrentResult,
                 recordingMetadata: birdnetUploadSession && birdnetUploadSession.recordingMetadata
@@ -5503,6 +5507,7 @@
                     audioInfo: session.audioInfo || null,
                 };
             }
+            soundIdRecordingTimestamp = session.recordingTimestamp || null;
             soundIdCurrentResult = session.result;
             try {
                 showResults(session.result);
@@ -5773,11 +5778,31 @@
         // ===========================
         // Save Recording
         // ===========================
+        function getSoundIdRecordingPentad() {
+            const metadataPentad = birdnetUploadSession && birdnetUploadSession.recordingMetadata
+                ? birdnetUploadSession.recordingMetadata.recordingPentad
+                : null;
+            if (validSabap2Pentad(metadataPentad)) return String(metadataPentad).trim();
+            if (geoContext && geoContext.computed) {
+                const geoPentad = sabap2PentadFromCoordinates(geoContext.lat, geoContext.lon);
+                if (geoPentad) return geoPentad;
+            }
+            return 'UNKNOWN';
+        }
+
+        function getSoundIdRecordingTimestamp() {
+            const value = soundIdRecordingTimestamp || new Date().toISOString();
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return new Date();
+            return date;
+        }
+
         function getBirdNetRecordingFilename() {
-            const now = new Date();
+            const now = getSoundIdRecordingTimestamp();
             const pad = (value) => String(value).padStart(2, '0');
-            return 'BirdNET_' + now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
-                '_' + pad(now.getHours()) + '-' + pad(now.getMinutes()) + '-' + pad(now.getSeconds());
+            return 'ChirpCoach_' + getSoundIdRecordingPentad() + '_' +
+                now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + '_' +
+                pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
         }
 
         function showSaveDialog() {
@@ -5798,63 +5823,16 @@
             dialog.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function saveRecordingDirect() {
+        async function saveRecordingDirect() {
             console.log('[Save Debug] click handler fired');
-            var saveButton = document.getElementById('saveRecordingBtn');
-            var source = userAudioSource || audioBlob || audioFile;
-            console.log('[Save Debug]', {
-                hasUserAudioSource: !!userAudioSource,
-                hasAudioBlob: !!audioBlob,
-                hasAudioFile: !!audioFile,
-                hasUserAudioURL: !!userAudioURL,
-                userAudioSourceType: userAudioSource && userAudioSource.type,
-                audioBlobType: audioBlob && audioBlob.type,
-                audioBlobSize: audioBlob && audioBlob.size,
-                audioFileType: audioFile && audioFile.type,
-                audioFileSize: audioFile && audioFile.size,
-                userAudioURL,
-                buttonDisabled: saveButton && saveButton.disabled,
-                buttonHidden: saveButton && saveButton.offsetParent === null,
-            });
+            const source = userAudioSource || audioBlob || audioFile;
             if (!source) {
                 console.log('[Save Debug] handler returned early: no recording source');
                 return;
             }
-
-            var extension = source instanceof File
-                ? (source.name.split('.').pop() || 'webm')
-                : ((source.type || 'audio/webm').split('/')[1] || 'webm').split(';')[0];
-            extension = extension.replace(/[^a-zA-Z0-9]/g, '') || 'webm';
-            var url = userAudioURL;
-            var temporaryUrl = false;
-            if (!url && source instanceof Blob) {
-                url = URL.createObjectURL(source);
-                temporaryUrl = true;
-            }
-            if (!url) {
-                console.log('[Save Debug] handler returned early: no usable recording URL');
-                return;
-            }
-
-            var link = document.createElement('a');
-            link.href = url;
-            link.download = getBirdNetRecordingFilename() + '.' + extension;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            console.log('[Save Debug] download link created', {
-                href: link.href,
-                download: link.download,
-            });
-            link.click();
-            console.log('[Save Debug] download link click executed');
-            link.remove();
-            if (temporaryUrl) setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-            const status = document.getElementById('recordStatus');
-            if (status) {
-                status.textContent = 'Complete recording download started.';
-                status.className = 'record-status';
-            }
+            document.getElementById('saveFileName').value = getBirdNetRecordingFilename();
+            document.getElementById('saveFormat').value = 'wav';
+            await doSaveRecording();
         }
 
         async function doSaveRecording() {
@@ -5868,9 +5846,28 @@
 
             if (format === 'wav') {
                 try {
+                    var sourceIsWav = source instanceof File
+                        ? /\.wav$/i.test(source.name || '')
+                        : String(source.type || '').toLowerCase() === 'audio/wav';
+                    var sourceUrl = userAudioURL;
+                    var temporarySourceUrl = false;
+                    if (!sourceUrl && source instanceof Blob) {
+                        sourceUrl = URL.createObjectURL(source);
+                        temporarySourceUrl = true;
+                    }
+                    if (!sourceUrl) throw new Error('No usable recording URL');
+                    if (sourceIsWav) {
+                        var existingWav = document.createElement('a');
+                        existingWav.href = sourceUrl;
+                        existingWav.download = fileName + '.wav';
+                        existingWav.click();
+                        if (temporarySourceUrl) URL.revokeObjectURL(sourceUrl);
+                        document.getElementById('saveDialog').style.display = 'none';
+                        return true;
+                    }
                     // Decode audio, optionally trim, export as WAV
                     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    var response = await fetch(userAudioURL);
+                    var response = await fetch(sourceUrl);
                     var arrayBuf = await response.arrayBuffer();
                     var audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
 
@@ -5919,6 +5916,7 @@
                     a.click();
                     URL.revokeObjectURL(url);
                     audioCtx.close();
+                    if (temporarySourceUrl) URL.revokeObjectURL(sourceUrl);
 
                     document.getElementById('saveDialog').style.display = 'none';
                     return true;
