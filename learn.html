@@ -352,6 +352,7 @@
             <div class="current-bird">
                 <div class="bird-name" id="birdName"></div>
                 <div class="bird-name-afr" id="birdNameAfr"></div>
+                <div class="bird-credit" id="learnDidYouKnow" style="display:none;"></div>
                 <div class="bird-credit" id="birdCredit"></div>
             </div>
             
@@ -1011,6 +1012,14 @@
             
             document.getElementById('birdName').textContent = birdName;
             document.getElementById('birdNameAfr').textContent = birdNameAlt;
+            const didYouKnow = String(bird.didYouKnow || '').trim();
+            const didYouKnowEl = document.getElementById('learnDidYouKnow');
+            if (didYouKnowEl) {
+                didYouKnowEl.innerHTML = didYouKnow
+                    ? '<strong>Did you know:</strong> ' + didYouKnow
+                    : '';
+                didYouKnowEl.style.display = didYouKnow ? 'block' : 'none';
+            }
             
             // Display credit info
             const creditHTML = `
