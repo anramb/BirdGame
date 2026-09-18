@@ -361,6 +361,8 @@
             
             <audio id="audioPlayer" controls></audio>
 
+            <div class="bird-credit" id="birdDidYouKnow" style="display:none; font-size: 0.8em; color: #666; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; line-height: 1.5;"></div>
+
             <!-- Credit below spectrogram -->
             <div class="bird-credit" id="birdCredit" style="font-size: 0.8em; color: #888; margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; line-height: 1.5;"></div>
             
@@ -779,6 +781,15 @@
                 callSelector.style.display = 'none';
             }
             
+            const didYouKnow = String(currentBird.didYouKnow || '').trim();
+            const didYouKnowEl = document.getElementById('birdDidYouKnow');
+            if (didYouKnowEl) {
+                didYouKnowEl.innerHTML = didYouKnow
+                    ? '<strong>Did you know:</strong> ' + didYouKnow
+                    : '';
+                didYouKnowEl.style.display = didYouKnow ? 'block' : 'none';
+            }
+
             // Display credit info
             const creditHTML = `
                 <strong>Credit:</strong> ${currentBird.credit}<br>
