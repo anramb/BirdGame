@@ -6026,6 +6026,7 @@
 
         function playReferenceAudio(audioPath, btn, event) {
             event.stopPropagation();
+            const wasSameButtonPlaying = btn.classList.contains('playing');
             if (!audioPath) {
                 btn.disabled = true;
                 btn.textContent = 'Reference audio unavailable';
@@ -6042,7 +6043,7 @@
                 currentPlayingAudio = null;
 
                 // If same button, just stop
-                if (btn.classList.contains('playing')) return;
+                if (wasSameButtonPlaying) return;
             }
 
             const audio = new Audio(audioPath);
