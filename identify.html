@@ -1387,6 +1387,7 @@
                 </div>
 
                 <div id="resultsList"></div>
+                <button type="button" id="birdNetSegmentStop" class="play-btn playing" onclick="stopBirdNetSegment(event)" style="display:none; margin:8px 0;">&#9632; Stop</button>
 
                 <!-- Save dialog -->
                 <div id="saveDialog" style="display:none; margin:10px 0; background:#1a1a2e; border:1px solid #4caf50; border-radius:8px; padding:12px;">
@@ -1467,6 +1468,7 @@
         let recordTimerInterval = null;
         let inputMode = null;           // 'record' or 'upload'
         let currentPlayingAudio = null;
+        let activeBirdNetSegmentAudio = null;
         // Trimmer state
         let audioDuration = 0;
         let trimStart = 0;
@@ -5083,6 +5085,7 @@
                     .map((windowNumber) => ({
                         label: formatHeardTime((Number(windowNumber) - 1) * 3),
                         seconds: Math.max(0, (Number(windowNumber) - 1) * 3),
+                        duration: 3,
                     }));
             }
             const first = Number.isFinite(meta.firstWindow) ? meta.firstWindow : null;
@@ -5092,7 +5095,57 @@
             return windows.map((windowNumber) => ({
                 label: formatHeardTime(windowNumber * 3),
                 seconds: Math.max(0, windowNumber * 3),
+                duration: 3,
             }));
+        }
+
+        function finishBirdNetSegment() {
+            const audio = activeBirdNetSegmentAudio;
+            activeBirdNetSegmentAudio = null;
+            const stopButton = document.getElementById('birdNetSegmentStop');
+            if (stopButton) stopButton.style.display = 'none';
+            if (!audio) return;
+            audio.pause();
+            audio.ontimeupdate = null;
+            audio.onloadedmetadata = null;
+            audio.onended = null;
+            audio.onerror = null;
+        }
+
+        function stopBirdNetSegment(event) {
+            if (event) event.stopPropagation();
+            finishBirdNetSegment();
+        }
+
+        function playBirdNetSegment(startSeconds, event) {
+            if (event) event.stopPropagation();
+            const start = Number(startSeconds);
+            if (!Number.isFinite(start) || start < 0 || !userAudioURL) return;
+            if (currentPlayingAudio) {
+                currentPlayingAudio.pause();
+                currentPlayingAudio = null;
+            }
+            finishBirdNetSegment();
+            const audio = new Audio(userAudioURL);
+            const segmentEnd = start + 3;
+            activeBirdNetSegmentAudio = audio;
+            const stopButton = document.getElementById('birdNetSegmentStop');
+            if (stopButton) stopButton.style.display = 'inline-flex';
+            audio.ontimeupdate = () => {
+                if (audio.currentTime >= segmentEnd) finishBirdNetSegment();
+            };
+            audio.onended = finishBirdNetSegment;
+            audio.onerror = finishBirdNetSegment;
+            const startPlayback = () => {
+                if (!activeBirdNetSegmentAudio || audio.duration <= start) {
+                    finishBirdNetSegment();
+                    return;
+                }
+                audio.currentTime = start;
+                audio.play().catch(() => finishBirdNetSegment());
+            };
+            audio.onloadedmetadata = startPlayback;
+            if (audio.readyState >= 1) startPlayback();
         }
 
         function toggleHeardTimes(idx, event) {
@@ -5238,7 +5291,7 @@
                 const callType = extractCallType(bird.english);
                 const heardTimes = getBirdNetHeardTimes(r);
                 const heardTimesMarkup = heardTimes.length
-                    ? heardTimes.map((time) => `<span class="heard-time" data-seconds="${time.seconds}">${time.label}</span>`).join('')
+                    ? heardTimes.map((time) => `<span class="heard-time" data-seconds="${time.seconds}" onclick="playBirdNetSegment(${time.seconds}, event)" title="Play this 3-second window">&#128266; ${time.label}</span>`).join('')
                     : '<span class="heard-times-empty">Timing not available yet</span>';
                 const mfccDetails = result._engine === 'birdnet-protected' ? '' : `
                         <div style="font-size:0.75em; color:#888; margin: 4px 0;">
