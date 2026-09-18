@@ -5407,7 +5407,22 @@
                 audioName: source && source.name ? source.name : null,
                 audioType: source && source.type ? source.type : null,
             };
-            sessionStorage.setItem(SOUND_ID_SESSION_KEY + ':metadata', JSON.stringify(session));
+            const serializedSession = JSON.stringify(session);
+            sessionStorage.setItem(SOUND_ID_SESSION_KEY + ':metadata', serializedSession);
+            const metadataReadback = sessionStorage.getItem(SOUND_ID_SESSION_KEY + ':metadata');
+            let parsedMetadata = null;
+            try {
+                parsedMetadata = metadataReadback ? JSON.parse(metadataReadback) : null;
+            } catch (error) {
+                throw new Error('metadata verification JSON parse failed: ' + error.message);
+            }
+            if (!metadataReadback || !parsedMetadata || parsedMetadata.sessionId !== sessionId || !parsedMetadata.result) {
+                throw new Error('metadata verification failed');
+            }
+            const storedSessionId = sessionStorage.getItem(SOUND_ID_SESSION_KEY);
+            if (storedSessionId !== sessionId) {
+                throw new Error('session ID verification failed');
+            }
             const db = await openSoundIdSessionDb();
             await new Promise((resolve, reject) => {
                 const transaction = db.transaction('recordings', 'readwrite');
@@ -5415,20 +5430,52 @@
                 transaction.oncomplete = resolve;
                 transaction.onerror = () => reject(transaction.error || new Error('Sound ID recording save failed'));
             });
+            if (source) {
+                const recordingReadback = await new Promise((resolve, reject) => {
+                    const request = db.transaction('recordings', 'readonly').objectStore('recordings').get(sessionId);
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error || new Error('recording readback failed'));
+                });
+                if (!recordingReadback || recordingReadback.sessionId !== sessionId || !recordingReadback.blob) {
+                    db.close();
+                    throw new Error('recording readback verification failed');
+                }
+            }
             db.close();
             return sessionId;
         }
 
         async function restoreSoundIdReturnSession() {
             const params = new URLSearchParams(window.location.search);
-            if (params.get('returnToSoundId') !== '1') return false;
+            if (params.get('returnToSoundId') !== '1') {
+                console.error('[Sound ID session] missing return marker');
+                return false;
+            }
             const sessionId = params.get('soundIdSessionId') || sessionStorage.getItem(SOUND_ID_SESSION_KEY);
-            if (!sessionId) return false;
+            if (!sessionId) {
+                console.error('[Sound ID session] missing session ID');
+                return false;
+            }
             const raw = sessionStorage.getItem(SOUND_ID_SESSION_KEY + ':metadata');
-            if (!raw) return false;
+            if (!raw) {
+                console.error('[Sound ID session] missing session metadata');
+                return false;
+            }
             let session;
-            try { session = JSON.parse(raw); } catch (error) { return false; }
-            if (!session || session.sessionId !== sessionId || !session.result) return false;
+            try {
+                session = JSON.parse(raw);
+            } catch (error) {
+                console.error('[Sound ID session] metadata JSON parse failure:', error);
+                return false;
+            }
+            if (!session || session.sessionId !== sessionId) {
+                console.error('[Sound ID session] session ID mismatch');
+                return false;
+            }
+            if (!session.result) {
+                console.error('[Sound ID session] missing result snapshot');
+                return false;
+            }
 
             try {
                 const db = await openSoundIdSessionDb();
@@ -5445,7 +5492,7 @@
                     userAudioURL = URL.createObjectURL(stored.blob);
                 }
             } catch (error) {
-                console.warn('[Sound ID session] recording restore unavailable:', error);
+                console.error('[Sound ID session] IndexedDB recording restore failure:', error);
             }
             if (session.recordingMetadata) {
                 birdnetUploadSession = {
@@ -5457,7 +5504,12 @@
                 };
             }
             soundIdCurrentResult = session.result;
-            showResults(session.result);
+            try {
+                showResults(session.result);
+            } catch (error) {
+                console.error('[Sound ID session] showResults restore failure:', error);
+                return false;
+            }
             updateSaveRecordingButtonState();
             return true;
         }
@@ -5497,7 +5549,8 @@
                     params.set('returnToSoundId', '1');
                 }
             } catch (error) {
-                console.warn('[Sound ID session] save unavailable; opening bird detail without session restore:', error);
+                console.error('[Sound ID session] save failed; navigation cancelled:', error);
+                return;
             }
             window.location.href = 'single-select.html?' + params.toString();
         }
