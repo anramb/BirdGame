@@ -905,7 +905,11 @@
         }
 
         function returnToSoundId() {
-            window.location.href = 'identify.html';
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('soundIdSessionId');
+            const returnParams = new URLSearchParams({ returnToSoundId: '1' });
+            if (sessionId) returnParams.set('soundIdSessionId', sessionId);
+            window.location.href = 'identify.html?' + returnParams.toString();
         }
 
         // Initialize
