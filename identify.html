@@ -1483,6 +1483,11 @@
         let userAudioElement = null;    // <audio> for playback
         let soundIdCurrentResult = null;
         let soundIdRecordingTimestamp = null;
+        let soundIdPcmChunks = [];
+        let soundIdPcmBuffer = null;
+        let soundIdPcmSampleRate = null;
+        let soundIdPcmAvailable = false;
+        let soundIdPcmCaptureActive = false;
         let isRecording = false;
         let recordStartTime = null;
         let recordTimerInterval = null;
@@ -1850,6 +1855,31 @@
             }
         }
 
+        function resetSoundIdPcmBuffer() {
+            soundIdPcmChunks = [];
+            soundIdPcmBuffer = null;
+            soundIdPcmSampleRate = null;
+            soundIdPcmAvailable = false;
+        }
+
+        function finalizeSoundIdPcmBuffer() {
+            const totalLength = soundIdPcmChunks.reduce((total, chunk) => total + chunk.length, 0);
+            if (!totalLength || !soundIdPcmSampleRate) {
+                soundIdPcmChunks = [];
+                soundIdPcmBuffer = null;
+                soundIdPcmAvailable = false;
+                return;
+            }
+            soundIdPcmBuffer = new Float32Array(totalLength);
+            let offset = 0;
+            soundIdPcmChunks.forEach((chunk) => {
+                soundIdPcmBuffer.set(chunk, offset);
+                offset += chunk.length;
+            });
+            soundIdPcmChunks = [];
+            soundIdPcmAvailable = true;
+        }
+
         async function startRecording() {
             if (birdnetLiveActive || birdnetLiveStarting) {
                 document.getElementById('recordStatus').textContent =
@@ -1857,8 +1887,17 @@
                 document.getElementById('recordStatus').className = 'record-status noise-warning';
                 return;
             }
+            resetSoundIdPcmBuffer();
+            soundIdPcmCaptureActive = true;
+            recorder.onRawPcmChunk = (samples, sampleRate) => {
+                if (!soundIdPcmCaptureActive) return;
+                soundIdPcmSampleRate = sampleRate;
+                soundIdPcmChunks.push(samples);
+            };
             const success = await recorder.start();
             if (!success) {
+                soundIdPcmCaptureActive = false;
+                recorder.onRawPcmChunk = null;
                 document.getElementById('recordStatus').textContent =
                     'Microphone access denied. Please allow microphone access.';
                 document.getElementById('recordStatus').className = 'record-status noise-warning';
@@ -1893,6 +1932,9 @@
             document.getElementById('recordBtn').classList.remove('recording');
 
             const blob = await recorder.stop();
+            soundIdPcmCaptureActive = false;
+            recorder.onRawPcmChunk = null;
+            finalizeSoundIdPcmBuffer();
             if (blob) {
                 audioBlob = blob;
                 userAudioSource = blob;
@@ -2982,6 +3024,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            resetSoundIdPcmBuffer();
             audioFile = file;
             userAudioSource = file;
             soundIdRecordingTimestamp = new Date().toISOString();
@@ -5870,6 +5913,33 @@
             return date;
         }
 
+        function encodeSoundIdPcmWav(samples, sampleRate) {
+            const channels = 1;
+            const bitsPerSample = 16;
+            const bytesPerSample = bitsPerSample / 8;
+            const dataSize = samples.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, channels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * channels * bytesPerSample, true);
+            view.setUint16(32, channels * bytesPerSample, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+            for (let i = 0; i < samples.length; i++) {
+                const sample = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(44 + i * 2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+            }
+            return buffer;
+        }
+
         function getBirdNetRecordingFilename() {
             const now = getSoundIdRecordingTimestamp();
             const pad = (value) => String(value).padStart(2, '0');
@@ -5919,6 +5989,18 @@
 
             if (format === 'wav') {
                 try {
+                    if (inputMode === 'record' && soundIdPcmAvailable && soundIdPcmBuffer && soundIdPcmSampleRate) {
+                        const pcmWavBuffer = encodeSoundIdPcmWav(soundIdPcmBuffer, soundIdPcmSampleRate);
+                        const pcmWavBlob = new Blob([pcmWavBuffer], { type: 'audio/wav' });
+                        const pcmWavUrl = URL.createObjectURL(pcmWavBlob);
+                        const pcmWavLink = document.createElement('a');
+                        pcmWavLink.href = pcmWavUrl;
+                        pcmWavLink.download = fileName + '.wav';
+                        pcmWavLink.click();
+                        URL.revokeObjectURL(pcmWavUrl);
+                        document.getElementById('saveDialog').style.display = 'none';
+                        return true;
+                    }
                     var sourceIsWav = source instanceof File
                         ? /\.wav$/i.test(source.name || '')
                         : String(source.type || '').toLowerCase() === 'audio/wav';
@@ -6484,6 +6566,9 @@
             }
 
             inputMode = null;
+            soundIdPcmCaptureActive = false;
+            if (recorder) recorder.onRawPcmChunk = null;
+            resetSoundIdPcmBuffer();
             isRecording = false;
             audioDuration = 0;
             trimStart = 0;
