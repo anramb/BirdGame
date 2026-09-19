@@ -1569,6 +1569,18 @@
             fallbackDecodeComplete: false,
             lastErrorName: null,
             lastErrorMessage: null,
+            pcmCallbackFired: false,
+            sourceType: null,
+            decodeStarted: false,
+            decodePending: false,
+            decodeResolved: false,
+            decodeRejected: false,
+            decodeErrorName: null,
+            decodeErrorMessage: null,
+            decodedDuration: null,
+            decodedSampleRate: null,
+            decodedChannels: null,
+            decodedLength: null,
         };
         let isRecording = false;
         let recordStartTime = null;
@@ -1984,6 +1996,18 @@
                 ['Fallback decode', yesNo(soundIdWavDebugState.fallbackDecodeComplete)],
                 ['Error name', soundIdWavDebugState.lastErrorName || '—'],
                 ['Error message', soundIdWavDebugState.lastErrorMessage || '—'],
+                ['PCM callback fired', yesNo(soundIdWavDebugState.pcmCallbackFired)],
+                ['Source type', soundIdWavDebugState.sourceType || '—'],
+                ['Fallback decode started', yesNo(soundIdWavDebugState.decodeStarted)],
+                ['Fallback decode pending', yesNo(soundIdWavDebugState.decodePending)],
+                ['Fallback decode resolved', yesNo(soundIdWavDebugState.decodeResolved)],
+                ['Fallback decode rejected', yesNo(soundIdWavDebugState.decodeRejected)],
+                ['Decode error name', soundIdWavDebugState.decodeErrorName || '—'],
+                ['Decode error message', soundIdWavDebugState.decodeErrorMessage || '—'],
+                ['Decoded duration', soundIdWavDebugState.decodedDuration == null ? '—' : soundIdWavDebugState.decodedDuration.toFixed(2) + ' sec'],
+                ['Decoded sample rate', soundIdWavDebugState.decodedSampleRate || '—'],
+                ['Decoded channels', soundIdWavDebugState.decodedChannels || '—'],
+                ['Decoded length', soundIdWavDebugState.decodedLength == null ? '—' : soundIdWavDebugState.decodedLength],
             ];
             values.innerHTML = rows.map(([label, value]) => '<strong>' + label + '</strong><span>' + value + '</span>').join('');
         }
@@ -2043,6 +2067,7 @@
             soundIdPcmCaptureActive = true;
             recorder.onRawPcmChunk = (samples, sampleRate) => {
                 if (!soundIdPcmCaptureActive) return;
+                soundIdWavDebugState.pcmCallbackFired = true;
                 soundIdPcmSampleRate = sampleRate;
                 soundIdPcmChunks.push(samples);
             };
@@ -6168,6 +6193,7 @@
                 }
                 document.getElementById('saveFileName').value = getBirdNetRecordingFilename();
                 document.getElementById('saveFormat').value = 'wav';
+                soundIdWavDebugState.sourceType = source && source.type ? source.type : (source instanceof File ? source.name : '—');
                 soundIdWavDebugState.saveDispatchReached = true;
                 updateSoundIdWavDebugPanel();
                 console.log('[Sound ID WAV DEBUG] save dispatch', {
@@ -6284,7 +6310,26 @@
                     soundIdWavDebugState.fallbackArrayBufferComplete = true;
                     updateSoundIdWavDebugPanel();
                     console.log('[Sound ID WAV DEBUG] fallback arrayBuffer complete', { byteLength: arrayBuf.byteLength });
-                    var audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+                    soundIdWavDebugState.decodeStarted = true;
+                    soundIdWavDebugState.decodePending = true;
+                    updateSoundIdWavDebugPanel();
+                    var audioBuffer;
+                    try {
+                        audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+                    } catch (decodeError) {
+                        soundIdWavDebugState.decodePending = false;
+                        soundIdWavDebugState.decodeRejected = true;
+                        soundIdWavDebugState.decodeErrorName = decodeError && decodeError.name ? decodeError.name : 'Error';
+                        soundIdWavDebugState.decodeErrorMessage = decodeError && decodeError.message ? decodeError.message : String(decodeError);
+                        updateSoundIdWavDebugPanel();
+                        throw decodeError;
+                    }
+                    soundIdWavDebugState.decodePending = false;
+                    soundIdWavDebugState.decodeResolved = true;
+                    soundIdWavDebugState.decodedDuration = audioBuffer.duration;
+                    soundIdWavDebugState.decodedSampleRate = audioBuffer.sampleRate;
+                    soundIdWavDebugState.decodedChannels = audioBuffer.numberOfChannels;
+                    soundIdWavDebugState.decodedLength = audioBuffer.length;
                     soundIdWavDebugState.fallbackDecodeComplete = true;
                     updateSoundIdWavDebugPanel();
                     console.log('[Sound ID WAV DEBUG] fallback decode complete', {
