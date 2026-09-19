@@ -67,6 +67,42 @@
             color: #333;
             font-size: 0.95em;
         }
+        .sound-id-wav-debug {
+            margin: 0 0 12px;
+            border: 1px solid #e0b84c;
+            border-radius: 8px;
+            background: #fff9e6;
+            color: #5f5100;
+            font-size: 0.72em;
+            line-height: 1.4;
+        }
+        .sound-id-wav-debug-heading {
+            width: 100%;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: #5f5100;
+            text-align: left;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .sound-id-wav-debug-content {
+            display: none;
+            padding: 0 10px 9px;
+        }
+        .sound-id-wav-debug-content.open { display: block; }
+        .sound-id-wav-debug-note {
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        .sound-id-wav-debug-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 2px 10px;
+        }
+        .sound-id-wav-debug-grid strong { color: #413900; }
         .top-actions {
             display: flex;
             align-items: center;
@@ -1384,6 +1420,13 @@
         </button>
         <button class="play-btn" id="saveRecordingBtn" onclick="saveRecordingDirect()" disabled
                 style="margin-top:10px; width:100%; justify-content:center;">💾 Save Recording</button>
+        <div class="sound-id-wav-debug" id="soundIdWavDebugPanel">
+            <button type="button" class="sound-id-wav-debug-heading" id="soundIdWavDebugToggle" aria-expanded="false" aria-controls="soundIdWavDebugContent" onclick="toggleSoundIdWavDebug()">⚠️ Temporary WAV Debug ▾</button>
+            <div class="sound-id-wav-debug-content" id="soundIdWavDebugContent">
+                <div class="sound-id-wav-debug-note">TEMPORARY DEBUG — remove after diagnosis</div>
+                <div class="sound-id-wav-debug-grid" id="soundIdWavDebugValues"></div>
+            </div>
+        </div>
         <div id="birdnetLoadStatus" aria-live="polite" style="font-size:0.78em; color:#666; text-align:center; margin:6px 0 0;">
             Please wait — BirdNET is preparing the identification engine…
         </div>
@@ -1507,6 +1550,26 @@
         let soundIdPcmSampleRate = null;
         let soundIdPcmAvailable = false;
         let soundIdPcmCaptureActive = false;
+        const soundIdWavDebugState = {
+            saveStarted: false,
+            saveDispatchReached: false,
+            pcmBranchEntered: false,
+            wavEncoded: false,
+            wavBlobCreated: false,
+            blobSize: null,
+            blobType: null,
+            blobUrlCreated: false,
+            anchorClickReached: false,
+            anchorClickReturned: false,
+            revokeReached: false,
+            saveComplete: false,
+            fallbackEntered: false,
+            fallbackFetchComplete: false,
+            fallbackArrayBufferComplete: false,
+            fallbackDecodeComplete: false,
+            lastErrorName: null,
+            lastErrorMessage: null,
+        };
         let isRecording = false;
         let recordStartTime = null;
         let recordTimerInterval = null;
@@ -1884,7 +1947,67 @@
             }
         }
 
+        function updateSoundIdWavDebugPanel() {
+            const values = document.getElementById('soundIdWavDebugValues');
+            if (!values) return;
+            const yesNo = (value) => value ? 'YES' : 'NO';
+            const duration = soundIdPcmBuffer && soundIdPcmSampleRate
+                ? soundIdPcmBuffer.length / soundIdPcmSampleRate
+                : null;
+            const rows = [
+                ['Input mode', inputMode || '—'],
+                ['Audio source', yesNo(!!userAudioSource)],
+                ['Audio blob', yesNo(!!audioBlob)],
+                ['Audio file', yesNo(!!audioFile)],
+                ['PCM available', yesNo(soundIdPcmAvailable)],
+                ['PCM capture active', yesNo(soundIdPcmCaptureActive)],
+                ['PCM chunks', soundIdPcmChunks.length],
+                ['PCM samples', soundIdPcmBuffer ? soundIdPcmBuffer.length : 0],
+                ['PCM sample rate', soundIdPcmSampleRate || '—'],
+                ['PCM duration', duration == null ? '—' : duration.toFixed(2) + ' sec'],
+                ['Float32 memory', soundIdPcmBuffer ? (soundIdPcmBuffer.byteLength / (1024 * 1024)).toFixed(2) + ' MB' : '—'],
+                ['Save started', yesNo(soundIdWavDebugState.saveStarted)],
+                ['Save dispatch', yesNo(soundIdWavDebugState.saveDispatchReached)],
+                ['PCM branch', yesNo(soundIdWavDebugState.pcmBranchEntered)],
+                ['WAV encoded', yesNo(soundIdWavDebugState.wavEncoded)],
+                ['WAV Blob', yesNo(soundIdWavDebugState.wavBlobCreated)],
+                ['Blob size', soundIdWavDebugState.blobSize == null ? '—' : soundIdWavDebugState.blobSize + ' bytes'],
+                ['Blob type', soundIdWavDebugState.blobType || '—'],
+                ['Blob URL', yesNo(soundIdWavDebugState.blobUrlCreated)],
+                ['Anchor click', yesNo(soundIdWavDebugState.anchorClickReached)],
+                ['Click returned', yesNo(soundIdWavDebugState.anchorClickReturned)],
+                ['Revoke reached', yesNo(soundIdWavDebugState.revokeReached)],
+                ['Save complete', yesNo(soundIdWavDebugState.saveComplete)],
+                ['Fallback entered', yesNo(soundIdWavDebugState.fallbackEntered)],
+                ['Fallback fetch', yesNo(soundIdWavDebugState.fallbackFetchComplete)],
+                ['Fallback arrayBuffer', yesNo(soundIdWavDebugState.fallbackArrayBufferComplete)],
+                ['Fallback decode', yesNo(soundIdWavDebugState.fallbackDecodeComplete)],
+                ['Error name', soundIdWavDebugState.lastErrorName || '—'],
+                ['Error message', soundIdWavDebugState.lastErrorMessage || '—'],
+            ];
+            values.innerHTML = rows.map(([label, value]) => '<strong>' + label + '</strong><span>' + value + '</span>').join('');
+        }
+
+        function resetSoundIdWavDebugState() {
+            Object.keys(soundIdWavDebugState).forEach((key) => {
+                soundIdWavDebugState[key] = typeof soundIdWavDebugState[key] === 'boolean' ? false : null;
+            });
+            updateSoundIdWavDebugPanel();
+        }
+
+        function toggleSoundIdWavDebug() {
+            const button = document.getElementById('soundIdWavDebugToggle');
+            const content = document.getElementById('soundIdWavDebugContent');
+            if (!button || !content) return;
+            const open = !content.classList.contains('open');
+            content.classList.toggle('open', open);
+            button.setAttribute('aria-expanded', String(open));
+            button.textContent = open ? '⚠️ Temporary WAV Debug ▴' : '⚠️ Temporary WAV Debug ▾';
+            updateSoundIdWavDebugPanel();
+        }
+
         function resetSoundIdPcmBuffer() {
+            resetSoundIdWavDebugState();
             soundIdPcmChunks = [];
             soundIdPcmBuffer = null;
             soundIdPcmSampleRate = null;
@@ -1964,6 +2087,19 @@
             soundIdPcmCaptureActive = false;
             recorder.onRawPcmChunk = null;
             finalizeSoundIdPcmBuffer();
+            updateSoundIdWavDebugPanel();
+            console.log('[Sound ID WAV DEBUG] PCM finalized', {
+                soundIdPcmChunksCount: soundIdPcmChunks.length,
+                soundIdPcmBufferLength: soundIdPcmBuffer ? soundIdPcmBuffer.length : 0,
+                soundIdPcmSampleRate,
+                soundIdPcmAvailable,
+                estimatedDuration: soundIdPcmBuffer && soundIdPcmSampleRate
+                    ? soundIdPcmBuffer.length / soundIdPcmSampleRate
+                    : null,
+                estimatedFloat32MemoryMB: soundIdPcmBuffer
+                    ? (soundIdPcmBuffer.byteLength / (1024 * 1024))
+                    : 0,
+            });
             if (blob) {
                 audioBlob = blob;
                 userAudioSource = blob;
@@ -5996,6 +6132,20 @@
         }
 
         async function saveRecordingDirect() {
+            soundIdWavDebugState.saveStarted = true;
+            updateSoundIdWavDebugPanel();
+            console.log('[Sound ID WAV DEBUG] save start', {
+                inputMode,
+                hasUserAudioSource: !!userAudioSource,
+                hasAudioBlob: !!audioBlob,
+                hasAudioFile: !!audioFile,
+                soundIdPcmAvailable,
+                soundIdPcmBufferExists: !!soundIdPcmBuffer,
+                soundIdPcmSampleRate,
+                soundIdPcmCaptureActive,
+                soundIdPcmChunksCount: soundIdPcmChunks.length,
+                soundIdPcmBufferLength: soundIdPcmBuffer ? soundIdPcmBuffer.length : 0,
+            });
             console.log('[Save Debug] click handler fired');
             const source = userAudioSource || audioBlob || audioFile;
             if (!source) {
@@ -6004,6 +6154,15 @@
             }
             document.getElementById('saveFileName').value = getBirdNetRecordingFilename();
             document.getElementById('saveFormat').value = 'wav';
+            soundIdWavDebugState.saveDispatchReached = true;
+            updateSoundIdWavDebugPanel();
+            console.log('[Sound ID WAV DEBUG] save dispatch', {
+                selectedFormat: document.getElementById('saveFormat').value,
+                filename: document.getElementById('saveFileName').value,
+                isRecord: inputMode === 'record',
+                isUpload: inputMode === 'upload',
+                pcmBranchEligible: inputMode === 'record' && soundIdPcmAvailable && !!soundIdPcmBuffer && !!soundIdPcmSampleRate,
+            });
             await doSaveRecording();
         }
 
@@ -6019,14 +6178,57 @@
             if (format === 'wav') {
                 try {
                     if (inputMode === 'record' && soundIdPcmAvailable && soundIdPcmBuffer && soundIdPcmSampleRate) {
+                        soundIdWavDebugState.pcmBranchEntered = true;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] PCM branch entered', {
+                            pcmBufferLength: soundIdPcmBuffer.length,
+                            pcmSampleRate: soundIdPcmSampleRate,
+                            approximateDuration: soundIdPcmBuffer.length / soundIdPcmSampleRate,
+                            estimatedFloat32MemoryMB: soundIdPcmBuffer.byteLength / (1024 * 1024),
+                        });
                         const pcmWavBuffer = encodeSoundIdPcmWav(soundIdPcmBuffer, soundIdPcmSampleRate);
+                        soundIdWavDebugState.wavEncoded = true;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] PCM WAV encoded', {
+                            arrayBufferByteLength: pcmWavBuffer.byteLength,
+                            expectedDuration: soundIdPcmBuffer.length / soundIdPcmSampleRate,
+                            sampleRate: soundIdPcmSampleRate,
+                        });
                         const pcmWavBlob = new Blob([pcmWavBuffer], { type: 'audio/wav' });
+                        soundIdWavDebugState.wavBlobCreated = true;
+                        soundIdWavDebugState.blobSize = pcmWavBlob.size;
+                        soundIdWavDebugState.blobType = pcmWavBlob.type;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] WAV Blob created', {
+                            blobSize: pcmWavBlob.size,
+                            blobType: pcmWavBlob.type,
+                        });
+                        console.log('[Sound ID WAV DEBUG] createObjectURL start');
                         const pcmWavUrl = URL.createObjectURL(pcmWavBlob);
+                        soundIdWavDebugState.blobUrlCreated = true;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] Blob URL created');
                         const pcmWavLink = document.createElement('a');
                         pcmWavLink.href = pcmWavUrl;
                         pcmWavLink.download = fileName + '.wav';
+                        soundIdWavDebugState.anchorClickReached = true;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] anchor click start', {
+                            downloadFilename: pcmWavLink.download,
+                            blobSize: pcmWavBlob.size,
+                            hasDownloadAttribute: pcmWavLink.hasAttribute('download'),
+                            hasHref: !!pcmWavLink.href,
+                        });
                         pcmWavLink.click();
+                        soundIdWavDebugState.anchorClickReturned = true;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] anchor click returned');
+                        console.log('[Sound ID WAV DEBUG] revokeObjectURL start');
+                        soundIdWavDebugState.revokeReached = true;
                         URL.revokeObjectURL(pcmWavUrl);
+                        soundIdWavDebugState.saveComplete = true;
+                        updateSoundIdWavDebugPanel();
+                        console.log('[Sound ID WAV DEBUG] save pipeline complete');
                         document.getElementById('saveDialog').style.display = 'none';
                         return true;
                     }
@@ -6050,10 +6252,27 @@
                         return true;
                     }
                     // Decode audio, optionally trim, export as WAV
+                    soundIdWavDebugState.fallbackEntered = true;
+                    updateSoundIdWavDebugPanel();
+                    console.log('[Sound ID WAV DEBUG] fallback decode start', { sourceType: source.type || null });
                     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     var response = await fetch(sourceUrl);
+                    soundIdWavDebugState.fallbackFetchComplete = true;
+                    updateSoundIdWavDebugPanel();
+                    console.log('[Sound ID WAV DEBUG] fallback fetch complete', { responseOk: response.ok, status: response.status });
                     var arrayBuf = await response.arrayBuffer();
+                    soundIdWavDebugState.fallbackArrayBufferComplete = true;
+                    updateSoundIdWavDebugPanel();
+                    console.log('[Sound ID WAV DEBUG] fallback arrayBuffer complete', { byteLength: arrayBuf.byteLength });
                     var audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+                    soundIdWavDebugState.fallbackDecodeComplete = true;
+                    updateSoundIdWavDebugPanel();
+                    console.log('[Sound ID WAV DEBUG] fallback decode complete', {
+                        sampleRate: audioBuffer.sampleRate,
+                        numberOfChannels: audioBuffer.numberOfChannels,
+                        length: audioBuffer.length,
+                        duration: audioBuffer.duration,
+                    });
 
                     var sr = audioBuffer.sampleRate;
                     var startSample = useTrim ? Math.floor(trimStart * sr) : 0;
@@ -6105,6 +6324,14 @@
                     document.getElementById('saveDialog').style.display = 'none';
                     return true;
                 } catch (e) {
+                    soundIdWavDebugState.lastErrorName = e && e.name ? e.name : 'Error';
+                    soundIdWavDebugState.lastErrorMessage = e && e.message ? e.message : String(e);
+                    updateSoundIdWavDebugPanel();
+                    console.error('[Sound ID WAV DEBUG] SAVE ERROR', {
+                        message: e && e.message,
+                        name: e && e.name,
+                        stack: e && e.stack,
+                    });
                     console.error('WAV export failed:', e);
                     alert('WAV export failed: ' + e.message);
                     return false;
