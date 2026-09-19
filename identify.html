@@ -6131,39 +6131,59 @@
             dialog.scrollIntoView({ behavior: 'smooth' });
         }
 
+        let soundIdSaveInProgress = false;
+
         async function saveRecordingDirect() {
-            soundIdWavDebugState.saveStarted = true;
-            updateSoundIdWavDebugPanel();
-            console.log('[Sound ID WAV DEBUG] save start', {
-                inputMode,
-                hasUserAudioSource: !!userAudioSource,
-                hasAudioBlob: !!audioBlob,
-                hasAudioFile: !!audioFile,
-                soundIdPcmAvailable,
-                soundIdPcmBufferExists: !!soundIdPcmBuffer,
-                soundIdPcmSampleRate,
-                soundIdPcmCaptureActive,
-                soundIdPcmChunksCount: soundIdPcmChunks.length,
-                soundIdPcmBufferLength: soundIdPcmBuffer ? soundIdPcmBuffer.length : 0,
-            });
-            console.log('[Save Debug] click handler fired');
-            const source = userAudioSource || audioBlob || audioFile;
-            if (!source) {
-                console.log('[Save Debug] handler returned early: no recording source');
+            if (soundIdSaveInProgress) {
                 return;
             }
-            document.getElementById('saveFileName').value = getBirdNetRecordingFilename();
-            document.getElementById('saveFormat').value = 'wav';
-            soundIdWavDebugState.saveDispatchReached = true;
-            updateSoundIdWavDebugPanel();
-            console.log('[Sound ID WAV DEBUG] save dispatch', {
-                selectedFormat: document.getElementById('saveFormat').value,
-                filename: document.getElementById('saveFileName').value,
-                isRecord: inputMode === 'record',
-                isUpload: inputMode === 'upload',
-                pcmBranchEligible: inputMode === 'record' && soundIdPcmAvailable && !!soundIdPcmBuffer && !!soundIdPcmSampleRate,
-            });
-            await doSaveRecording();
+
+            soundIdSaveInProgress = true;
+
+            const saveButton = document.getElementById('saveRecordingBtn');
+            if (saveButton) {
+                saveButton.disabled = true;
+            }
+
+            try {
+                soundIdWavDebugState.saveStarted = true;
+                updateSoundIdWavDebugPanel();
+                console.log('[Sound ID WAV DEBUG] save start', {
+                    inputMode,
+                    hasUserAudioSource: !!userAudioSource,
+                    hasAudioBlob: !!audioBlob,
+                    hasAudioFile: !!audioFile,
+                    soundIdPcmAvailable,
+                    soundIdPcmBufferExists: !!soundIdPcmBuffer,
+                    soundIdPcmSampleRate,
+                    soundIdPcmCaptureActive,
+                    soundIdPcmChunksCount: soundIdPcmChunks.length,
+                    soundIdPcmBufferLength: soundIdPcmBuffer ? soundIdPcmBuffer.length : 0,
+                });
+                console.log('[Save Debug] click handler fired');
+                const source = userAudioSource || audioBlob || audioFile;
+                if (!source) {
+                    console.log('[Save Debug] handler returned early: no recording source');
+                    return;
+                }
+                document.getElementById('saveFileName').value = getBirdNetRecordingFilename();
+                document.getElementById('saveFormat').value = 'wav';
+                soundIdWavDebugState.saveDispatchReached = true;
+                updateSoundIdWavDebugPanel();
+                console.log('[Sound ID WAV DEBUG] save dispatch', {
+                    selectedFormat: document.getElementById('saveFormat').value,
+                    filename: document.getElementById('saveFileName').value,
+                    isRecord: inputMode === 'record',
+                    isUpload: inputMode === 'upload',
+                    pcmBranchEligible: inputMode === 'record' && soundIdPcmAvailable && !!soundIdPcmBuffer && !!soundIdPcmSampleRate,
+                });
+                await doSaveRecording();
+            } finally {
+                soundIdSaveInProgress = false;
+                if (saveButton) {
+                    updateSaveRecordingButtonState();
+                }
+            }
         }
 
         async function doSaveRecording() {
