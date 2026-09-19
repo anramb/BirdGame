@@ -37,7 +37,6 @@
         }
         .ai-identification-notice {
             margin: 0 0 12px;
-            padding: 9px 11px;
             border: 1px solid #d9def5;
             border-radius: 8px;
             background: #f8f9ff;
@@ -45,7 +44,24 @@
             font-size: 0.78em;
             line-height: 1.45;
         }
-        .ai-identification-notice strong {
+        .ai-identification-heading {
+            width: 100%;
+            padding: 8px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: #333;
+            text-align: left;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .ai-identification-content {
+            display: none;
+            padding: 0 10px 9px;
+        }
+        .ai-identification-content.open { display: block; }
+        .ai-identification-content strong {
             display: block;
             margin-bottom: 3px;
             color: #333;
@@ -1068,8 +1084,11 @@
         <h1>Bird Sound ID</h1>
         <p class="subtitle">Upload a bird sound or listen live with BirdNET to identify it</p>
         <div class="ai-identification-notice">
-            <strong>AI identification is not proof</strong>
-            ChirpCoach Sound ID uses AI to identify possible bird species. AI can make mistakes, and a suggested identification is not proof that the bird was actually present. Use the result as a guide and confirm the bird yourself using the recording, photographs, visual observation, and other available field information.
+            <button type="button" class="ai-identification-heading" id="aiIdentificationToggle" aria-expanded="false" aria-controls="aiIdentificationContent" onclick="toggleAiIdentificationNotice()">⚠️ AI identification is NOT proof ▾</button>
+            <div class="ai-identification-content" id="aiIdentificationContent">
+                <strong>AI identification is not proof</strong>
+                ChirpCoach Sound ID uses AI to identify possible bird species. AI can make mistakes, and a suggested identification is not proof that the bird was actually present. Use the result as a guide and confirm the bird yourself using the recording, photographs, visual observation, and other available field information.
+            </div>
         </div>
 
         <!-- INPUT SECTION -->
@@ -1683,6 +1702,16 @@
 
         function getBirdSoundSettings() {
             return birdSoundSettings;
+        }
+
+        function toggleAiIdentificationNotice() {
+            const button = document.getElementById('aiIdentificationToggle');
+            const content = document.getElementById('aiIdentificationContent');
+            if (!button || !content) return;
+            const open = !content.classList.contains('open');
+            content.classList.toggle('open', open);
+            button.setAttribute('aria-expanded', String(open));
+            button.textContent = (open ? '⚠️ About AI identification ▴' : '⚠️ About AI identification ▾');
         }
 
         function toggleAboutSoundId(forceOpen) {
