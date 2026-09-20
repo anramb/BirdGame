@@ -6223,7 +6223,7 @@
 
             if (format === 'wav') {
                 try {
-                    if (inputMode === 'record') {
+                    if (source === userAudioSource && source === audioBlob && source instanceof Blob && String(source.type || '').toLowerCase().startsWith('audio/webm')) {
                         var micSourceUrl = userAudioURL;
                         var micTemporaryUrl = false;
                         if (!micSourceUrl && source instanceof Blob) {
