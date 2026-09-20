@@ -6223,6 +6223,25 @@
 
             if (format === 'wav') {
                 try {
+                    if (inputMode === 'record') {
+                        var micSourceUrl = userAudioURL;
+                        var micTemporaryUrl = false;
+                        if (!micSourceUrl && source instanceof Blob) {
+                            micSourceUrl = URL.createObjectURL(source);
+                            micTemporaryUrl = true;
+                        }
+                        if (!micSourceUrl) throw new Error('No usable recording URL');
+                        var micExt = source instanceof File
+                            ? source.name.split('.').pop()
+                            : ((source.type || 'audio/webm').split('/')[1] || 'webm').split(';')[0];
+                        var micLink = document.createElement('a');
+                        micLink.href = micSourceUrl;
+                        micLink.download = fileName + '.' + micExt;
+                        micLink.click();
+                        if (micTemporaryUrl) URL.revokeObjectURL(micSourceUrl);
+                        document.getElementById('saveDialog').style.display = 'none';
+                        return true;
+                    }
                     if (inputMode === 'record' && soundIdPcmAvailable && soundIdPcmBuffer && soundIdPcmSampleRate) {
                         soundIdWavDebugState.pcmBranchEntered = true;
                         updateSoundIdWavDebugPanel();
