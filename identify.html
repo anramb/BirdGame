@@ -82,15 +82,24 @@
         }
         @media (max-width: 600px) {
             .top-actions {
-                flex-wrap: wrap;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
                 row-gap: 8px;
             }
             .top-actions-left {
-                flex: 1 1 100%;
+                min-width: 0;
                 flex-wrap: wrap;
             }
             #settingsToggleBtn {
-                margin-left: auto;
+                grid-column: 2;
+                grid-row: 1;
+                margin-left: 0;
+            }
+            #soundIdSessionsToggleBtn {
+                grid-column: 1;
+                grid-row: 2;
+                justify-self: start;
             }
         }
         .home-btn, .settings-btn, .about-sound-id-btn { 
@@ -1080,8 +1089,8 @@
             <div class="top-actions-left">
                 <a href="start.html" class="home-btn">&larr; Home</a>
                 <button type="button" class="about-sound-id-btn" id="aboutSoundIdToggleBtn" onclick="toggleAboutSoundId()" aria-expanded="false" aria-controls="aboutSoundIdPanel">About</button>
-                <button type="button" class="settings-btn" id="soundIdSessionsToggleBtn" onclick="toggleSoundIdSessions()" aria-expanded="false" aria-controls="soundIdSessionsPanel">Sessions</button>
             </div>
+            <button type="button" class="settings-btn" id="soundIdSessionsToggleBtn" onclick="toggleSoundIdSessions()" aria-expanded="false" aria-controls="soundIdSessionsPanel">Sessions</button>
             <button type="button" class="settings-btn" id="settingsToggleBtn" onclick="toggleBirdSoundSettings()" aria-expanded="false" aria-controls="visibilitySettingsSection">&#9881; Settings</button>
         </div>
         <div id="aboutSoundIdPanel" class="about-sound-id-panel" aria-hidden="true">
