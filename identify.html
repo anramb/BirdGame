@@ -215,6 +215,15 @@
         .sound-id-session-window-clickable:hover { border-color: #1a8f4a; background: #f1fff6; }
         .sound-id-session-window-title { font-weight: 700; color: #333; font-size: 0.8em; }
         .sound-id-session-prediction { margin-top: 3px; color: #555; font-size: 0.78em; line-height: 1.35; }
+        .sound-id-session-timeline { margin-top: 10px; }
+        .sound-id-session-timeline-title { font-weight: 700; color: #333; font-size: 0.8em; }
+        .sound-id-session-timeline-labels { position: relative; height: 18px; margin-top: 4px; color: #666; font-size: 0.7em; }
+        .sound-id-session-timeline-label { position: absolute; transform: translateX(-50%); }
+        .sound-id-session-timeline-label:first-child { transform: none; }
+        .sound-id-session-timeline-track { position: relative; height: 28px; border: 1px solid #d9def5; border-radius: 5px; background: #f1f3f8; overflow: hidden; }
+        .sound-id-session-timeline-window { position: absolute; top: 3px; bottom: 3px; min-width: 3px; border-radius: 3px; background: #c7cbd5; }
+        .sound-id-session-timeline-window.active { background: #1a8f4a; cursor: pointer; }
+        .sound-id-session-timeline-window.active:hover { background: #0d6b3a; }
         .about-accordion-item + .about-accordion-item { margin-top: 5px; }
         .about-accordion-heading {
             width: 100%;
@@ -1194,6 +1203,11 @@
                 <div id="soundIdSessionPlaybackInfo" class="sound-id-session-playback-info"></div>
                 <audio id="soundIdSessionPlaybackAudio" controls preload="metadata"></audio>
                 <div id="soundIdSessionPlaybackStatus" class="sound-id-session-playback-info"></div>
+                <div id="soundIdSessionTimeline" class="sound-id-session-timeline" hidden>
+                    <div class="sound-id-session-timeline-title">BirdNET Timeline</div>
+                    <div id="soundIdSessionTimelineLabels" class="sound-id-session-timeline-labels"></div>
+                    <div id="soundIdSessionTimelineTrack" class="sound-id-session-timeline-track"></div>
+                </div>
                 <div id="soundIdSessionDetections" class="sound-id-session-detections" hidden>
                     <div class="sound-id-session-detections-title">BirdNET Detections</div>
                     <div id="soundIdSessionDetectionsList" class="sound-id-session-detections-list"></div>
@@ -1916,7 +1930,49 @@
             }
         }
 
+        function renderSoundIdSessionTimeline(session) {
+            const timeline = document.getElementById('soundIdSessionTimeline');
+            const labels = document.getElementById('soundIdSessionTimelineLabels');
+            const track = document.getElementById('soundIdSessionTimelineTrack');
+            if (!timeline || !labels || !track) return;
+            labels.innerHTML = '';
+            track.innerHTML = '';
+            const duration = Number(session && session.durationSec);
+            const detections = (session && Array.isArray(session.detections)) ? session.detections : [];
+            if (!Number.isFinite(duration) || duration <= 0 || !detections.length) {
+                timeline.hidden = true;
+                return;
+            }
+            [0, duration / 2, duration].forEach((seconds) => {
+                const label = document.createElement('span');
+                label.className = 'sound-id-session-timeline-label';
+                label.style.left = (seconds / duration * 100) + '%';
+                label.textContent = formatSoundIdDetectionTime(seconds);
+                labels.appendChild(label);
+            });
+            detections.forEach((detection, index) => {
+                const start = Number(detection.windowStartSec);
+                const end = Number(detection.windowEndSec);
+                const visualStart = Number.isFinite(start) ? Math.max(0, Math.min(duration, start)) : 0;
+                const visualEnd = Number.isFinite(end) ? Math.max(visualStart, Math.min(duration, end)) : visualStart;
+                const block = document.createElement('div');
+                block.className = 'sound-id-session-timeline-window';
+                block.style.left = (visualStart / duration * 100) + '%';
+                block.style.width = ((visualEnd - visualStart) / duration * 100) + '%';
+                block.title = 'Window ' + (Number.isFinite(Number(detection.windowIndex)) ? Number(detection.windowIndex) + 1 : index + 1);
+                const hasAppBird = (detection.predictions || []).some((prediction) => soundIdSessionPredictionIsAppBird(prediction));
+                if (hasAppBird && Number.isFinite(start) && start >= 0) {
+                    block.classList.add('active');
+                    block.title += ' · Seek playback to ' + formatSoundIdDetectionTime(start);
+                    block.addEventListener('click', () => seekSoundIdSessionWindow(start));
+                }
+                track.appendChild(block);
+            });
+            timeline.hidden = false;
+        }
+
         function renderSoundIdSessionDetections(session) {
+            renderSoundIdSessionTimeline(session);
             const section = document.getElementById('soundIdSessionDetections');
             const list = document.getElementById('soundIdSessionDetectionsList');
             if (!section || !list) return;
@@ -1974,6 +2030,12 @@
 
         function clearSoundIdSessionPlayback() {
             soundIdSessionPlaybackRequestId++;
+            const timeline = document.getElementById('soundIdSessionTimeline');
+            const timelineLabels = document.getElementById('soundIdSessionTimelineLabels');
+            const timelineTrack = document.getElementById('soundIdSessionTimelineTrack');
+            if (timeline) timeline.hidden = true;
+            if (timelineLabels) timelineLabels.innerHTML = '';
+            if (timelineTrack) timelineTrack.innerHTML = '';
             const detections = document.getElementById('soundIdSessionDetections');
             const detectionList = document.getElementById('soundIdSessionDetectionsList');
             if (detections) detections.hidden = true;
