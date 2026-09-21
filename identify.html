@@ -180,6 +180,8 @@
             cursor: pointer;
         }
         .sound-id-session-card.selected { border-color: #1a8f4a; background: #f1fff6; }
+        .sound-id-session-card::before { content: '▸'; flex: 0 0 auto; color: #666; }
+        .sound-id-session-card.expanded::before { content: '▾'; color: #1a8f4a; }
         .sound-id-session-info { flex: 1 1 auto; min-width: 0; }
         .sound-id-session-main { font-weight: 700; color: #333; }
         .sound-id-session-meta { margin-top: 3px; color: #666; font-size: 0.78em; line-height: 1.4; }
@@ -1882,6 +1884,7 @@
         }
 
         let soundIdSelectedSessionId = null;
+        let soundIdExpandedSessionId = null;
         let soundIdSessionPlaybackUrl = null;
         let soundIdSessionPlaybackRequestId = 0;
 
@@ -2047,9 +2050,21 @@
         function selectSoundIdSession(index) {
             const session = soundIdSessionsCache[index];
             if (!session || !session.sessionId) return;
+            if (soundIdSelectedSessionId === session.sessionId && soundIdExpandedSessionId === session.sessionId) {
+                soundIdExpandedSessionId = null;
+                clearSoundIdSessionPlayback();
+                document.querySelectorAll('.sound-id-session-card').forEach((card) => {
+                    card.classList.toggle('selected', card.dataset.sessionId === session.sessionId);
+                    card.classList.remove('expanded');
+                });
+                return;
+            }
             soundIdSelectedSessionId = session.sessionId;
+            soundIdExpandedSessionId = session.sessionId;
             document.querySelectorAll('.sound-id-session-card').forEach((card) => {
-                card.classList.toggle('selected', card.dataset.sessionId === session.sessionId);
+                const isSelected = card.dataset.sessionId === session.sessionId;
+                card.classList.toggle('selected', isSelected);
+                card.classList.toggle('expanded', isSelected);
             });
             clearSoundIdSessionPlayback();
             const requestId = soundIdSessionPlaybackRequestId;
@@ -2087,6 +2102,7 @@
             }
             if (soundIdSelectedSessionId === session.sessionId) {
                 soundIdSelectedSessionId = null;
+                soundIdExpandedSessionId = null;
                 clearSoundIdSessionPlayback();
             }
             await loadSoundIdSessions();
@@ -2113,6 +2129,7 @@
                 card.className = 'sound-id-session-card';
                 card.dataset.sessionId = session.sessionId || '';
                 card.classList.toggle('selected', card.dataset.sessionId === soundIdSelectedSessionId);
+                card.classList.toggle('expanded', card.dataset.sessionId === soundIdExpandedSessionId);
                 card.setAttribute('role', 'button');
                 card.tabIndex = 0;
                 card.addEventListener('click', () => selectSoundIdSession(index));
@@ -2192,8 +2209,12 @@
             button.setAttribute('aria-expanded', String(open));
             if (!open) {
                 soundIdSelectedSessionId = null;
+                soundIdExpandedSessionId = null;
                 clearSoundIdSessionPlayback();
-                document.querySelectorAll('.sound-id-session-card').forEach((card) => card.classList.remove('selected'));
+                document.querySelectorAll('.sound-id-session-card').forEach((card) => {
+                    card.classList.remove('selected');
+                    card.classList.remove('expanded');
+                });
             }
             if (open) {
                 loadSoundIdSessions();
