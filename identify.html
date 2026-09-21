@@ -1892,6 +1892,14 @@
             return minutes + ':' + remaining;
         }
 
+        function soundIdSessionPredictionIsAppBird(prediction) {
+            if (!prediction || typeof SA_OCCURRENCE === 'undefined' || !SA_OCCURRENCE.lookupAllbirdsByCommonName) {
+                return false;
+            }
+            const lookup = SA_OCCURRENCE.lookupAllbirdsByCommonName(prediction.com || '');
+            return !!(lookup && lookup.found);
+        }
+
         function renderSoundIdSessionDetections(session) {
             const section = document.getElementById('soundIdSessionDetections');
             const list = document.getElementById('soundIdSessionDetectionsList');
@@ -1918,16 +1926,25 @@
                     formatSoundIdDetectionTime(detection.windowStartSec) + ' – ' +
                     formatSoundIdDetectionTime(detection.windowEndSec);
                 window.appendChild(title);
-                (detection.predictions || []).forEach((prediction) => {
-                    const row = document.createElement('div');
-                    row.className = 'sound-id-session-prediction';
-                    const name = prediction.com || prediction.sci || 'Unknown bird';
-                    const confidence = typeof prediction.confidence === 'number'
-                        ? (prediction.confidence * 100).toFixed(1) + '%'
-                        : '—';
-                    row.textContent = String(prediction.rank) + '. ' + name + ' — ' + confidence;
-                    window.appendChild(row);
-                });
+                const appBirdPredictions = (detection.predictions || [])
+                    .filter((prediction) => soundIdSessionPredictionIsAppBird(prediction));
+                if (!appBirdPredictions.length) {
+                    const message = document.createElement('div');
+                    message.className = 'sound-id-session-prediction';
+                    message.textContent = 'No local/app bird matches in this window.';
+                    window.appendChild(message);
+                } else {
+                    appBirdPredictions.forEach((prediction) => {
+                        const row = document.createElement('div');
+                        row.className = 'sound-id-session-prediction';
+                        const name = prediction.com || prediction.sci || 'Unknown bird';
+                        const confidence = typeof prediction.confidence === 'number'
+                            ? (prediction.confidence * 100).toFixed(1) + '%'
+                            : '—';
+                        row.textContent = String(prediction.rank) + '. ' + name + ' — ' + confidence;
+                        window.appendChild(row);
+                    });
+                }
                 list.appendChild(window);
             });
             section.hidden = false;
