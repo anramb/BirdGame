@@ -83,17 +83,27 @@
         @media (max-width: 600px) {
             .top-actions {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 align-items: center;
                 row-gap: 8px;
             }
             .top-actions-left {
-                min-width: 0;
-                flex-wrap: wrap;
+                display: contents;
             }
-            #settingsToggleBtn {
+            .home-btn {
+                grid-column: 1;
+                grid-row: 1;
+                justify-self: center;
+            }
+            #aboutSoundIdToggleBtn {
                 grid-column: 2;
                 grid-row: 1;
+                justify-self: center;
+            }
+            #settingsToggleBtn {
+                grid-column: 3;
+                grid-row: 1;
+                justify-self: center;
                 margin-left: 0;
             }
             #soundIdSessionsToggleBtn {
