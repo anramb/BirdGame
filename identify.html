@@ -112,6 +112,39 @@
             border-radius: 10px;
         }
         .about-sound-id-panel.open { display: block; }
+        .sound-id-sessions-panel {
+            display: none;
+            margin: -5px 0 15px;
+            padding: 10px;
+            background: #f8f9ff;
+            border: 1px solid #d9def5;
+            border-radius: 10px;
+        }
+        .sound-id-sessions-panel.open { display: block; }
+        .sound-id-sessions-status {
+            color: #666;
+            font-size: 0.82em;
+            line-height: 1.4;
+        }
+        .sound-id-session-list {
+            display: grid;
+            gap: 7px;
+            margin-top: 8px;
+        }
+        .sound-id-session-card {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #d9def5;
+            border-radius: 7px;
+            background: #fff;
+            color: #333;
+            text-align: left;
+            cursor: pointer;
+        }
+        .sound-id-session-card.selected { border-color: #1a8f4a; background: #f1fff6; }
+        .sound-id-session-main { font-weight: 700; color: #333; }
+        .sound-id-session-meta { margin-top: 3px; color: #666; font-size: 0.78em; line-height: 1.4; }
+        .sound-id-session-placeholder { margin-top: 8px; color: #555; font-size: 0.8em; }
         .about-accordion-item + .about-accordion-item { margin-top: 5px; }
         .about-accordion-heading {
             width: 100%;
@@ -1013,6 +1046,7 @@
             <div class="top-actions-left">
                 <a href="start.html" class="home-btn">&larr; Home</a>
                 <button type="button" class="about-sound-id-btn" id="aboutSoundIdToggleBtn" onclick="toggleAboutSoundId()" aria-expanded="false" aria-controls="aboutSoundIdPanel">About Sound ID</button>
+                <button type="button" class="settings-btn" id="soundIdSessionsToggleBtn" onclick="toggleSoundIdSessions()" aria-expanded="false" aria-controls="soundIdSessionsPanel">Sessions</button>
             </div>
             <button type="button" class="settings-btn" id="settingsToggleBtn" onclick="toggleBirdSoundSettings()" aria-expanded="false" aria-controls="visibilitySettingsSection">&#9881; Settings</button>
         </div>
@@ -1080,6 +1114,12 @@
                     <ul><li><a href="https://github.com/BirdNET-Team/BirdNET-Analyzer" target="_blank" rel="noopener noreferrer">BirdNET</a> acoustic identification technology.</li><li><a href="https://sabap2.birdmap.africa/" target="_blank" rel="noopener noreferrer">SABAP2</a> geographic occurrence context.</li><li><a href="https://xeno-canto.org/" target="_blank" rel="noopener noreferrer">Xeno-canto</a> reference audio where applicable.</li><li>Project canonical taxonomy, reference images, audio and associated per-record credits included in the application data.</li></ul>
                 </div>
             </div>
+        </div>
+        <div id="soundIdSessionsPanel" class="sound-id-sessions-panel" aria-hidden="true">
+            <div class="section-title">Saved Sound ID Sessions</div>
+            <div id="soundIdSessionsStatus" class="sound-id-sessions-status">Loading saved sessions…</div>
+            <div id="soundIdSessionList" class="sound-id-session-list"></div>
+            <div id="soundIdSessionPlaceholder" class="sound-id-session-placeholder" hidden></div>
         </div>
         <h1>Bird Sound ID</h1>
         <p class="subtitle">Upload a bird sound or listen live with BirdNET to identify it</p>
@@ -1736,6 +1776,128 @@
             content.classList.toggle('open', open);
             button.setAttribute('aria-expanded', String(open));
             button.textContent = (open ? '▾ ' : '▸ ') + button.textContent.slice(2);
+        }
+
+        let soundIdSessionsCache = [];
+
+        function soundIdSessionBestPrediction(session) {
+            let best = null;
+            (session.detections || []).forEach((detection) => {
+                (detection.predictions || []).forEach((prediction) => {
+                    if (typeof prediction.confidence !== 'number') return;
+                    if (!best || prediction.confidence > best.confidence) best = prediction;
+                });
+            });
+            return best;
+        }
+
+        function soundIdSessionDateTime(session) {
+            const raw = session.recordingTimestamp || session.createdAt;
+            const date = new Date(raw);
+            if (Number.isNaN(date.getTime())) return 'Date unavailable';
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatSoundIdSessionDuration(durationSec) {
+            const seconds = Number(durationSec);
+            if (!Number.isFinite(seconds)) return 'Duration unavailable';
+            return seconds.toFixed(1) + ' sec';
+        }
+
+        function selectSoundIdSession(index) {
+            const session = soundIdSessionsCache[index];
+            if (!session) return;
+            document.querySelectorAll('.sound-id-session-card').forEach((card, cardIndex) => {
+                card.classList.toggle('selected', cardIndex === index);
+            });
+            const placeholder = document.getElementById('soundIdSessionPlaceholder');
+            if (placeholder) {
+                placeholder.hidden = false;
+                placeholder.textContent = 'Session selected. Detailed playback and timeline view will be added in a later phase.';
+            }
+        }
+
+        function renderSoundIdSessions(sessions) {
+            const status = document.getElementById('soundIdSessionsStatus');
+            const list = document.getElementById('soundIdSessionList');
+            const placeholder = document.getElementById('soundIdSessionPlaceholder');
+            if (!status || !list) return;
+            soundIdSessionsCache = sessions;
+            list.innerHTML = '';
+            if (placeholder) {
+                placeholder.hidden = true;
+                placeholder.textContent = '';
+            }
+            if (!sessions.length) {
+                status.textContent = 'No saved Sound ID sessions.';
+                return;
+            }
+            status.textContent = sessions.length + (sessions.length === 1 ? ' saved session.' : ' saved sessions.');
+            sessions.forEach((session, index) => {
+                const best = soundIdSessionBestPrediction(session);
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'sound-id-session-card';
+                card.addEventListener('click', () => selectSoundIdSession(index));
+
+                const main = document.createElement('div');
+                main.className = 'sound-id-session-main';
+                main.textContent = best
+                    ? (best.com || best.sci || 'Unknown bird') + ' (' + (best.confidence * 100).toFixed(1) + '%)'
+                    : 'No stored identification';
+
+                const meta = document.createElement('div');
+                meta.className = 'sound-id-session-meta';
+                const predictionCount = (session.detections || []).reduce(
+                    (total, detection) => total + (detection.predictions || []).length,
+                    0
+                );
+                meta.textContent = soundIdSessionDateTime(session) +
+                    ' · ' + formatSoundIdSessionDuration(session.durationSec) +
+                    ' · ' + (session.detections || []).length + ' windows' +
+                    ' · ' + predictionCount + ' predictions';
+
+                card.append(main, meta);
+                list.appendChild(card);
+            });
+        }
+
+        async function loadSoundIdSessions() {
+            const status = document.getElementById('soundIdSessionsStatus');
+            if (status) status.textContent = 'Loading saved sessions…';
+            let db = null;
+            try {
+                db = await openSoundIdSessionDb();
+                const sessions = await new Promise((resolve, reject) => {
+                    const request = db.transaction('recordings', 'readonly')
+                        .objectStore('recordings')
+                        .getAll();
+                    request.onsuccess = () => resolve((request.result || [])
+                        .filter((record) => record && record.sessionType === 'sound-id')
+                        .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)));
+                    request.onerror = () => reject(request.error || new Error('Sound ID sessions could not be read'));
+                });
+                renderSoundIdSessions(sessions);
+            } catch (error) {
+                console.error('[Sound ID sessions] read failed:', error);
+                if (status) status.textContent = 'Saved sessions could not be loaded.';
+            } finally {
+                if (db) db.close();
+            }
+        }
+
+        function toggleSoundIdSessions(forceOpen) {
+            const panel = document.getElementById('soundIdSessionsPanel');
+            const button = document.getElementById('soundIdSessionsToggleBtn');
+            if (!panel || !button) return;
+            const open = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('open');
+            panel.classList.toggle('open', open);
+            panel.setAttribute('aria-hidden', String(!open));
+            button.setAttribute('aria-expanded', String(open));
+            if (open) {
+                loadSoundIdSessions();
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         function toggleBirdSoundSettings(forceOpen) {
