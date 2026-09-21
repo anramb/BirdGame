@@ -209,6 +209,8 @@
             padding-right: 3px;
         }
         .sound-id-session-window { padding: 7px 8px; border: 1px solid #d9def5; border-radius: 7px; background: #fff; }
+        .sound-id-session-window-clickable { cursor: pointer; }
+        .sound-id-session-window-clickable:hover { border-color: #1a8f4a; background: #f1fff6; }
         .sound-id-session-window-title { font-weight: 700; color: #333; font-size: 0.8em; }
         .sound-id-session-prediction { margin-top: 3px; color: #555; font-size: 0.78em; line-height: 1.35; }
         .about-accordion-item + .about-accordion-item { margin-top: 5px; }
@@ -1900,6 +1902,17 @@
             return !!(lookup && lookup.found);
         }
 
+        function seekSoundIdSessionWindow(startSec) {
+            const audio = document.getElementById('soundIdSessionPlaybackAudio');
+            const position = Number(startSec);
+            if (!audio || !Number.isFinite(position) || position < 0) return;
+            try {
+                audio.currentTime = position;
+            } catch (error) {
+                console.warn('[Sound ID sessions] window seek unavailable:', error);
+            }
+        }
+
         function renderSoundIdSessionDetections(session) {
             const section = document.getElementById('soundIdSessionDetections');
             const list = document.getElementById('soundIdSessionDetectionsList');
@@ -1928,6 +1941,12 @@
                 window.appendChild(title);
                 const appBirdPredictions = (detection.predictions || [])
                     .filter((prediction) => soundIdSessionPredictionIsAppBird(prediction));
+                const windowStartSec = Number(detection.windowStartSec);
+                if (appBirdPredictions.length && Number.isFinite(windowStartSec) && windowStartSec >= 0) {
+                    window.classList.add('sound-id-session-window-clickable');
+                    window.title = 'Seek playback to this window';
+                    window.addEventListener('click', () => seekSoundIdSessionWindow(windowStartSec));
+                }
                 if (!appBirdPredictions.length) {
                     const message = document.createElement('div');
                     message.className = 'sound-id-session-prediction';
