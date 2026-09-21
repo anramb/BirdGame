@@ -2553,6 +2553,9 @@
         let birdnetLiveTop20Test = null;
         let birdnetLiveTop20DiagnosticAggregator = null;
         let birdnetLiveRevealedRecordArea = false;
+        let birdnetLiveSessionId = null;
+        let birdnetLiveSessionStartedAt = null;
+        let birdnetLiveSessionDetections = [];
 
         // Test-only opt-in: open identify.html?birdnetOverlapTest=1.
         // Default is false, so normal production remains 3s window / 3s stride.
@@ -4428,6 +4431,11 @@
                     userAudioSource = returnedBlob;
                     userAudioURL = URL.createObjectURL(returnedBlob);
                     updateSaveRecordingButtonState();
+                    try {
+                        await persistBirdnetLiveSession(returnedBlob);
+                    } catch (error) {
+                        console.error('[BirdNET live session] persistence failed:', error);
+                    }
                 }
             }
             if (finalDiagnostics) {
@@ -4446,6 +4454,9 @@
                 document.getElementById('recordArea').classList.add('hidden');
                 birdnetLiveRevealedRecordArea = false;
             }
+            birdnetLiveSessionId = null;
+            birdnetLiveSessionStartedAt = null;
+            birdnetLiveSessionDetections = [];
         }
 
         async function startBirdNetLiveIdentification() {
@@ -4508,7 +4519,12 @@
                 let windowsCompleted = 0;
                 let windowsDropped = 0;
                 let windowsFailed = 0;
-                const startedAt = Date.now();
+                birdnetLiveSessionId = crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : 'sound-id-history-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                birdnetLiveSessionStartedAt = Date.now();
+                birdnetLiveSessionDetections = [];
+                const startedAt = birdnetLiveSessionStartedAt;
                 birdnetLiveWindowTiming = {
                     startedAt,
                     completedWindows: 0,
@@ -4565,6 +4581,21 @@
                 processor.onWindowResult = (topN, windowInfo) => {
                     if (!birdnetLiveActive || runId !== birdnetLiveRunId) return;
                     windowsCompleted++;
+                    birdnetLiveSessionDetections.push({
+                        windowIndex: windowInfo.windowIndex,
+                        windowStartSec: windowInfo.windowStartSec,
+                        windowEndSec: windowInfo.windowEndSec,
+                        windowDurationSec: windowInfo.windowDurationSec,
+                        sampleRate: windowInfo.sampleRate,
+                        predictions: (topN || []).map((prediction) => ({
+                            rank: prediction.rank,
+                            idx: prediction.idx,
+                            id: prediction.id,
+                            sci: prediction.sci,
+                            com: prediction.com,
+                            confidence: prediction.confidence,
+                        })),
+                    });
                     const productionTopN = top20TestMode ? topN.slice(0, 5) : topN;
                     const barbetRaw = productionTopN.find((candidate) => candidate.sci === 'Lybius torquatus');
                     const barbetPresent = !!barbetRaw;
@@ -4830,6 +4861,9 @@
                 birdnetLiveOverlapTest = null;
                 birdnetLiveTop20Test = null;
                 birdnetLiveTop20DiagnosticAggregator = null;
+                birdnetLiveSessionId = null;
+                birdnetLiveSessionStartedAt = null;
+                birdnetLiveSessionDetections = [];
                 stopBirdNetLiveSpectrogram();
                 document.getElementById('birdnetIdentifyBtn').textContent = 'Identify with BirdNET';
                 updateBirdNetButtonState();
@@ -5507,6 +5541,35 @@
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error || new Error('Sound ID session database unavailable'));
             });
+        }
+
+        async function persistBirdnetLiveSession(returnedBlob) {
+            if (!returnedBlob || !birdnetLiveSessionId) return;
+            const startedAt = birdnetLiveSessionStartedAt || Date.now();
+            const recordingTimestamp = soundIdRecordingTimestamp || new Date(startedAt).toISOString();
+            const record = {
+                sessionId: birdnetLiveSessionId,
+                blob: returnedBlob,
+                sessionType: 'sound-id',
+                createdAt: Date.now(),
+                recordingTimestamp,
+                durationSec: Math.max(0, (Date.now() - startedAt) / 1000),
+                mimeType: returnedBlob.type || null,
+                fileName: getBirdNetRecordingFilename() + '.webm',
+                recordingMetadata: recordingMetadataForDiagnostic('live'),
+                detections: birdnetLiveSessionDetections.slice(),
+            };
+            const db = await openSoundIdSessionDb();
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction('recordings', 'readwrite');
+                    transaction.objectStore('recordings').put(record);
+                    transaction.oncomplete = resolve;
+                    transaction.onerror = () => reject(transaction.error || new Error('BirdNET live session save failed'));
+                });
+            } finally {
+                db.close();
+            }
         }
 
         async function saveSoundIdReturnSession() {
