@@ -130,9 +130,15 @@
             display: grid;
             gap: 7px;
             margin-top: 8px;
+            max-height: min(460px, 60vh);
+            overflow-y: auto;
+            padding-right: 3px;
         }
         .sound-id-session-card {
             width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             padding: 9px 10px;
             border: 1px solid #d9def5;
             border-radius: 7px;
@@ -142,8 +148,20 @@
             cursor: pointer;
         }
         .sound-id-session-card.selected { border-color: #1a8f4a; background: #f1fff6; }
+        .sound-id-session-info { flex: 1 1 auto; min-width: 0; }
         .sound-id-session-main { font-weight: 700; color: #333; }
         .sound-id-session-meta { margin-top: 3px; color: #666; font-size: 0.78em; line-height: 1.4; }
+        .sound-id-session-delete {
+            flex: 0 0 auto;
+            border: 1px solid #d8a0a0;
+            border-radius: 5px;
+            background: #fff;
+            color: #9b3d3d;
+            padding: 4px 7px;
+            font-size: 0.82em;
+            cursor: pointer;
+        }
+        .sound-id-session-delete:hover { background: #fff1f1; }
         .sound-id-session-placeholder { margin-top: 8px; color: #555; font-size: 0.8em; }
         .about-accordion-item + .about-accordion-item { margin-top: 5px; }
         .about-accordion-heading {
@@ -1817,6 +1835,34 @@
             }
         }
 
+        async function deleteSoundIdSession(index, event) {
+            if (event) event.stopPropagation();
+            const session = soundIdSessionsCache[index];
+            if (!session || !session.sessionId) return;
+            const confirmed = window.confirm(
+                'Delete this saved Sound ID session, including its recording and stored BirdNET detections?'
+            );
+            if (!confirmed) return;
+
+            let db = null;
+            try {
+                db = await openSoundIdSessionDb();
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction('recordings', 'readwrite');
+                    const request = transaction.objectStore('recordings').delete(session.sessionId);
+                    request.onerror = () => reject(request.error || new Error('Sound ID session delete failed'));
+                    transaction.oncomplete = resolve;
+                    transaction.onerror = () => reject(transaction.error || new Error('Sound ID session delete failed'));
+                });
+            } catch (error) {
+                console.error('[Sound ID sessions] delete failed:', error);
+                return;
+            } finally {
+                if (db) db.close();
+            }
+            await loadSoundIdSessions();
+        }
+
         function renderSoundIdSessions(sessions) {
             const status = document.getElementById('soundIdSessionsStatus');
             const list = document.getElementById('soundIdSessionList');
@@ -1835,10 +1881,20 @@
             status.textContent = sessions.length + (sessions.length === 1 ? ' saved session.' : ' saved sessions.');
             sessions.forEach((session, index) => {
                 const best = soundIdSessionBestPrediction(session);
-                const card = document.createElement('button');
-                card.type = 'button';
+                const card = document.createElement('div');
                 card.className = 'sound-id-session-card';
+                card.setAttribute('role', 'button');
+                card.tabIndex = 0;
                 card.addEventListener('click', () => selectSoundIdSession(index));
+                card.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        selectSoundIdSession(index);
+                    }
+                });
+
+                const info = document.createElement('div');
+                info.className = 'sound-id-session-info';
 
                 const main = document.createElement('div');
                 main.className = 'sound-id-session-main';
@@ -1857,7 +1913,17 @@
                     ' · ' + (session.detections || []).length + ' windows' +
                     ' · ' + predictionCount + ' predictions';
 
-                card.append(main, meta);
+                info.append(main, meta);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'sound-id-session-delete';
+                deleteButton.textContent = '🗑';
+                deleteButton.title = 'Delete saved session';
+                deleteButton.setAttribute('aria-label', 'Delete saved Sound ID session');
+                deleteButton.addEventListener('click', (event) => deleteSoundIdSession(index, event));
+
+                card.append(info, deleteButton);
                 list.appendChild(card);
             });
         }
