@@ -163,6 +163,9 @@
         }
         .sound-id-session-delete:hover { background: #fff1f1; }
         .sound-id-session-placeholder { margin-top: 8px; color: #555; font-size: 0.8em; }
+        .sound-id-session-playback-title { font-weight: 700; color: #333; }
+        .sound-id-session-playback-info { margin-top: 3px; color: #555; font-size: 0.8em; }
+        .sound-id-session-playback audio { width: 100%; margin-top: 7px; }
         .about-accordion-item + .about-accordion-item { margin-top: 5px; }
         .about-accordion-heading {
             width: 100%;
@@ -1137,7 +1140,12 @@
             <div class="section-title">Saved Sound ID Sessions</div>
             <div id="soundIdSessionsStatus" class="sound-id-sessions-status">Loading saved sessions…</div>
             <div id="soundIdSessionList" class="sound-id-session-list"></div>
-            <div id="soundIdSessionPlaceholder" class="sound-id-session-placeholder" hidden></div>
+            <div id="soundIdSessionPlaceholder" class="sound-id-session-placeholder sound-id-session-playback" hidden>
+                <div class="sound-id-session-playback-title">Saved Recording</div>
+                <div id="soundIdSessionPlaybackInfo" class="sound-id-session-playback-info"></div>
+                <audio id="soundIdSessionPlaybackAudio" controls preload="metadata"></audio>
+                <div id="soundIdSessionPlaybackStatus" class="sound-id-session-playback-info"></div>
+            </div>
         </div>
         <h1>Bird Sound ID</h1>
         <p class="subtitle">Upload a bird sound or listen live with BirdNET to identify it</p>
@@ -1822,17 +1830,89 @@
             return seconds.toFixed(1) + ' sec';
         }
 
+        let soundIdSelectedSessionId = null;
+        let soundIdSessionPlaybackUrl = null;
+        let soundIdSessionPlaybackRequestId = 0;
+
+        function clearSoundIdSessionPlayback() {
+            soundIdSessionPlaybackRequestId++;
+            const audio = document.getElementById('soundIdSessionPlaybackAudio');
+            if (audio) {
+                audio.pause();
+                audio.removeAttribute('src');
+                audio.load();
+            }
+            if (soundIdSessionPlaybackUrl) {
+                URL.revokeObjectURL(soundIdSessionPlaybackUrl);
+                soundIdSessionPlaybackUrl = null;
+            }
+            const placeholder = document.getElementById('soundIdSessionPlaceholder');
+            const info = document.getElementById('soundIdSessionPlaybackInfo');
+            const status = document.getElementById('soundIdSessionPlaybackStatus');
+            if (placeholder) placeholder.hidden = true;
+            if (info) info.textContent = '';
+            if (status) status.textContent = '';
+        }
+
+        async function loadSoundIdSessionPlayback(sessionId, requestId) {
+            let db = null;
+            try {
+                db = await openSoundIdSessionDb();
+                const session = await new Promise((resolve, reject) => {
+                    const request = db.transaction('recordings', 'readonly')
+                        .objectStore('recordings')
+                        .get(sessionId);
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error || new Error('Sound ID session could not be loaded'));
+                });
+                if (requestId !== soundIdSessionPlaybackRequestId) return;
+                const placeholder = document.getElementById('soundIdSessionPlaceholder');
+                const info = document.getElementById('soundIdSessionPlaybackInfo');
+                const status = document.getElementById('soundIdSessionPlaybackStatus');
+                const audio = document.getElementById('soundIdSessionPlaybackAudio');
+                if (!placeholder || !info || !status || !audio) return;
+                if (!session || !(session.blob instanceof Blob) || !session.blob.size) {
+                    placeholder.hidden = false;
+                    status.textContent = 'Recording unavailable for this session.';
+                    return;
+                }
+                const best = soundIdSessionBestPrediction(session);
+                info.textContent = (best
+                    ? (best.com || best.sci || 'Unknown bird') + ' (' + (best.confidence * 100).toFixed(1) + '%)'
+                    : 'No stored identification') +
+                    ' · ' + soundIdSessionDateTime(session) +
+                    ' · ' + formatSoundIdSessionDuration(session.durationSec);
+                soundIdSessionPlaybackUrl = URL.createObjectURL(session.blob);
+                audio.src = soundIdSessionPlaybackUrl;
+                status.textContent = '';
+                placeholder.hidden = false;
+            } catch (error) {
+                console.error('[Sound ID sessions] playback load failed:', error);
+                const placeholder = document.getElementById('soundIdSessionPlaceholder');
+                const status = document.getElementById('soundIdSessionPlaybackStatus');
+                if (requestId === soundIdSessionPlaybackRequestId && placeholder && status) {
+                    placeholder.hidden = false;
+                    status.textContent = 'Recording unavailable for this session.';
+                }
+            } finally {
+                if (db) db.close();
+            }
+        }
+
         function selectSoundIdSession(index) {
             const session = soundIdSessionsCache[index];
-            if (!session) return;
-            document.querySelectorAll('.sound-id-session-card').forEach((card, cardIndex) => {
-                card.classList.toggle('selected', cardIndex === index);
+            if (!session || !session.sessionId) return;
+            soundIdSelectedSessionId = session.sessionId;
+            document.querySelectorAll('.sound-id-session-card').forEach((card) => {
+                card.classList.toggle('selected', card.dataset.sessionId === session.sessionId);
             });
+            clearSoundIdSessionPlayback();
+            const requestId = soundIdSessionPlaybackRequestId;
             const placeholder = document.getElementById('soundIdSessionPlaceholder');
-            if (placeholder) {
-                placeholder.hidden = false;
-                placeholder.textContent = 'Session selected. Detailed playback and timeline view will be added in a later phase.';
-            }
+            const status = document.getElementById('soundIdSessionPlaybackStatus');
+            if (placeholder) placeholder.hidden = false;
+            if (status) status.textContent = 'Loading recording…';
+            loadSoundIdSessionPlayback(session.sessionId, requestId);
         }
 
         async function deleteSoundIdSession(index, event) {
@@ -1860,6 +1940,10 @@
             } finally {
                 if (db) db.close();
             }
+            if (soundIdSelectedSessionId === session.sessionId) {
+                soundIdSelectedSessionId = null;
+                clearSoundIdSessionPlayback();
+            }
             await loadSoundIdSessions();
         }
 
@@ -1870,9 +1954,8 @@
             if (!status || !list) return;
             soundIdSessionsCache = sessions;
             list.innerHTML = '';
-            if (placeholder) {
+            if (placeholder && !soundIdSelectedSessionId) {
                 placeholder.hidden = true;
-                placeholder.textContent = '';
             }
             if (!sessions.length) {
                 status.textContent = 'No saved Sound ID sessions.';
@@ -1883,6 +1966,8 @@
                 const best = soundIdSessionBestPrediction(session);
                 const card = document.createElement('div');
                 card.className = 'sound-id-session-card';
+                card.dataset.sessionId = session.sessionId || '';
+                card.classList.toggle('selected', card.dataset.sessionId === soundIdSelectedSessionId);
                 card.setAttribute('role', 'button');
                 card.tabIndex = 0;
                 card.addEventListener('click', () => selectSoundIdSession(index));
@@ -1960,6 +2045,11 @@
             panel.classList.toggle('open', open);
             panel.setAttribute('aria-hidden', String(!open));
             button.setAttribute('aria-expanded', String(open));
+            if (!open) {
+                soundIdSelectedSessionId = null;
+                clearSoundIdSessionPlayback();
+                document.querySelectorAll('.sound-id-session-card').forEach((card) => card.classList.remove('selected'));
+            }
             if (open) {
                 loadSoundIdSessions();
                 panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
