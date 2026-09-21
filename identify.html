@@ -198,6 +198,19 @@
         .sound-id-session-playback-title { font-weight: 700; color: #333; }
         .sound-id-session-playback-info { margin-top: 3px; color: #555; font-size: 0.8em; }
         .sound-id-session-playback audio { width: 100%; margin-top: 7px; }
+        .sound-id-session-detections { margin-top: 10px; }
+        .sound-id-session-detections-title { font-weight: 700; color: #333; }
+        .sound-id-session-detections-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 6px;
+            max-height: min(500px, 65vh);
+            overflow-y: auto;
+            padding-right: 3px;
+        }
+        .sound-id-session-window { padding: 7px 8px; border: 1px solid #d9def5; border-radius: 7px; background: #fff; }
+        .sound-id-session-window-title { font-weight: 700; color: #333; font-size: 0.8em; }
+        .sound-id-session-prediction { margin-top: 3px; color: #555; font-size: 0.78em; line-height: 1.35; }
         .about-accordion-item + .about-accordion-item { margin-top: 5px; }
         .about-accordion-heading {
             width: 100%;
@@ -1177,6 +1190,10 @@
                 <div id="soundIdSessionPlaybackInfo" class="sound-id-session-playback-info"></div>
                 <audio id="soundIdSessionPlaybackAudio" controls preload="metadata"></audio>
                 <div id="soundIdSessionPlaybackStatus" class="sound-id-session-playback-info"></div>
+                <div id="soundIdSessionDetections" class="sound-id-session-detections" hidden>
+                    <div class="sound-id-session-detections-title">BirdNET Detections</div>
+                    <div id="soundIdSessionDetectionsList" class="sound-id-session-detections-list"></div>
+                </div>
             </div>
         </div>
         <h1>Bird Sound ID</h1>
@@ -1866,8 +1883,62 @@
         let soundIdSessionPlaybackUrl = null;
         let soundIdSessionPlaybackRequestId = 0;
 
+        function formatSoundIdDetectionTime(seconds) {
+            const value = Number(seconds);
+            if (!Number.isFinite(value)) return '—';
+            const wholeSeconds = Math.max(0, Math.floor(value));
+            const minutes = Math.floor(wholeSeconds / 60);
+            const remaining = String(wholeSeconds % 60).padStart(2, '0');
+            return minutes + ':' + remaining;
+        }
+
+        function renderSoundIdSessionDetections(session) {
+            const section = document.getElementById('soundIdSessionDetections');
+            const list = document.getElementById('soundIdSessionDetectionsList');
+            if (!section || !list) return;
+            list.innerHTML = '';
+            const detections = (session && Array.isArray(session.detections)) ? session.detections : [];
+            if (!detections.length) {
+                const message = document.createElement('div');
+                message.className = 'sound-id-session-playback-info';
+                message.textContent = 'No BirdNET detections were stored for this session.';
+                list.appendChild(message);
+                section.hidden = false;
+                return;
+            }
+            detections.forEach((detection, index) => {
+                const window = document.createElement('div');
+                window.className = 'sound-id-session-window';
+                const title = document.createElement('div');
+                title.className = 'sound-id-session-window-title';
+                const windowNumber = Number.isFinite(Number(detection.windowIndex))
+                    ? Number(detection.windowIndex) + 1
+                    : index + 1;
+                title.textContent = 'Window ' + windowNumber + ' · ' +
+                    formatSoundIdDetectionTime(detection.windowStartSec) + ' – ' +
+                    formatSoundIdDetectionTime(detection.windowEndSec);
+                window.appendChild(title);
+                (detection.predictions || []).forEach((prediction) => {
+                    const row = document.createElement('div');
+                    row.className = 'sound-id-session-prediction';
+                    const name = prediction.com || prediction.sci || 'Unknown bird';
+                    const confidence = typeof prediction.confidence === 'number'
+                        ? (prediction.confidence * 100).toFixed(1) + '%'
+                        : '—';
+                    row.textContent = String(prediction.rank) + '. ' + name + ' — ' + confidence;
+                    window.appendChild(row);
+                });
+                list.appendChild(window);
+            });
+            section.hidden = false;
+        }
+
         function clearSoundIdSessionPlayback() {
             soundIdSessionPlaybackRequestId++;
+            const detections = document.getElementById('soundIdSessionDetections');
+            const detectionList = document.getElementById('soundIdSessionDetectionsList');
+            if (detections) detections.hidden = true;
+            if (detectionList) detectionList.innerHTML = '';
             const audio = document.getElementById('soundIdSessionPlaybackAudio');
             if (audio) {
                 audio.pause();
@@ -1903,7 +1974,13 @@
                 const status = document.getElementById('soundIdSessionPlaybackStatus');
                 const audio = document.getElementById('soundIdSessionPlaybackAudio');
                 if (!placeholder || !info || !status || !audio) return;
-                if (!session || !(session.blob instanceof Blob) || !session.blob.size) {
+                if (!session) {
+                    placeholder.hidden = false;
+                    status.textContent = 'Recording unavailable for this session.';
+                    return;
+                }
+                renderSoundIdSessionDetections(session);
+                if (!(session.blob instanceof Blob) || !session.blob.size) {
                     placeholder.hidden = false;
                     status.textContent = 'Recording unavailable for this session.';
                     return;
