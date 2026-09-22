@@ -4077,6 +4077,39 @@
             };
         }
 
+        function selectBirdNetUploadCandidates(ranking, enrichedRows) {
+            const settings = getBirdSoundSettings();
+            if (!settings || settings.uncommonSpecies === 'normal') {
+                return selectBirdNetNormalCandidates(ranking);
+            }
+            const diagnosticsByScientificName = new Map((enrichedRows || [])
+                .filter((row) => row && row.scientificName)
+                .map((row) => [String(row.scientificName).trim().toLowerCase().replace(/\s+/g, ' '), row]));
+            const allRows = (ranking && ranking.rows) || [];
+            const visibleRows = allRows.filter((row) => {
+                const record = row.record || {};
+                const diagnostic = diagnosticsByScientificName.get(
+                    String(record.sci || '').trim().toLowerCase().replace(/\s+/g, ' ')
+                );
+                if (!diagnostic) return false;
+                return shouldDisplayBirdNetResult({
+                    score: Number(row.acoustic_score ?? record.bestScore) * 100,
+                    _birdnet: {
+                        geographicSemantics: diagnostic.geographicSemantics,
+                        displayEligibility: diagnostic.displayEligibility,
+                    },
+                });
+            });
+            const visibleSet = new Set(visibleRows);
+            return {
+                allRows,
+                visibleRows,
+                filteredRows: allRows.filter((row) => !visibleSet.has(row)),
+                visibleRanking: { ...ranking, rows: visibleRows },
+                geographicFilteredCount: allRows.length - visibleRows.length,
+            };
+        }
+
         function refreshBirdNetVisibility() {
             if (!birdnetLiveLastRanking) return;
             const selection = selectBirdNetNormalCandidates(birdnetLiveLastRanking);
@@ -5511,9 +5544,9 @@
                 recordingMetadata: birdnetUploadSession.recordingMetadata,
                 audioInfo: uploadAudioInfo,
             });
-            const selection = selectBirdNetNormalCandidates(ranking);
             const diagnostics = birdnetProductionDiagnosticRows(ranking, candidateAggregator.getAll());
             const diagnosticsWithSabap2 = await enrichDiagnosticRowsWithSabap2Evidence(diagnostics, 'upload');
+            const selection = selectBirdNetUploadCandidates(ranking, diagnosticsWithSabap2);
             console.log('[BirdNET upload][final retained candidates]', diagnosticsWithSabap2);
             console.table(birdnetProductionDiagnosticTableRows(diagnosticsWithSabap2));
             console.table(birdnetProductionGeographicSummaryRows(diagnosticsWithSabap2));
