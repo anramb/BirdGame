@@ -1050,7 +1050,7 @@
             width: 100%;
             height: 60px;
             border-radius: 6px;
-            background: #1a1a2e;
+            background: #fff;
             margin-top: 6px;
         }
 
@@ -2492,7 +2492,7 @@
             liveCanvas.width = liveCanvas.clientWidth || 400;
             liveCanvas.height = 60;
             liveSpectroCtx = liveCanvas.getContext('2d');
-            liveSpectroCtx.fillStyle = '#1a1a2e';
+            liveSpectroCtx.fillStyle = '#fff';
             liveSpectroCtx.fillRect(0, 0, liveCanvas.width, liveCanvas.height);
             liveSpectroX = 0;
             startLiveSpectrogram();
@@ -7206,24 +7206,22 @@
                 analyser.getByteFrequencyData(freqData);
 
                 // Draw one column of spectrogram
-                var maxBin = Math.min(Math.floor(bufLen * 12000 / (recorder.audioContext.sampleRate / 2)), bufLen);
+                var maxBin = Math.min(Math.floor(bufLen * 16000 / (recorder.audioContext.sampleRate / 2)), bufLen);
                 for (var y = 0; y < h; y++) {
                     var binIdx = Math.floor((1 - y / h) * maxBin);
                     var val = freqData[Math.min(binIdx, bufLen - 1)] / 255;
-                    var r = Math.floor(val * val * 255);
-                    var g = Math.floor(val * 200 + 20);
-                    var b = Math.floor((1 - val) * 40 + 15);
-                    liveSpectroCtx.fillStyle = val > 0.1 ? 'rgb('+r+','+g+','+b+')' : '#1a1a2e';
+                    var gray = 255 - Math.round(val * 255);
+                    liveSpectroCtx.fillStyle = 'rgb('+gray+','+gray+','+gray+')';
                     liveSpectroCtx.fillRect(liveSpectroX, y, 1, 1);
                 }
                 liveSpectroX++;
                 if (liveSpectroX >= canvas.width) {
                     liveSpectroX = 0;
-                    liveSpectroCtx.fillStyle = '#1a1a2e';
+                    liveSpectroCtx.fillStyle = '#fff';
                     liveSpectroCtx.fillRect(0, 0, canvas.width, h);
                 }
                 // Draw position marker
-                liveSpectroCtx.fillStyle = '#fff';
+                liveSpectroCtx.fillStyle = '#555';
                 liveSpectroCtx.fillRect(liveSpectroX, 0, 1, h);
 
                 requestAnimationFrame(drawColumn);
