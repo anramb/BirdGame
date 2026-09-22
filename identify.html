@@ -4163,7 +4163,7 @@
             canvas.width = canvas.clientWidth || 400;
             canvas.height = 60;
             liveSpectroCtx = canvas.getContext('2d');
-            liveSpectroCtx.fillStyle = '#1a1a2e';
+            liveSpectroCtx.fillStyle = '#fff';
             liveSpectroCtx.fillRect(0, 0, canvas.width, canvas.height);
             liveSpectroX = 0;
 
@@ -4174,25 +4174,23 @@
                 if (!birdnetLiveActive || runId !== birdnetLiveRunId || !recorderForDisplay.analyserNode) return;
                 analyser.getByteFrequencyData(freqData);
                 const maxBin = Math.min(
-                    Math.floor(freqData.length * 12000 / (recorderForDisplay.audioContext.sampleRate / 2)),
+                    Math.floor(freqData.length * 16000 / (recorderForDisplay.audioContext.sampleRate / 2)),
                     freqData.length
                 );
                 for (let y = 0; y < height; y++) {
                     const bin = Math.floor((1 - y / height) * maxBin);
                     const value = freqData[Math.min(bin, freqData.length - 1)] / 255;
-                    const r = Math.floor(value * value * 255);
-                    const g = Math.floor(value * 200 + 20);
-                    const b = Math.floor((1 - value) * 40 + 15);
-                    liveSpectroCtx.fillStyle = value > 0.1 ? `rgb(${r},${g},${b})` : '#1a1a2e';
+                    const gray = 255 - Math.round(value * 255);
+                    liveSpectroCtx.fillStyle = `rgb(${gray},${gray},${gray})`;
                     liveSpectroCtx.fillRect(liveSpectroX, y, 1, 1);
                 }
                 liveSpectroX++;
                 if (liveSpectroX >= canvas.width) {
                     liveSpectroX = 0;
-                    liveSpectroCtx.fillStyle = '#1a1a2e';
+                    liveSpectroCtx.fillStyle = '#fff';
                     liveSpectroCtx.fillRect(0, 0, canvas.width, height);
                 }
-                liveSpectroCtx.fillStyle = '#fff';
+                liveSpectroCtx.fillStyle = '#555';
                 liveSpectroCtx.fillRect(liveSpectroX, 0, 1, height);
                 birdnetLiveSpectroFrame = requestAnimationFrame(drawColumn);
             };
