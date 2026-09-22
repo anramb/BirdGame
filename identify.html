@@ -4320,6 +4320,23 @@
                     source: 'live_device_gps',
                 };
             }
+            if (source === 'live') {
+                const locationType = birdSoundSettings &&
+                    (birdSoundSettings.recordingLocation === 'province' || birdSoundSettings.recordingLocation === 'country')
+                    ? birdSoundSettings.recordingLocation
+                    : 'unknown';
+                return {
+                    inputMode: 'record',
+                    recordingLocationType: locationType,
+                    recordingLatitude: null,
+                    recordingLongitude: null,
+                    recordingProvince: locationType === 'province' ? birdSoundSettings.province : null,
+                    recordingCountry: locationType === 'country' ? birdSoundSettings.country : null,
+                    recordingDate: null,
+                    recordingMonth: null,
+                    source: 'unavailable',
+                };
+            }
             return {
                 inputMode: source,
                 recordingLocationType: 'unknown',
