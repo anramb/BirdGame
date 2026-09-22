@@ -4170,28 +4170,49 @@
             const analyser = recorderForDisplay.analyserNode;
             const freqData = new Uint8Array(analyser.frequencyBinCount);
             const height = canvas.height;
+            const visibleDurationSec = 10;
+            const columnsPerSecond = canvas.width / visibleDurationSec;
+            let lastAudioTime = recorderForDisplay.audioContext.currentTime;
+            let columnRemainder = 0;
             const drawColumn = () => {
                 if (!birdnetLiveActive || runId !== birdnetLiveRunId || !recorderForDisplay.analyserNode) return;
-                analyser.getByteFrequencyData(freqData);
-                const maxBin = Math.min(
-                    Math.floor(freqData.length * 16000 / (recorderForDisplay.audioContext.sampleRate / 2)),
-                    freqData.length
-                );
-                for (let y = 0; y < height; y++) {
-                    const bin = Math.floor((1 - y / height) * maxBin);
-                    const value = freqData[Math.min(bin, freqData.length - 1)] / 255;
-                    const gray = 255 - Math.round(value * 255);
-                    liveSpectroCtx.fillStyle = `rgb(${gray},${gray},${gray})`;
-                    liveSpectroCtx.fillRect(liveSpectroX, y, 1, 1);
+                const audioTime = recorderForDisplay.audioContext.currentTime;
+                const elapsedAudioSec = Math.max(0, audioTime - lastAudioTime);
+                lastAudioTime = audioTime;
+                columnRemainder += elapsedAudioSec * columnsPerSecond;
+                const columnsToDraw = Math.floor(columnRemainder);
+                columnRemainder -= columnsToDraw;
+
+                if (columnsToDraw > 0) {
+                    analyser.getByteFrequencyData(freqData);
+                    const maxBin = Math.min(
+                        Math.floor(freqData.length * 16000 / (recorderForDisplay.audioContext.sampleRate / 2)),
+                        freqData.length
+                    );
+                    const columns = Math.min(columnsToDraw, canvas.width);
+                    if (columns >= canvas.width) {
+                        liveSpectroCtx.fillStyle = '#fff';
+                        liveSpectroCtx.fillRect(0, 0, canvas.width, height);
+                        columnRemainder = 0;
+                    } else {
+                        liveSpectroCtx.drawImage(canvas, -columns, 0);
+                        liveSpectroCtx.fillStyle = '#fff';
+                        liveSpectroCtx.fillRect(canvas.width - columns, 0, columns, height);
+                    }
+                    for (let column = 0; column < columns; column++) {
+                        const x = canvas.width - columns + column;
+                        for (let y = 0; y < height; y++) {
+                            const bin = Math.floor((1 - y / height) * maxBin);
+                            const value = freqData[Math.min(bin, freqData.length - 1)] / 255;
+                            const gray = 255 - Math.round(value * 255);
+                            liveSpectroCtx.fillStyle = `rgb(${gray},${gray},${gray})`;
+                            liveSpectroCtx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                    liveSpectroX = canvas.width - 1;
+                    liveSpectroCtx.fillStyle = '#555';
+                    liveSpectroCtx.fillRect(liveSpectroX, 0, 1, height);
                 }
-                liveSpectroX++;
-                if (liveSpectroX >= canvas.width) {
-                    liveSpectroX = 0;
-                    liveSpectroCtx.fillStyle = '#fff';
-                    liveSpectroCtx.fillRect(0, 0, canvas.width, height);
-                }
-                liveSpectroCtx.fillStyle = '#555';
-                liveSpectroCtx.fillRect(liveSpectroX, 0, 1, height);
                 birdnetLiveSpectroFrame = requestAnimationFrame(drawColumn);
             };
             drawColumn();
