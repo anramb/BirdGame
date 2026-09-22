@@ -4168,54 +4168,51 @@
             liveSpectroX = 0;
 
             const analyser = recorderForDisplay.analyserNode;
-            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            const analyserData = new Float32Array(analyser.frequencyBinCount);
             const height = canvas.height;
-            const visibleDurationSec = 10;
-            const columnsPerSecond = canvas.width / visibleDurationSec;
-            let lastAudioTime = recorderForDisplay.audioContext.currentTime;
-            let columnRemainder = 0;
-            const drawColumn = () => {
-                if (!birdnetLiveActive || runId !== birdnetLiveRunId || !recorderForDisplay.analyserNode) return;
-                const audioTime = recorderForDisplay.audioContext.currentTime;
-                const elapsedAudioSec = Math.max(0, audioTime - lastAudioTime);
-                lastAudioTime = audioTime;
-                columnRemainder += elapsedAudioSec * columnsPerSecond;
-                const columnsToDraw = Math.floor(columnRemainder);
-                columnRemainder -= columnsToDraw;
+            const width = canvas.width;
+            const freqMax = 12000;
+            const hzPerBin = recorderForDisplay.audioContext.sampleRate / analyser.fftSize;
+            const maxBin = Math.min(Math.floor(freqMax / hzPerBin), analyser.frequencyBinCount - 1);
+            const LIVE_COL_INTERVAL_MS = 50;
+            let lastColumnTime = 0;
+            const imageData = liveSpectroCtx.createImageData(width, height);
+            imageData.data.fill(255);
 
-                if (columnsToDraw > 0) {
-                    analyser.getByteFrequencyData(freqData);
-                    const maxBin = Math.min(
-                        Math.floor(freqData.length * 16000 / (recorderForDisplay.audioContext.sampleRate / 2)),
-                        freqData.length
-                    );
-                    const columns = Math.min(columnsToDraw, canvas.width);
-                    if (columns >= canvas.width) {
-                        liveSpectroCtx.fillStyle = '#fff';
-                        liveSpectroCtx.fillRect(0, 0, canvas.width, height);
-                        columnRemainder = 0;
-                    } else {
-                        liveSpectroCtx.drawImage(canvas, -columns, 0);
-                        liveSpectroCtx.fillStyle = '#fff';
-                        liveSpectroCtx.fillRect(canvas.width - columns, 0, columns, height);
-                    }
-                    for (let column = 0; column < columns; column++) {
-                        const x = canvas.width - columns + column;
-                        for (let y = 0; y < height; y++) {
-                            const bin = Math.floor((1 - y / height) * maxBin);
-                            const value = freqData[Math.min(bin, freqData.length - 1)] / 255;
-                            const gray = 255 - Math.round(value * 255);
-                            liveSpectroCtx.fillStyle = `rgb(${gray},${gray},${gray})`;
-                            liveSpectroCtx.fillRect(x, y, 1, 1);
-                        }
-                    }
-                    liveSpectroX = canvas.width - 1;
-                    liveSpectroCtx.fillStyle = '#555';
-                    liveSpectroCtx.fillRect(liveSpectroX, 0, 1, height);
-                }
+            const drawColumn = (now) => {
+                if (!birdnetLiveActive || runId !== birdnetLiveRunId || !recorderForDisplay.analyserNode) return;
                 birdnetLiveSpectroFrame = requestAnimationFrame(drawColumn);
+                if (now - lastColumnTime < LIVE_COL_INTERVAL_MS) return;
+                lastColumnTime = now;
+
+                analyser.getFloatFrequencyData(analyserData);
+                const column = new Uint8Array(height);
+                for (let y = 0; y < height; y++) {
+                    const bin = Math.round((1 - y / height) * maxBin);
+                    const db = analyserData[Math.min(bin, analyser.frequencyBinCount - 1)];
+                    const norm = Math.max(0, Math.min(1, (db - (-100)) / ((-20) - (-100))));
+                    const gamma = Math.pow(norm, 0.6);
+                    column[y] = Math.round(gamma * 255);
+                    const gray = 255 - column[y];
+                    const pixel = (y * width + liveSpectroX) * 4;
+                    imageData.data[pixel] = gray;
+                    imageData.data[pixel + 1] = gray;
+                    imageData.data[pixel + 2] = gray;
+                    imageData.data[pixel + 3] = 255;
+                }
+
+                const nextX = (liveSpectroX + 1) % width;
+                for (let y = 0; y < height; y++) {
+                    const pixel = (y * width + nextX) * 4;
+                    imageData.data[pixel] = 200;
+                    imageData.data[pixel + 1] = 200;
+                    imageData.data[pixel + 2] = 200;
+                    imageData.data[pixel + 3] = 255;
+                }
+                liveSpectroCtx.putImageData(imageData, 0, 0);
+                liveSpectroX = nextX;
             };
-            drawColumn();
+            birdnetLiveSpectroFrame = requestAnimationFrame(drawColumn);
         }
 
         function stopBirdNetLiveSpectrogram() {
