@@ -196,6 +196,17 @@
             cursor: pointer;
         }
         .sound-id-session-delete:hover { background: #fff1f1; }
+        .sound-id-session-download {
+            flex: 0 0 auto;
+            border: 1px solid #9bbfa7;
+            border-radius: 5px;
+            background: #fff;
+            color: #1a8f4a;
+            padding: 4px 7px;
+            font-size: 0.82em;
+            cursor: pointer;
+        }
+        .sound-id-session-download:hover { background: #f1fff6; }
         .sound-id-session-placeholder { margin-top: 8px; color: #555; font-size: 0.8em; }
         .sound-id-session-playback-title { font-weight: 700; color: #333; }
         .sound-id-session-playback-info { margin-top: 3px; color: #555; font-size: 0.8em; }
@@ -1282,6 +1293,12 @@
                         </select>
                     </label>
                     <button type="button" id="uploadRecordingGpsBtn" onclick="useCurrentLocationForUploadedRecording()" style="display:none; font-size:0.75em; padding:5px 8px; margin-bottom:6px;">Confirm current location</button>
+                    <label id="uploadRecordingCountryRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
+                        Country
+                        <select id="uploadRecordingCountry" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
+                            <option value="ZA">South Africa</option><option value="NA">Namibia</option><option value="BW">Botswana</option><option value="ZW">Zimbabwe</option><option value="ZM">Zambia</option><option value="MZ">Mozambique</option><option value="MW">Malawi</option><option value="LS">Lesotho</option><option value="SZ">Eswatini</option>
+                        </select>
+                    </label>
                     <label id="uploadRecordingProvinceRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
                         Province
                         <select id="uploadRecordingProvince" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
@@ -1301,12 +1318,6 @@
                         <input id="uploadRecordingPentad" type="text" pattern="[0-9]{4}_[0-9]{4}" placeholder="Optional, e.g. 2505_2835" onchange="updateUploadedRecordingPentadInput()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
                     </label>
                     <div id="uploadRecordingCoordinatePentadNote" style="font-size:0.72em; color:#777; margin:-2px 0 6px;"></div>
-                    <label id="uploadRecordingCountryRow" style="display:none; font-size:0.78em; color:#555; margin-bottom:6px;">
-                        Country
-                        <select id="uploadRecordingCountry" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px;">
-                            <option value="ZA">South Africa</option><option value="NA">Namibia</option><option value="BW">Botswana</option><option value="ZW">Zimbabwe</option><option value="ZM">Zambia</option><option value="MZ">Mozambique</option><option value="MW">Malawi</option><option value="LS">Lesotho</option><option value="SZ">Eswatini</option>
-                        </select>
-                    </label>
                     <label style="display:block; font-size:0.78em; color:#555; margin-bottom:6px;">
                         When was this recording made?
                         <input type="date" id="uploadRecordingDate" onchange="updateUploadedRecordingMetadata()" style="width:100%; margin-top:3px; padding:5px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
@@ -2137,6 +2148,33 @@
             loadSoundIdSessionPlayback(session.sessionId, requestId);
         }
 
+        function soundIdSessionDownloadFilename(session) {
+            const existing = String(session && session.fileName || '').trim();
+            if (existing) return existing;
+            const date = new Date(session && (session.recordingTimestamp || session.createdAt));
+            const stamp = Number.isNaN(date.getTime())
+                ? String(session && session.sessionId || Date.now())
+                : date.toISOString().replace(/[:.]/g, '-');
+            const mimeType = String(session && session.mimeType || session && session.blob && session.blob.type || '').toLowerCase();
+            const extension = mimeType.split('/')[1] ? mimeType.split('/')[1].split(';')[0] : 'webm';
+            return 'ChirpCoach_Session_' + stamp + '.' + (extension || 'webm');
+        }
+
+        function downloadSoundIdSession(index, event) {
+            if (event) event.stopPropagation();
+            const session = soundIdSessionsCache[index];
+            if (!session || !(session.blob instanceof Blob) || !session.blob.size) {
+                console.warn('[Sound ID sessions] download unavailable for session:', session && session.sessionId);
+                return;
+            }
+            const url = URL.createObjectURL(session.blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = soundIdSessionDownloadFilename(session);
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
         async function deleteSoundIdSession(index, event) {
             if (event) event.stopPropagation();
             const session = soundIdSessionsCache[index];
@@ -2224,6 +2262,14 @@
 
                 info.append(main, meta);
 
+                const downloadButton = document.createElement('button');
+                downloadButton.type = 'button';
+                downloadButton.className = 'sound-id-session-download';
+                downloadButton.textContent = 'Download';
+                downloadButton.title = 'Download saved recording';
+                downloadButton.setAttribute('aria-label', 'Download saved Sound ID recording');
+                downloadButton.addEventListener('click', (event) => downloadSoundIdSession(index, event));
+
                 const deleteButton = document.createElement('button');
                 deleteButton.type = 'button';
                 deleteButton.className = 'sound-id-session-delete';
@@ -2232,7 +2278,7 @@
                 deleteButton.setAttribute('aria-label', 'Delete saved Sound ID session');
                 deleteButton.addEventListener('click', (event) => deleteSoundIdSession(index, event));
 
-                card.append(info, deleteButton);
+                card.append(info, downloadButton, deleteButton);
                 list.appendChild(card);
             });
         }
@@ -3607,6 +3653,7 @@
             userAudioSource = file;
             soundIdRecordingTimestamp = new Date().toISOString();
             uploadRecordingPentadInputMode = 'none';
+            document.getElementById('uploadRecordingPentad').value = '';
             birdnetUploadSession = {
                 inputMode: 'upload',
                 recordingMetadata: defaultUploadRecordingMetadata(),
@@ -4042,7 +4089,7 @@
             return defaultRanking;
         }
 
-        function selectBirdNetNormalCandidates(ranking, applyCountryNormal) {
+        function selectBirdNetNormalCandidates(ranking, applyCountryFilter) {
             const allRows = (ranking && ranking.rows) || [];
             const diagnosticRows = diagnosticRankingRows(ranking);
             const visibility = BirdNetVisibility.selectRows(diagnosticRows, birdSoundSettings);
@@ -4052,12 +4099,12 @@
                     .filter(({ row }) => visibility.visibleRows.includes(row))
                     .map(({ index }) => index)
             );
-            const countryNormal = applyCountryNormal &&
+            const countryFilterActive = applyCountryFilter &&
                 birdSoundSettings.recordingLocation === 'country' &&
-                birdSoundSettings.uncommonSpecies === 'normal';
+                ['light', 'normal', 'strict'].includes(birdSoundSettings.uncommonSpecies);
             const displayVisibleIndexes = new Set(
                 [...visibleIndexes].filter((index) => {
-                    if (countryNormal && !BirdNetVisibility.selectedLocationEvidence(diagnosticRows[index], birdSoundSettings)) {
+                    if (countryFilterActive && !BirdNetVisibility.selectedLocationEvidence(diagnosticRows[index], birdSoundSettings)) {
                         return false;
                     }
                     return diagnosticRows[index].geographicClassification !== 'GEOGRAPHICALLY_UNCERTAIN';
