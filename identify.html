@@ -4042,7 +4042,7 @@
             return defaultRanking;
         }
 
-        function selectBirdNetNormalCandidates(ranking) {
+        function selectBirdNetNormalCandidates(ranking, applyCountryNormal) {
             const allRows = (ranking && ranking.rows) || [];
             const diagnosticRows = diagnosticRankingRows(ranking);
             const visibility = BirdNetVisibility.selectRows(diagnosticRows, birdSoundSettings);
@@ -4052,8 +4052,16 @@
                     .filter(({ row }) => visibility.visibleRows.includes(row))
                     .map(({ index }) => index)
             );
+            const countryNormal = applyCountryNormal &&
+                birdSoundSettings.recordingLocation === 'country' &&
+                birdSoundSettings.uncommonSpecies === 'normal';
             const displayVisibleIndexes = new Set(
-                [...visibleIndexes].filter((index) => diagnosticRows[index].geographicClassification !== 'GEOGRAPHICALLY_UNCERTAIN')
+                [...visibleIndexes].filter((index) => {
+                    if (countryNormal && !BirdNetVisibility.selectedLocationEvidence(diagnosticRows[index], birdSoundSettings)) {
+                        return false;
+                    }
+                    return diagnosticRows[index].geographicClassification !== 'GEOGRAPHICALLY_UNCERTAIN';
+                })
             );
             const visibleRows = allRows.filter((row, index) => displayVisibleIndexes.has(index));
             const filteredRows = allRows.filter((row, index) => !displayVisibleIndexes.has(index));
@@ -4112,7 +4120,8 @@
 
         function refreshBirdNetVisibility() {
             if (!birdnetLiveLastRanking) return;
-            const selection = selectBirdNetNormalCandidates(birdnetLiveLastRanking);
+            const applyCountryNormal = birdnetLiveActive || !birdnetUploadSession || birdnetUploadSession.inputMode !== 'upload';
+            const selection = selectBirdNetNormalCandidates(birdnetLiveLastRanking, applyCountryNormal);
             const result = birdnetRankingToLegacyResult(selection.visibleRanking, birdnetLiveLastAudioInfo || {});
             showQualityAssessment(result.quality);
             mergeIdentifyOnlyResults(result);
@@ -4139,7 +4148,7 @@
             if (!accumulator || (runId != null && runId !== birdnetLiveRunId)) return null;
             const ranking = existingRanking || rankBirdNetProductionRecords(accumulator);
             birdnetLiveLastAudioInfo = audioInfo || {};
-            const selection = selectBirdNetNormalCandidates(ranking);
+            const selection = selectBirdNetNormalCandidates(ranking, true);
             const result = birdnetRankingToLegacyResult(selection.visibleRanking, audioInfo);
             result._livePresentation = {
                 active: true,
