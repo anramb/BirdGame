@@ -5935,7 +5935,10 @@
             }
             finishBirdNetSegment();
             const audio = new Audio(userAudioURL);
-            const segmentEnd = start + 3;
+            const detectionEnd = start + 3;
+            const detectionCenter = (start + detectionEnd) / 2;
+            let segmentStart = detectionCenter - 3;
+            let segmentEnd = detectionCenter + 3;
             activeBirdNetSegmentAudio = audio;
             const stopButton = document.getElementById('birdNetSegmentStop');
             if (stopButton) stopButton.style.display = 'inline-flex';
@@ -5945,11 +5948,25 @@
             audio.onended = finishBirdNetSegment;
             audio.onerror = finishBirdNetSegment;
             const startPlayback = () => {
-                if (!activeBirdNetSegmentAudio || audio.duration <= start) {
+                const duration = Number(audio.duration);
+                if (!activeBirdNetSegmentAudio || !Number.isFinite(duration) || duration <= start) {
                     finishBirdNetSegment();
                     return;
                 }
-                audio.currentTime = start;
+                if (duration <= 6) {
+                    segmentStart = 0;
+                    segmentEnd = duration;
+                } else {
+                    if (segmentStart < 0) {
+                        segmentStart = 0;
+                        segmentEnd = Math.min(duration, 6);
+                    }
+                    if (segmentEnd > duration) {
+                        segmentEnd = duration;
+                        segmentStart = Math.max(0, duration - 6);
+                    }
+                }
+                audio.currentTime = segmentStart;
                 audio.play().catch(() => finishBirdNetSegment());
             };
             audio.onloadedmetadata = startPlayback;
