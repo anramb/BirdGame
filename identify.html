@@ -2255,7 +2255,8 @@
                     (total, detection) => total + (detection.predictions || []).length,
                     0
                 );
-                meta.textContent = soundIdSessionDateTime(session) +
+                const sourceLabel = session.sourceType === 'upload' ? 'UPLOADED' : 'RECORDED';
+                meta.textContent = sourceLabel + ' · ' + soundIdSessionDateTime(session) +
                     ' · ' + formatSoundIdSessionDuration(session.durationSec) +
                     ' · ' + (session.detections || []).length + ' windows' +
                     ' · ' + predictionCount + ' predictions';
@@ -5553,6 +5554,7 @@
             let windowsDropped = 0;
             let sampleRate = 0;
             let duration = 0;
+            const uploadSessionDetections = [];
 
             ensureGeoContext().catch((err) => {
                 console.warn('[BirdNET upload] Geo unavailable; continuing:', err);
@@ -5560,6 +5562,21 @@
             processor.onWindowResult = (topN, windowInfo) => {
                 windowsCompleted++;
                 sampleRate = windowInfo.sampleRate;
+                uploadSessionDetections.push({
+                    windowIndex: windowInfo.windowIndex,
+                    windowStartSec: windowInfo.windowStartSec,
+                    windowEndSec: windowInfo.windowEndSec,
+                    windowDurationSec: windowInfo.windowDurationSec,
+                    sampleRate: windowInfo.sampleRate,
+                    predictions: (topN || []).map((prediction) => ({
+                        rank: prediction.rank,
+                        idx: prediction.idx,
+                        id: prediction.id,
+                        sci: prediction.sci,
+                        com: prediction.com,
+                        confidence: prediction.confidence,
+                    })),
+                });
                 const evidenceByKey = enrichBirdNetCandidates(topN);
                 const evidence = evidenceByKey.get(productionCandidateKey(topN[0])) || null;
                 accumulator.addWindowResult(topN, windowInfo, evidence);
@@ -5628,6 +5645,11 @@
                 candidateRecords: candidateAggregator.getAll(),
                 audioInfo: uploadAudioInfo,
             };
+            try {
+                await persistBirdnetUploadedSession(file, duration, uploadSessionDetections, birdnetUploadSession.recordingMetadata);
+            } catch (error) {
+                console.error('[BirdNET upload session] persistence failed:', error);
+            }
             console.log('[BirdNET upload][session retained]', {
                 candidateCount: birdnetUploadSession.candidateRecords.length,
                 recordingMetadata: birdnetUploadSession.recordingMetadata,
@@ -6234,6 +6256,37 @@
                     transaction.objectStore('recordings').put(record);
                     transaction.oncomplete = resolve;
                     transaction.onerror = () => reject(transaction.error || new Error('BirdNET live session save failed'));
+                });
+            } finally {
+                db.close();
+            }
+        }
+
+        async function persistBirdnetUploadedSession(file, duration, detections, recordingMetadata) {
+            if (!file) return;
+            const sessionId = crypto.randomUUID
+                ? crypto.randomUUID()
+                : 'sound-id-upload-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            const record = {
+                sessionId,
+                blob: file,
+                sessionType: 'sound-id',
+                sourceType: 'upload',
+                createdAt: Date.now(),
+                recordingTimestamp: soundIdRecordingTimestamp || new Date().toISOString(),
+                durationSec: Number.isFinite(Number(duration)) ? Number(duration) : null,
+                mimeType: file.type || null,
+                fileName: file.name || null,
+                recordingMetadata: recordingMetadata || null,
+                detections: detections.slice(),
+            };
+            const db = await openSoundIdSessionDb();
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction('recordings', 'readwrite');
+                    transaction.objectStore('recordings').put(record);
+                    transaction.oncomplete = resolve;
+                    transaction.onerror = () => reject(transaction.error || new Error('BirdNET upload session save failed'));
                 });
             } finally {
                 db.close();
