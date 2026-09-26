@@ -5976,7 +5976,7 @@
             audio.onerror = finishBirdNetSegment;
             const startPlayback = () => {
                 const duration = Number(audio.duration);
-                if (!activeBirdNetSegmentAudio || !Number.isFinite(duration) || duration <= start) {
+                if (!activeBirdNetSegmentAudio || (Number.isFinite(duration) && duration <= segmentStart)) {
                     finishBirdNetSegment();
                     return;
                 }
