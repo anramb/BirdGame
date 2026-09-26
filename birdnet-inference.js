@@ -142,7 +142,7 @@
     console.log("[BIRDNET DEBUG] ensureOrtLoaded() begin");
     const configureOrtWasmPath = () => {
       if (window.ort && window.ort.env && window.ort.env.wasm) {
-        window.ort.env.wasm.wasmPaths = "models/onnxruntime/";
+        window.ort.env.wasm.wasmPaths = "https://anramb.github.io/BirdGame/models/onnxruntime/";
         console.log("[BIRDNET DEBUG] ORT wasmPaths configured", window.ort.env.wasm.wasmPaths);
       } else {
         console.error("[BIRDNET DEBUG] ORT wasmPaths could not be configured: window.ort.env.wasm unavailable");
