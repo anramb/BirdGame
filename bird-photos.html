@@ -356,6 +356,12 @@
         }
 
         function playReference(path, button) {
+            if (currentAudio && button && button.textContent === '■ Stop') {
+                currentAudio.pause();
+                currentAudio = null;
+                button.textContent = '▶ Reference';
+                return;
+            }
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
