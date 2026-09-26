@@ -131,13 +131,24 @@
   // ---------------------------------------------------------------------
   let ortLoadingPromise = null;
   function ensureOrtLoaded() {
-    if (typeof window.ort !== "undefined") return Promise.resolve();
+    const configureOrtWasmPath = () => {
+      if (window.ort && window.ort.env && window.ort.env.wasm) {
+        window.ort.env.wasm.wasmPaths = "models/onnxruntime/";
+      }
+    };
+    if (typeof window.ort !== "undefined") {
+      configureOrtWasmPath();
+      return Promise.resolve();
+    }
     if (ortLoadingPromise) return ortLoadingPromise;
     ortLoadingPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${CONFIG.ORT_VERSION}/dist/ort.min.js`;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load onnxruntime-web from CDN."));
+      script.src = "models/onnxruntime/ort.min.js";
+      script.onload = () => {
+        configureOrtWasmPath();
+        resolve();
+      };
+      script.onerror = () => reject(new Error("Failed to load local onnxruntime-web."));
       document.head.appendChild(script);
     });
     return ortLoadingPromise;

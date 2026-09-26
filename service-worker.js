@@ -18,6 +18,8 @@ const APP_SHELL = [
     './app.js',
     './allbirds.js',
     './audio-analyzer.js',
+    './models/onnxruntime/ort.min.js',
+    './models/onnxruntime/ort-wasm-simd-threaded.wasm',
     './spectrogram-generator.js',
     './interactive-spectrogram.js',
     './offline-manager.js',
