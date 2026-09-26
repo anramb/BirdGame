@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a8f4a">
+    <title>Chirp Coach - Bird Photos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a8f4a 0%, #0d6b3a 100%); min-height: 100vh; padding: 10px 10px 60px; color: #333; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,.15); }
+        h1 { text-align: center; color: #1a8f4a; font-size: 1.6em; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; font-size: .85em; margin-bottom: 15px; }
+        .top-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 15px; }
+        .home-btn { background: #1a8f4a; color: #fff; text-decoration: none; border-radius: 20px; padding: 8px 16px; font-size: .85em; }
+        .language-select { padding: 7px 9px; border: 1px solid #1a8f4a; border-radius: 18px; color: #1a8f4a; background: #fff; }
+        .filters { display: grid; gap: 9px; padding: 12px; margin-bottom: 15px; background: #f8f9fa; border-radius: 12px; }
+        .filters label { display: grid; gap: 4px; color: #555; font-size: .82em; font-weight: 600; }
+        .filters select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: .95em; }
+        .result-count { color: #777; font-size: .78em; margin-bottom: 8px; }
+        .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .bird-card { min-width: 0; padding: 8px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; }
+        .bird-photo { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 7px; cursor: pointer; background: #f1f1f1; }
+        .bird-name-primary { margin-top: 7px; color: #333; font-size: .9em; font-weight: 700; }
+        .bird-name-secondary { margin-top: 2px; color: #777; font-size: .78em; }
+        .bird-card-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .bird-card-actions button { padding: 5px 7px; border: 1px solid #b9d4bf; border-radius: 6px; background: #f5fbf6; color: #1a8f4a; cursor: pointer; font-size: .72em; }
+        .empty-state { padding: 25px 8px; color: #888; text-align: center; font-size: .9em; }
+        .photo-overlay { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.82); }
+        .photo-overlay.open { display: flex; }
+        .photo-overlay img { max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+        .photo-overlay-close { position: absolute; top: 12px; right: 16px; border: 0; background: transparent; color: #fff; font-size: 2em; cursor: pointer; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px; background: rgba(255,255,255,.9); color: #666; text-align: center; font-size: .7em; }
+        @media (max-width: 380px) { .container { padding: 15px; } .photo-grid { gap: 7px; } .bird-card { padding: 6px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-actions">
+            <a href="start.html" class="home-btn">&larr; Home</a>
+            <select id="languageSelector" class="language-select" aria-label="Display language">
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+            </select>
+        </div>
+        <h1>Bird Photos</h1>
+        <p class="subtitle">Browse bird photographs by hotspot, habitat and group</p>
+        <div class="filters">
+            <label>Hotspot
+                <select id="hotspotFilter"></select>
+            </label>
+            <label>Habitat
+                <select id="habitatFilter"></select>
+            </label>
+            <label>Bird Group
+                <select id="groupFilter"></select>
+            </label>
+        </div>
+        <div id="resultCount" class="result-count"></div>
+        <div id="photoGrid" class="photo-grid"></div>
+    </div>
+    <div id="photoOverlay" class="photo-overlay" role="dialog" aria-modal="true" aria-hidden="true" onclick="closePhotoOverlay(event)">
+        <button type="button" class="photo-overlay-close" aria-label="Close enlarged photo" onclick="closePhotoOverlay(event)">&times;</button>
+        <img id="photoOverlayImage" alt="">
+    </div>
+    <div class="footer">Created by Marna Buys with Windsurf</div>
+
+    <script src="allbirds.js"></script>
+    <script src="southern-africa-occurrence.js"></script>
+    <script>
+        const CALL_SUFFIXES = [
+            'song & immitation', 'song & imitation', 'interaction m & f', 'male & female',
+            '2 birds interacting', 'advertising call', 'alarm call', 'territorial call',
+            'contact call', 'flight call', 'call variation', 'variation of call',
+            'call male', 'call female', 'courting male', 'duet', 'song', 'drumming',
+            'additional', 'immature', 'adult', 'juvenile', 'male', 'female', 'call', 'ec', 'wc'
+        ];
+        const BASE_PRIORITY = { base: 0, call: 1, song: 2, 'contact call': 3, duet: 4, drumming: 4, 'call male': 5, 'call female': 5, 'courting male': 5, alarm: 7, additional: 9, male: 10, female: 10, adult: 10, immature: 10, juvenile: 10, ec: 11, wc: 11 };
+        let language = localStorage.getItem('birdAppLanguage') || 'en';
+        let currentAudio = null;
+        let filteredSpecies = [];
+
+        function getCallSuffix(name) {
+            const lower = String(name || '').toLowerCase().trim();
+            for (const suffix of CALL_SUFFIXES) if (lower.endsWith(' ' + suffix)) return suffix;
+            const numbered = lower.match(/\s(\d+)$/);
+            return numbered ? numbered[1] : null;
+        }
+
+        function getBaseName(name) {
+            let result = String(name || '').trim();
+            let changed = true;
+            while (changed) {
+                changed = false;
+                const lower = result.toLowerCase();
+                for (const suffix of CALL_SUFFIXES) {
+                    if (lower.endsWith(' ' + suffix)) {
+                        result = result.substring(0, result.length - suffix.length - 1).trim();
+                        changed = true;
+                        break;
+                    }
+                }
+                if (!changed) {
+                    const numbered = result.match(/\s\d+$/);
+                    if (numbered) {
+                        result = result.substring(0, result.length - numbered[0].length).trim();
+                        changed = true;
+                    }
+                }
+            }
+            return result;
+        }
+
+        function splitValues(value) {
+            return String(value || '').split(';').map((item) => item.trim()).filter(Boolean);
+        }
+
+        function uniqueValues(birds, field) {
+            return [...new Set(birds.flatMap((bird) => splitValues(bird[field])))].sort((a, b) => a.localeCompare(b));
+        }
+
+        function matchingHotspot(bird, hotspot) {
+            return !hotspot || splitValues(bird.hotspot).includes(hotspot);
+        }
+
+        function choosePrimary(entries) {
+            return entries.slice().sort((a, b) => {
+                const aSuffix = getCallSuffix(a.english);
+                const bSuffix = getCallSuffix(b.english);
+                const aPriority = Object.prototype.hasOwnProperty.call(BASE_PRIORITY, aSuffix || 'base') ? BASE_PRIORITY[aSuffix || 'base'] : 9;
+                const bPriority = Object.prototype.hasOwnProperty.call(BASE_PRIORITY, bSuffix || 'base') ? BASE_PRIORITY[bSuffix || 'base'] : 9;
+                return aPriority - bPriority;
+            }).find((bird) => bird.image) || null;
+        }
+
+        function groupSpecies(birds) {
+            const groups = new Map();
+            birds.forEach((bird) => {
+                const base = getBaseName(bird.english);
+                if (!groups.has(base)) groups.set(base, []);
+                groups.get(base).push(bird);
+            });
+            return [...groups.values()].map(choosePrimary).filter(Boolean);
+        }
+
+        function populateSelect(select, values, allLabel) {
+            select.innerHTML = '';
+            const all = document.createElement('option');
+            all.value = '';
+            all.textContent = allLabel;
+            select.appendChild(all);
+            values.forEach((value) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
+            });
+        }
+
+        function updateFilters() {
+            const hotspot = document.getElementById('hotspotFilter').value;
+            const habitatSelect = document.getElementById('habitatFilter');
+            const groupSelect = document.getElementById('groupFilter');
+            const hotspotBirds = allbirds.filter((bird) => bird.exclude !== true && bird.exclude !== 'true' && matchingHotspot(bird, hotspot));
+            const oldHabitat = habitatSelect.value;
+            populateSelect(habitatSelect, uniqueValues(hotspotBirds, 'habitat'), 'All Habitats');
+            if ([...habitatSelect.options].some((option) => option.value === oldHabitat)) habitatSelect.value = oldHabitat;
+            const habitat = habitatSelect.value;
+            const scopedBirds = hotspotBirds.filter((bird) => !habitat || splitValues(bird.habitat).includes(habitat));
+            const oldGroup = groupSelect.value;
+            populateSelect(groupSelect, uniqueValues(scopedBirds, 'birdgroup'), 'All Bird Groups');
+            if ([...groupSelect.options].some((option) => option.value === oldGroup)) groupSelect.value = oldGroup;
+        }
+
+        function renderPhotos() {
+            const hotspot = document.getElementById('hotspotFilter').value;
+            const habitat = document.getElementById('habitatFilter').value;
+            const group = document.getElementById('groupFilter').value;
+            const selectedLanguage = document.getElementById('languageSelector').value;
+            const candidates = allbirds.filter((bird) =>
+                bird.exclude !== true && bird.exclude !== 'true' &&
+                matchingHotspot(bird, hotspot) &&
+                (!habitat || splitValues(bird.habitat).includes(habitat)) &&
+                (!group || bird.birdgroup === group)
+            );
+            filteredSpecies = groupSpecies(candidates).sort((a, b) => {
+                const aName = selectedLanguage === 'af' ? (a.afrikaansDisplayName || a.afrikaans || a.english) : a.english;
+                const bName = selectedLanguage === 'af' ? (b.afrikaansDisplayName || b.afrikaans || b.english) : b.english;
+                return aName.localeCompare(bName, selectedLanguage === 'af' ? 'af' : 'en', { sensitivity: 'base' });
+            });
+            const grid = document.getElementById('photoGrid');
+            grid.innerHTML = '';
+            document.getElementById('resultCount').textContent = filteredSpecies.length + (filteredSpecies.length === 1 ? ' species' : ' species');
+            if (!filteredSpecies.length) {
+                grid.innerHTML = '<div class="empty-state">No bird photographs match these filters.</div>';
+                return;
+            }
+            filteredSpecies.forEach((bird, index) => {
+                const card = document.createElement('article');
+                card.className = 'bird-card';
+                const photo = document.createElement('img');
+                photo.className = 'bird-photo';
+                photo.src = bird.image;
+                photo.alt = bird.english;
+                photo.addEventListener('click', () => openPhotoOverlay(photo));
+                photo.addEventListener('error', () => card.remove());
+                const primary = document.createElement('div');
+                primary.className = 'bird-name-primary';
+                primary.textContent = document.getElementById('languageSelector').value === 'af'
+                    ? (bird.afrikaansDisplayName || bird.afrikaans || bird.english)
+                    : bird.english;
+                const secondary = document.createElement('div');
+                secondary.className = 'bird-name-secondary';
+                secondary.textContent = document.getElementById('languageSelector').value === 'af'
+                    ? bird.english
+                    : (bird.afrikaansDisplayName || bird.afrikaans || '');
+                const actions = document.createElement('div');
+                actions.className = 'bird-card-actions';
+                if (bird.audio) {
+                    const reference = document.createElement('button');
+                    reference.type = 'button';
+                    reference.textContent = '▶ Reference';
+                    reference.addEventListener('click', () => playReference(bird.audio, reference));
+                    actions.appendChild(reference);
+                }
+                const more = document.createElement('button');
+                more.type = 'button';
+                more.textContent = 'More calls →';
+                more.addEventListener('click', () => openSingleSelect(bird));
+                actions.appendChild(more);
+                card.append(photo, primary, secondary, actions);
+                grid.appendChild(card);
+            });
+        }
+
+        function openSingleSelect(bird) {
+            const params = new URLSearchParams({ commonName: bird.english });
+            window.location.href = 'single-select.html?' + params.toString();
+        }
+
+        function playReference(path, button) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            currentAudio = new Audio(path);
+            currentAudio.onended = () => { if (button) button.textContent = '▶ Reference'; currentAudio = null; };
+            currentAudio.play().catch(() => { currentAudio = null; });
+            if (button) button.textContent = '■ Stop';
+        }
+
+        function openPhotoOverlay(image) {
+            document.getElementById('photoOverlayImage').src = image.currentSrc || image.src;
+            document.getElementById('photoOverlayImage').alt = image.alt || '';
+            document.getElementById('photoOverlay').classList.add('open');
+        }
+
+        function closePhotoOverlay(event) {
+            if (event && event.target && event.target.id === 'photoOverlayImage') return;
+            document.getElementById('photoOverlay').classList.remove('open');
+            document.getElementById('photoOverlayImage').removeAttribute('src');
+        }
+
+        const hotspotFilter = document.getElementById('hotspotFilter');
+        const habitatFilter = document.getElementById('habitatFilter');
+        const groupFilter = document.getElementById('groupFilter');
+        populateSelect(hotspotFilter, uniqueValues(allbirds, 'hotspot'), 'All Hotspots');
+        updateFilters();
+        hotspotFilter.addEventListener('change', () => { updateFilters(); renderPhotos(); });
+        habitatFilter.addEventListener('change', () => { updateFilters(); renderPhotos(); });
+        groupFilter.addEventListener('change', renderPhotos);
+        const languageSelector = document.getElementById('languageSelector');
+        languageSelector.value = language;
+        languageSelector.addEventListener('change', () => {
+            language = languageSelector.value;
+            localStorage.setItem('birdAppLanguage', language);
+            renderPhotos();
+        });
+        renderPhotos();
+    </script>
+</body>
+</html>
