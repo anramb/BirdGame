@@ -20,6 +20,8 @@ const APP_SHELL = [
     './audio-analyzer.js',
     './models/onnxruntime/ort.min.js',
     './models/onnxruntime/ort-wasm-simd-threaded.wasm',
+    './models/onnxruntime/ort-wasm-simd-threaded.jsep.mjs',
+    './models/onnxruntime/ort-wasm-simd-threaded.jsep.wasm',
     './spectrogram-generator.js',
     './interactive-spectrogram.js',
     './offline-manager.js',
