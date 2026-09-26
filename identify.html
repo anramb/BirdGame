@@ -1888,7 +1888,12 @@
             let best = null;
             (session.detections || []).forEach((detection) => {
                 (detection.predictions || []).forEach((prediction) => {
-                    if (typeof prediction.confidence !== 'number') return;
+                    if (
+                        typeof prediction.confidence !== 'number' ||
+                        !soundIdSessionPredictionIsAppBird(prediction)
+                    ) {
+                        return;
+                    }
                     if (!best || prediction.confidence > best.confidence) best = prediction;
                 });
             });
@@ -1900,6 +1905,29 @@
             const date = new Date(raw);
             if (Number.isNaN(date.getTime())) return 'Date unavailable';
             return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getSoundIdSessionHeaderLocation(session) {
+            const metadata = session && session.recordingMetadata;
+            if (!metadata) return '';
+            if (validSabap2Pentad(metadata.recordingPentad)) {
+                return String(metadata.recordingPentad).trim();
+            }
+            const optionLabel = (selectId, value) => {
+                const select = document.getElementById(selectId);
+                const option = select && Array.from(select.options).find((item) => item.value === value);
+                return option ? option.textContent.trim() : value;
+            };
+            if (metadata.recordingProvince) {
+                return optionLabel('recordingProvinceSetting', String(metadata.recordingProvince).trim());
+            }
+            if (metadata.recordingCountry) {
+                return optionLabel('recordingCountrySetting', String(metadata.recordingCountry).trim());
+            }
+            if (metadata.recordingLocationType === 'southern_africa') {
+                return 'Southern Africa';
+            }
+            return '';
         }
 
         function formatSoundIdSessionDuration(durationSec) {
@@ -2097,10 +2125,9 @@
                     status.textContent = 'Recording unavailable for this session.';
                     return;
                 }
-                const best = soundIdSessionBestPrediction(session);
-                info.textContent = (best
-                    ? (best.com || best.sci || 'Unknown bird') + ' (' + (best.confidence * 100).toFixed(1) + '%)'
-                    : 'No stored identification') +
+                const headerLocation = getSoundIdSessionHeaderLocation(session);
+                info.textContent = 'Chirpcoach' +
+                    (headerLocation ? ' · ' + headerLocation : '') +
                     ' · ' + soundIdSessionDateTime(session) +
                     ' · ' + formatSoundIdSessionDuration(session.durationSec);
                 soundIdSessionPlaybackUrl = URL.createObjectURL(session.blob);
@@ -2224,7 +2251,6 @@
             }
             status.textContent = sessions.length + (sessions.length === 1 ? ' saved session.' : ' saved sessions.');
             sessions.forEach((session, index) => {
-                const best = soundIdSessionBestPrediction(session);
                 const card = document.createElement('div');
                 card.className = 'sound-id-session-card';
                 card.dataset.sessionId = session.sessionId || '';
@@ -2245,9 +2271,7 @@
 
                 const main = document.createElement('div');
                 main.className = 'sound-id-session-main';
-                main.textContent = best
-                    ? (best.com || best.sci || 'Unknown bird') + ' (' + (best.confidence * 100).toFixed(1) + '%)'
-                    : 'No stored identification';
+                main.textContent = 'Chirpcoach';
 
                 const meta = document.createElement('div');
                 meta.className = 'sound-id-session-meta';
@@ -2256,7 +2280,10 @@
                     0
                 );
                 const sourceLabel = session.sourceType === 'upload' ? 'UPLOADED' : 'RECORDED';
-                meta.textContent = sourceLabel + ' · ' + soundIdSessionDateTime(session) +
+                const headerLocation = getSoundIdSessionHeaderLocation(session);
+                meta.textContent = sourceLabel +
+                    (headerLocation ? ' · ' + headerLocation : '') +
+                    ' · ' + soundIdSessionDateTime(session) +
                     ' · ' + formatSoundIdSessionDuration(session.durationSec) +
                     ' · ' + (session.detections || []).length + ' windows' +
                     ' · ' + predictionCount + ' predictions';
