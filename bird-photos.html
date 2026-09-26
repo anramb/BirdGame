@@ -17,9 +17,16 @@
         .filters { display: grid; gap: 9px; padding: 12px; margin-bottom: 15px; background: #f8f9fa; border-radius: 12px; }
         .filters label { display: grid; gap: 4px; color: #555; font-size: .82em; font-weight: 600; }
         .filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .filter-clear { padding: 3px 7px; border: 1px solid #b9d4bf; border-radius: 5px; background: #fff; color: #1a8f4a; cursor: pointer; font-size: .8em; font-weight: 400; }
-        .filters select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: .95em; }
-        .filters select[multiple] { min-height: 102px; }
+        .photo-multi-select { position: relative; width: 100%; }
+        .photo-multi-select-header { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; color: #555; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font: inherit; text-align: left; }
+        .photo-multi-select-list { display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 210px; overflow-y: auto; z-index: 100; background: #fff; border: 1px solid #667eea; border-top: none; border-radius: 0 0 8px 8px; box-shadow: 0 4px 10px rgba(0,0,0,.12); }
+        .photo-multi-select-list.open { display: block; }
+        .photo-multi-select-list label { display: flex; align-items: flex-start; gap: 6px; padding: 7px 10px; cursor: pointer; font-size: .85em; font-weight: 400; text-align: left; }
+        .photo-multi-select-list label:hover { background: #f0f0ff; }
+        .photo-multi-select-list input[type="checkbox"] { width: auto; padding: 0; margin: 2px 0 0; flex-shrink: 0; }
+        .photo-filter-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .photo-filter-chip { padding: 3px 6px; border: 1px solid #c8ddc8; border-radius: 12px; background: #f0f7f0; color: #1a3a2a; cursor: pointer; font-size: .72em; }
+        .photo-filter-chip::after { content: ' ×'; color: #777; }
         .result-count { color: #777; font-size: .78em; margin-bottom: 8px; }
         .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .bird-card { min-width: 0; padding: 8px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; }
@@ -50,18 +57,30 @@
         <h1>Bird Photos</h1>
         <p class="subtitle">Browse bird photographs by hotspot, habitat and group</p>
         <div class="filters">
-            <label>
-                <span class="filter-heading">Hotspot <button type="button" class="filter-clear" onclick="clearFilter('hotspotFilter')">All</button></span>
-                <select id="hotspotFilter" multiple size="5" aria-label="Choose hotspots"></select>
-            </label>
-            <label>
-                <span class="filter-heading">Habitat <button type="button" class="filter-clear" onclick="clearFilter('habitatFilter')">All</button></span>
-                <select id="habitatFilter" multiple size="5" aria-label="Choose habitats"></select>
-            </label>
-            <label>
-                <span class="filter-heading">Bird Group <button type="button" class="filter-clear" onclick="clearFilter('groupFilter')">All</button></span>
-                <select id="groupFilter" multiple size="5" aria-label="Choose bird groups"></select>
-            </label>
+            <div class="photo-filter" id="hotspotFilterGroup">
+                <div class="filter-heading"><span>Hotspot</span></div>
+                <div class="photo-multi-select">
+                    <button type="button" class="photo-multi-select-header" onclick="togglePhotoFilter('hotspotFilterGroup')"><span class="photo-multi-select-text">All Hotspots</span><span>▼</span></button>
+                    <div class="photo-multi-select-list"></div>
+                </div>
+                <div class="photo-filter-chips"></div>
+            </div>
+            <div class="photo-filter" id="habitatFilterGroup">
+                <div class="filter-heading"><span>Habitat</span></div>
+                <div class="photo-multi-select">
+                    <button type="button" class="photo-multi-select-header" onclick="togglePhotoFilter('habitatFilterGroup')"><span class="photo-multi-select-text">All Habitats</span><span>▼</span></button>
+                    <div class="photo-multi-select-list"></div>
+                </div>
+                <div class="photo-filter-chips"></div>
+            </div>
+            <div class="photo-filter" id="groupFilterGroup">
+                <div class="filter-heading"><span>Bird Group</span></div>
+                <div class="photo-multi-select">
+                    <button type="button" class="photo-multi-select-header" onclick="togglePhotoFilter('groupFilterGroup')"><span class="photo-multi-select-text">All Bird Groups</span><span>▼</span></button>
+                    <div class="photo-multi-select-list"></div>
+                </div>
+                <div class="photo-filter-chips"></div>
+            </div>
         </div>
         <div id="resultCount" class="result-count"></div>
         <div id="photoGrid" class="photo-grid"></div>
@@ -127,13 +146,95 @@
             return [...new Set(birds.flatMap((bird) => splitValues(bird[field])))].sort((a, b) => a.localeCompare(b));
         }
 
-        function selectedValues(select) {
-            return Array.from(select.selectedOptions).map((option) => option.value).filter(Boolean);
-        }
+        const photoFilterState = {
+            hotspot: new Set(),
+            habitat: new Set(),
+            group: new Set(),
+        };
 
         function matchesSelectedValues(bird, field, values) {
-            return !values.length || values.some((value) => splitValues(bird[field]).includes(value));
+            return !values.size || [...values].some((value) => splitValues(bird[field]).includes(value));
         }
+
+        function photoFilterConfig(key) {
+            return {
+                hotspot: { id: 'hotspotFilterGroup', allLabel: 'All Hotspots' },
+                habitat: { id: 'habitatFilterGroup', allLabel: 'All Habitats' },
+                group: { id: 'groupFilterGroup', allLabel: 'All Bird Groups' },
+            }[key];
+        }
+
+        function updatePhotoFilterUi(key, values) {
+            const group = document.getElementById(photoFilterConfig(key).id);
+            const text = group.querySelector('.photo-multi-select-text');
+            const list = group.querySelector('.photo-multi-select-list');
+            const chips = group.querySelector('.photo-filter-chips');
+            text.textContent = values.size ? [...values].join(', ') : photoFilterConfig(key).allLabel;
+            chips.innerHTML = '';
+            [...values].forEach((value) => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'photo-filter-chip';
+                chip.textContent = value;
+                chip.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    values.delete(value);
+                    updateFilters();
+                    renderPhotos();
+                });
+                chips.appendChild(chip);
+            });
+            list.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.checked = values.has(input.value);
+            });
+        }
+
+        function populatePhotoFilter(key, values) {
+            const config = photoFilterConfig(key);
+            const group = document.getElementById(config.id);
+            const list = group.querySelector('.photo-multi-select-list');
+            const allowed = new Set(values);
+            const selected = photoFilterState[key];
+            selected.forEach((value) => { if (!allowed.has(value)) selected.delete(value); });
+            list.innerHTML = '';
+            values.forEach((value) => {
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = value;
+                checkbox.checked = selected.has(value);
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) selected.add(value);
+                    else selected.delete(value);
+                    updateFilters();
+                    renderPhotos();
+                });
+                label.append(checkbox, document.createTextNode(value));
+                list.appendChild(label);
+            });
+            updatePhotoFilterUi(key, selected);
+        }
+
+        function togglePhotoFilter(id) {
+            const group = document.getElementById(id);
+            const list = group.querySelector('.photo-multi-select-list');
+            document.querySelectorAll('.photo-multi-select-list.open').forEach((other) => {
+                if (other !== list) other.classList.remove('open');
+            });
+            list.classList.toggle('open');
+        }
+
+        function clearFilter(key) {
+            photoFilterState[key].clear();
+            updateFilters();
+            renderPhotos();
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.photo-multi-select')) {
+                document.querySelectorAll('.photo-multi-select-list.open').forEach((list) => list.classList.remove('open'));
+            }
+        });
 
         function choosePrimary(entries) {
             return entries.slice().sort((a, b) => {
@@ -175,26 +276,23 @@
         }
 
         function updateFilters() {
-            const hotspotSelect = document.getElementById('hotspotFilter');
-            const habitatSelect = document.getElementById('habitatFilter');
-            const groupSelect = document.getElementById('groupFilter');
-            const selectedHotspots = selectedValues(hotspotSelect);
+            const selectedHotspots = photoFilterState.hotspot;
             const hotspotBirds = allbirds.filter((bird) =>
                 bird.exclude !== true && bird.exclude !== 'true' &&
                 matchesSelectedValues(bird, 'hotspot', selectedHotspots)
             );
-            populateSelect(habitatSelect, uniqueValues(hotspotBirds, 'habitat'));
-            const selectedHabitats = selectedValues(habitatSelect);
+            populatePhotoFilter('habitat', uniqueValues(hotspotBirds, 'habitat'));
             const scopedBirds = hotspotBirds.filter((bird) =>
-                matchesSelectedValues(bird, 'habitat', selectedHabitats)
+                matchesSelectedValues(bird, 'habitat', photoFilterState.habitat)
             );
-            populateSelect(groupSelect, uniqueValues(scopedBirds, 'birdgroup'));
+            populatePhotoFilter('group', uniqueValues(scopedBirds, 'birdgroup'));
+            updatePhotoFilterUi('hotspot', selectedHotspots);
         }
 
         function renderPhotos() {
-            const selectedHotspots = selectedValues(document.getElementById('hotspotFilter'));
-            const selectedHabitats = selectedValues(document.getElementById('habitatFilter'));
-            const selectedGroups = selectedValues(document.getElementById('groupFilter'));
+            const selectedHotspots = photoFilterState.hotspot;
+            const selectedHabitats = photoFilterState.habitat;
+            const selectedGroups = photoFilterState.group;
             const selectedLanguage = document.getElementById('languageSelector').value;
             const candidates = allbirds.filter((bird) =>
                 bird.exclude !== true && bird.exclude !== 'true' &&
@@ -283,14 +381,9 @@
             document.getElementById('photoOverlayPhotographer').textContent = '';
         }
 
-        const hotspotFilter = document.getElementById('hotspotFilter');
-        const habitatFilter = document.getElementById('habitatFilter');
-        const groupFilter = document.getElementById('groupFilter');
-        populateSelect(hotspotFilter, uniqueValues(allbirds, 'hotspot'));
+        populatePhotoFilter('hotspot', uniqueValues(allbirds, 'hotspot'));
         updateFilters();
-        hotspotFilter.addEventListener('change', () => { updateFilters(); renderPhotos(); });
-        habitatFilter.addEventListener('change', () => { updateFilters(); renderPhotos(); });
-        groupFilter.addEventListener('change', renderPhotos);
+        updatePhotoFilterUi('hotspot', photoFilterState.hotspot);
         const languageSelector = document.getElementById('languageSelector');
         languageSelector.value = language;
         languageSelector.addEventListener('change', () => {
