@@ -26,9 +26,10 @@
         .bird-card-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
         .bird-card-actions button { padding: 5px 7px; border: 1px solid #b9d4bf; border-radius: 6px; background: #f5fbf6; color: #1a8f4a; cursor: pointer; font-size: .72em; }
         .empty-state { padding: 25px 8px; color: #888; text-align: center; font-size: .9em; }
-        .photo-overlay { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.82); }
+        .photo-overlay { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; flex-direction: column; padding: 16px; background: rgba(0,0,0,.82); }
         .photo-overlay.open { display: flex; }
         .photo-overlay img { max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+        .photo-overlay-photographer { margin-top: 8px; color: #fff; font-size: .85em; text-align: center; }
         .photo-overlay-close { position: absolute; top: 12px; right: 16px; border: 0; background: transparent; color: #fff; font-size: 2em; cursor: pointer; }
         .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px; background: rgba(255,255,255,.9); color: #666; text-align: center; font-size: .7em; }
         @media (max-width: 380px) { .container { padding: 15px; } .photo-grid { gap: 7px; } .bird-card { padding: 6px; } }
@@ -62,6 +63,7 @@
     <div id="photoOverlay" class="photo-overlay" role="dialog" aria-modal="true" aria-hidden="true" onclick="closePhotoOverlay(event)">
         <button type="button" class="photo-overlay-close" aria-label="Close enlarged photo" onclick="closePhotoOverlay(event)">&times;</button>
         <img id="photoOverlayImage" alt="">
+        <div id="photoOverlayPhotographer" class="photo-overlay-photographer"></div>
     </div>
     <div class="footer">Created by Marna Buys with Windsurf</div>
 
@@ -184,8 +186,8 @@
                 (!group || bird.birdgroup === group)
             );
             filteredSpecies = groupSpecies(candidates).sort((a, b) => {
-                const aName = selectedLanguage === 'af' ? (a.afrikaansDisplayName || a.afrikaans || a.english) : a.english;
-                const bName = selectedLanguage === 'af' ? (b.afrikaansDisplayName || b.afrikaans || b.english) : b.english;
+                const aName = selectedLanguage === 'af' ? (a.afrikaansDisplayName || a.afrikaans || a.english) : (a.englishDisplayName || a.english);
+                const bName = selectedLanguage === 'af' ? (b.afrikaansDisplayName || b.afrikaans || b.english) : (b.englishDisplayName || b.english);
                 return aName.localeCompare(bName, selectedLanguage === 'af' ? 'af' : 'en', { sensitivity: 'base' });
             });
             const grid = document.getElementById('photoGrid');
@@ -201,18 +203,18 @@
                 const photo = document.createElement('img');
                 photo.className = 'bird-photo';
                 photo.src = bird.image;
-                photo.alt = bird.english;
-                photo.addEventListener('click', () => openPhotoOverlay(photo));
+                photo.alt = bird.englishDisplayName || bird.english;
+                photo.addEventListener('click', () => openPhotoOverlay(photo, bird));
                 photo.addEventListener('error', () => card.remove());
                 const primary = document.createElement('div');
                 primary.className = 'bird-name-primary';
                 primary.textContent = document.getElementById('languageSelector').value === 'af'
                     ? (bird.afrikaansDisplayName || bird.afrikaans || bird.english)
-                    : bird.english;
+                    : (bird.englishDisplayName || bird.english);
                 const secondary = document.createElement('div');
                 secondary.className = 'bird-name-secondary';
                 secondary.textContent = document.getElementById('languageSelector').value === 'af'
-                    ? bird.english
+                    ? (bird.englishDisplayName || bird.english)
                     : (bird.afrikaansDisplayName || bird.afrikaans || '');
                 const actions = document.createElement('div');
                 actions.className = 'bird-card-actions';
@@ -249,9 +251,11 @@
             if (button) button.textContent = '■ Stop';
         }
 
-        function openPhotoOverlay(image) {
+        function openPhotoOverlay(image, bird) {
             document.getElementById('photoOverlayImage').src = image.currentSrc || image.src;
             document.getElementById('photoOverlayImage').alt = image.alt || '';
+            const photographer = bird.photographer || '';
+            document.getElementById('photoOverlayPhotographer').textContent = photographer ? 'Photographer: ' + photographer : '';
             document.getElementById('photoOverlay').classList.add('open');
         }
 
@@ -259,6 +263,7 @@
             if (event && event.target && event.target.id === 'photoOverlayImage') return;
             document.getElementById('photoOverlay').classList.remove('open');
             document.getElementById('photoOverlayImage').removeAttribute('src');
+            document.getElementById('photoOverlayPhotographer').textContent = '';
         }
 
         const hotspotFilter = document.getElementById('hotspotFilter');
