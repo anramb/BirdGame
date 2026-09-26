@@ -16,11 +16,14 @@
         .language-select { padding: 7px 9px; border: 1px solid #1a8f4a; border-radius: 18px; color: #1a8f4a; background: #fff; }
         .filters { display: grid; gap: 9px; padding: 12px; margin-bottom: 15px; background: #f8f9fa; border-radius: 12px; }
         .filters label { display: grid; gap: 4px; color: #555; font-size: .82em; font-weight: 600; }
+        .filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .filter-clear { padding: 3px 7px; border: 1px solid #b9d4bf; border-radius: 5px; background: #fff; color: #1a8f4a; cursor: pointer; font-size: .8em; font-weight: 400; }
         .filters select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: .95em; }
+        .filters select[multiple] { min-height: 102px; }
         .result-count { color: #777; font-size: .78em; margin-bottom: 8px; }
         .photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .bird-card { min-width: 0; padding: 8px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; }
-        .bird-photo { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 7px; cursor: pointer; background: #f1f1f1; }
+        .bird-photo { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 7px; cursor: pointer; background: #f1f1f1; }
         .bird-name-primary { margin-top: 7px; color: #333; font-size: .9em; font-weight: 700; }
         .bird-name-secondary { margin-top: 2px; color: #777; font-size: .78em; }
         .bird-card-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
@@ -47,14 +50,17 @@
         <h1>Bird Photos</h1>
         <p class="subtitle">Browse bird photographs by hotspot, habitat and group</p>
         <div class="filters">
-            <label>Hotspot
-                <select id="hotspotFilter"></select>
+            <label>
+                <span class="filter-heading">Hotspot <button type="button" class="filter-clear" onclick="clearFilter('hotspotFilter')">All</button></span>
+                <select id="hotspotFilter" multiple size="5" aria-label="Choose hotspots"></select>
             </label>
-            <label>Habitat
-                <select id="habitatFilter"></select>
+            <label>
+                <span class="filter-heading">Habitat <button type="button" class="filter-clear" onclick="clearFilter('habitatFilter')">All</button></span>
+                <select id="habitatFilter" multiple size="5" aria-label="Choose habitats"></select>
             </label>
-            <label>Bird Group
-                <select id="groupFilter"></select>
+            <label>
+                <span class="filter-heading">Bird Group <button type="button" class="filter-clear" onclick="clearFilter('groupFilter')">All</button></span>
+                <select id="groupFilter" multiple size="5" aria-label="Choose bird groups"></select>
             </label>
         </div>
         <div id="resultCount" class="result-count"></div>
@@ -121,8 +127,12 @@
             return [...new Set(birds.flatMap((bird) => splitValues(bird[field])))].sort((a, b) => a.localeCompare(b));
         }
 
-        function matchingHotspot(bird, hotspot) {
-            return !hotspot || splitValues(bird.hotspot).includes(hotspot);
+        function selectedValues(select) {
+            return Array.from(select.selectedOptions).map((option) => option.value).filter(Boolean);
+        }
+
+        function matchesSelectedValues(bird, field, values) {
+            return !values.length || values.some((value) => splitValues(bird[field]).includes(value));
         }
 
         function choosePrimary(entries) {
@@ -145,45 +155,52 @@
             return [...groups.values()].map(choosePrimary).filter(Boolean);
         }
 
-        function populateSelect(select, values, allLabel) {
+        function populateSelect(select, values) {
+            const previous = selectedValues(select);
             select.innerHTML = '';
-            const all = document.createElement('option');
-            all.value = '';
-            all.textContent = allLabel;
-            select.appendChild(all);
             values.forEach((value) => {
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = value;
+                option.selected = previous.includes(value);
                 select.appendChild(option);
             });
         }
 
+        function clearFilter(id) {
+            const select = document.getElementById(id);
+            Array.from(select.selectedOptions).forEach((option) => { option.selected = false; });
+            updateFilters();
+            renderPhotos();
+        }
+
         function updateFilters() {
-            const hotspot = document.getElementById('hotspotFilter').value;
+            const hotspotSelect = document.getElementById('hotspotFilter');
             const habitatSelect = document.getElementById('habitatFilter');
             const groupSelect = document.getElementById('groupFilter');
-            const hotspotBirds = allbirds.filter((bird) => bird.exclude !== true && bird.exclude !== 'true' && matchingHotspot(bird, hotspot));
-            const oldHabitat = habitatSelect.value;
-            populateSelect(habitatSelect, uniqueValues(hotspotBirds, 'habitat'), 'All Habitats');
-            if ([...habitatSelect.options].some((option) => option.value === oldHabitat)) habitatSelect.value = oldHabitat;
-            const habitat = habitatSelect.value;
-            const scopedBirds = hotspotBirds.filter((bird) => !habitat || splitValues(bird.habitat).includes(habitat));
-            const oldGroup = groupSelect.value;
-            populateSelect(groupSelect, uniqueValues(scopedBirds, 'birdgroup'), 'All Bird Groups');
-            if ([...groupSelect.options].some((option) => option.value === oldGroup)) groupSelect.value = oldGroup;
+            const selectedHotspots = selectedValues(hotspotSelect);
+            const hotspotBirds = allbirds.filter((bird) =>
+                bird.exclude !== true && bird.exclude !== 'true' &&
+                matchesSelectedValues(bird, 'hotspot', selectedHotspots)
+            );
+            populateSelect(habitatSelect, uniqueValues(hotspotBirds, 'habitat'));
+            const selectedHabitats = selectedValues(habitatSelect);
+            const scopedBirds = hotspotBirds.filter((bird) =>
+                matchesSelectedValues(bird, 'habitat', selectedHabitats)
+            );
+            populateSelect(groupSelect, uniqueValues(scopedBirds, 'birdgroup'));
         }
 
         function renderPhotos() {
-            const hotspot = document.getElementById('hotspotFilter').value;
-            const habitat = document.getElementById('habitatFilter').value;
-            const group = document.getElementById('groupFilter').value;
+            const selectedHotspots = selectedValues(document.getElementById('hotspotFilter'));
+            const selectedHabitats = selectedValues(document.getElementById('habitatFilter'));
+            const selectedGroups = selectedValues(document.getElementById('groupFilter'));
             const selectedLanguage = document.getElementById('languageSelector').value;
             const candidates = allbirds.filter((bird) =>
                 bird.exclude !== true && bird.exclude !== 'true' &&
-                matchingHotspot(bird, hotspot) &&
-                (!habitat || splitValues(bird.habitat).includes(habitat)) &&
-                (!group || bird.birdgroup === group)
+                matchesSelectedValues(bird, 'hotspot', selectedHotspots) &&
+                matchesSelectedValues(bird, 'habitat', selectedHabitats) &&
+                matchesSelectedValues(bird, 'birdgroup', selectedGroups)
             );
             filteredSpecies = groupSpecies(candidates).sort((a, b) => {
                 const aName = selectedLanguage === 'af' ? (a.afrikaansDisplayName || a.afrikaans || a.english) : (a.englishDisplayName || a.english);
@@ -269,7 +286,7 @@
         const hotspotFilter = document.getElementById('hotspotFilter');
         const habitatFilter = document.getElementById('habitatFilter');
         const groupFilter = document.getElementById('groupFilter');
-        populateSelect(hotspotFilter, uniqueValues(allbirds, 'hotspot'), 'All Hotspots');
+        populateSelect(hotspotFilter, uniqueValues(allbirds, 'hotspot'));
         updateFilters();
         hotspotFilter.addEventListener('change', () => { updateFilters(); renderPhotos(); });
         habitatFilter.addEventListener('change', () => { updateFilters(); renderPhotos(); });
