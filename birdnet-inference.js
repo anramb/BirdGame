@@ -24,6 +24,12 @@
 (function (root) {
   "use strict";
 
+  const debugStatus = (message) => {
+    if (root && typeof root.updateBirdNetLoadUi === "function") {
+      root.updateBirdNetLoadUi(message);
+    }
+  };
+
   const CONFIG = {
     // Served from THIS app's own origin (models/ folder), not fetched from
     // Zenodo directly — Zenodo does not send permissive CORS headers for
@@ -119,6 +125,7 @@
       }
       return { response: await readResponseWithProgress(response, onProgress), fromCache: false };
     } catch (err) {
+      console.error("[BIRDNET DEBUG] fetchWithCache() Cache Storage error", { url, error: err, message: err && err.message });
       console.warn("[BirdNetInference] Cache Storage unavailable, falling back to plain fetch:", err);
       return { response: await readResponseWithProgress(await fetch(url), onProgress), fromCache: false };
     }
@@ -131,24 +138,43 @@
   // ---------------------------------------------------------------------
   let ortLoadingPromise = null;
   function ensureOrtLoaded() {
+    debugStatus("DEBUG 1: Starting ORT load");
+    console.log("[BIRDNET DEBUG] ensureOrtLoaded() begin");
     const configureOrtWasmPath = () => {
       if (window.ort && window.ort.env && window.ort.env.wasm) {
         window.ort.env.wasm.wasmPaths = "models/onnxruntime/";
+        console.log("[BIRDNET DEBUG] ORT wasmPaths configured", window.ort.env.wasm.wasmPaths);
+      } else {
+        console.error("[BIRDNET DEBUG] ORT wasmPaths could not be configured: window.ort.env.wasm unavailable");
       }
     };
+    console.log("[BIRDNET DEBUG] typeof window.ort", typeof window.ort);
     if (typeof window.ort !== "undefined") {
+      debugStatus("DEBUG 2: ORT JS loaded");
+      debugStatus("DEBUG 3: window.ort ready");
       configureOrtWasmPath();
+      debugStatus("DEBUG 4: WASM path configured");
       return Promise.resolve();
     }
     if (ortLoadingPromise) return ortLoadingPromise;
     ortLoadingPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = "models/onnxruntime/ort.min.js";
+      console.log("[BIRDNET DEBUG] ORT script element created", script.src);
       script.onload = () => {
+        console.log("[BIRDNET DEBUG] ORT script.onload fired");
+        debugStatus("DEBUG 2: ORT JS loaded");
+        console.log("[BIRDNET DEBUG] typeof window.ort", typeof window.ort);
+        debugStatus("DEBUG 3: window.ort ready");
         configureOrtWasmPath();
+        debugStatus("DEBUG 4: WASM path configured");
         resolve();
       };
-      script.onerror = () => reject(new Error("Failed to load local onnxruntime-web."));
+      script.onerror = (event) => {
+        console.error("[BIRDNET DEBUG] ORT script load error", { src: script.src, event });
+        debugStatus("DEBUG ERROR: Failed to load local onnxruntime-web.");
+        reject(new Error("Failed to load local onnxruntime-web."));
+      };
       document.head.appendChild(script);
     });
     return ortLoadingPromise;
@@ -383,13 +409,22 @@
       const birdnetLoadTiming = { start: performance.now() };
       console.log('[BIRDNET LOAD START]', { performanceNow: birdnetLoadTiming.start });
       status("Loading ONNX Runtime Web…");
-      await ensureOrtLoaded();
+      try {
+        await ensureOrtLoaded();
+      } catch (err) {
+        console.error('[BIRDNET DEBUG] ensureOrtLoaded() error', err);
+        debugStatus("DEBUG ERROR: " + (err && err.message ? err.message : String(err)));
+        throw err;
+      }
 
+      debugStatus("DEBUG 5: Loading BirdNET model");
       status("Checking for a cached BirdNET V3 model…");
       const tStart = performance.now();
       let modelBuffer, labelsText;
       try {
+        console.log('[BIRDNET DEBUG] model fetchWithCache() begin', CONFIG.MODEL_URL);
         const { response: modelResp, fromCache: modelFromCache } = await fetchWithCache(CONFIG.MODEL_URL, onProgress);
+        console.log('[BIRDNET DEBUG] model fetchWithCache() resolved', { url: CONFIG.MODEL_URL, fromCache: modelFromCache, ok: modelResp.ok, status: modelResp.status });
         birdnetLoadTiming.modelResponseComplete = performance.now();
         console.log('[BIRDNET LOAD MODEL RESPONSE COMPLETE]', {
           performanceNow: birdnetLoadTiming.modelResponseComplete,
@@ -400,29 +435,56 @@
         }
         status(modelFromCache ? "Loading BirdNET V3 model from browser cache (instant, no re-download)…" : "Downloading BirdNET V3 model (first time only, ~68MB)…");
         modelBuffer = await modelResp.arrayBuffer();
+        console.log('[BIRDNET DEBUG] model arrayBuffer() resolved', { bytes: modelBuffer.byteLength });
+        debugStatus("DEBUG 6: Model loaded");
+        debugStatus("DEBUG 7: Loading labels");
         birdnetLoadTiming.arrayBufferAvailable = performance.now();
         console.log('[BIRDNET LOAD ARRAYBUFFER AVAILABLE]', {
           timestamp: birdnetLoadTiming.arrayBufferAvailable,
           modelBytes: modelBuffer.byteLength,
         });
 
+        console.log('[BIRDNET DEBUG] labels fetch begin', CONFIG.LABELS_URL);
         const { response: labelsResp, fromCache: labelsFromCache } = await fetchWithCache(CONFIG.LABELS_URL);
+        console.log('[BIRDNET DEBUG] labels fetch resolved', { url: CONFIG.LABELS_URL, fromCache: labelsFromCache, ok: labelsResp.ok, status: labelsResp.status });
         if (!labelsResp.ok) {
           throw new Error(`BirdNET labels fetch failed with HTTP ${labelsResp.status} — check that ${CONFIG.LABELS_URL} exists on this server.`);
         }
         status(labelsFromCache ? "Loading BirdNET V3 labels from browser cache…" : "Downloading BirdNET V3 labels…");
         labelsText = await labelsResp.text();
+        console.log('[BIRDNET DEBUG] labels text resolved', { characters: labelsText.length });
+        debugStatus("DEBUG 8: Labels loaded");
 
         this.loadedFromCache = modelFromCache && labelsFromCache;
         status("Model downloaded ✓ Preparing AI engine…");
       } catch (err) {
+        console.error('[BIRDNET DEBUG] model/labels loading error', {
+          modelUrl: CONFIG.MODEL_URL,
+          labelsUrl: CONFIG.LABELS_URL,
+          error: err,
+          message: err && err.message,
+        });
+        debugStatus("DEBUG ERROR: " + (err && err.message ? err.message : String(err)));
         throw new Error(
           `Could not load the BirdNET V3 model/labels from ${CONFIG.MODEL_URL} (${err.message}). ` +
           `Use loadModelFromLocalFiles() with locally downloaded copies as a fallback instead.`
         );
       }
 
-      return this._finishLoad(modelBuffer, labelsText, tStart, status, birdnetLoadTiming);
+      try {
+        const loadInfo = await this._finishLoad(modelBuffer, labelsText, tStart, status, birdnetLoadTiming);
+        debugStatus("DEBUG 11: BirdNET ready");
+        console.log('[BIRDNET DEBUG] BirdNET loadModel() complete', loadInfo);
+        return loadInfo;
+      } catch (err) {
+        console.error('[BIRDNET DEBUG] BirdNET loadModel() error', {
+          error: err,
+          message: err && err.message,
+          stack: err && err.stack,
+        });
+        debugStatus("DEBUG ERROR: " + (err && err.message ? err.message : String(err)));
+        throw err;
+      }
     }
 
     /**
@@ -449,6 +511,7 @@
     async _finishLoad(modelBuffer, labelsText, tStart, status, birdnetLoadTiming) {
       const timing = birdnetLoadTiming || { start: tStart };
       const rows = parseLabelsCsv(labelsText);
+      console.log('[BIRDNET DEBUG] labels parsed', { rows: rows.length });
       if (!rows.length) {
         throw new Error("BirdNET labels CSV parsed to zero rows.");
       }
@@ -457,15 +520,29 @@
         console.warn(`[BirdNetInference] ${mismatches} label row(s) have an "idx" that does not match row position.`);
       }
 
+      debugStatus("DEBUG 9: Creating inference session");
       status("Initializing ONNX Runtime Web session (WASM)…");
       timing.sessionCreateStart = performance.now();
       console.log('[BIRDNET LOAD SESSION CREATE START]', { performanceNow: timing.sessionCreateStart });
+      console.log('[BIRDNET DEBUG] InferenceSession.create() begin', { executionProviders: ["wasm"] });
       // WASM is the only viable execution provider for this model (its
       // graph uses a DFT operator for the internal mel-spectrogram, which
       // WebGL does not support), same as birdnet-test.js.
-      this.session = await window.ort.InferenceSession.create(new Uint8Array(modelBuffer), {
-        executionProviders: ["wasm"],
-      });
+      try {
+        this.session = await window.ort.InferenceSession.create(new Uint8Array(modelBuffer), {
+          executionProviders: ["wasm"],
+        });
+      } catch (err) {
+        console.error('[BIRDNET DEBUG] InferenceSession.create() error', {
+          error: err,
+          message: err && err.message,
+          stack: err && err.stack,
+        });
+        debugStatus("DEBUG ERROR: " + (err && err.message ? err.message : String(err)));
+        throw err;
+      }
+      debugStatus("DEBUG 10: Inference session ready");
+      console.log('[BIRDNET DEBUG] InferenceSession.create() resolved');
       timing.sessionCreateComplete = performance.now();
       console.log('[BIRDNET LOAD SESSION CREATE COMPLETE]', { performanceNow: timing.sessionCreateComplete });
       this.labelRows = rows;
