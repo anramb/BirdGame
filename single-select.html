@@ -316,6 +316,7 @@
             <h1>Single Bird Select</h1>
             <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                 <button id="returnToSoundIdBtn" onclick="returnToSoundId()" class="btn" style="display:none;">← Return to Sound ID</button>
+                <button id="returnToBirdPhotosBtn" onclick="returnToBirdPhotos()" class="btn" style="display:none;">← Back to Bird Photos</button>
                 <button onclick="window.location.href='start.html'" class="btn">← Back</button>
             </div>
         </div>
@@ -923,13 +924,22 @@
             window.location.href = 'identify.html?' + returnParams.toString();
         }
 
+        function returnToBirdPhotos() {
+            window.location.href = 'bird-photos.html';
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             // Set language from localStorage
             document.getElementById('languageSelector').value = currentLanguage;
+            const params = new URLSearchParams(window.location.search);
             const openedRequestedBird = await openRequestedBirdFromUrl();
             if (openedRequestedBird) {
-                document.getElementById('returnToSoundIdBtn').style.display = 'inline-block';
+                if (params.get('birdPhotosReturn') === '1') {
+                    document.getElementById('returnToBirdPhotosBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('returnToSoundIdBtn').style.display = 'inline-block';
+                }
             }
             populateSpeciesFilter();
             populateBirdSelector();

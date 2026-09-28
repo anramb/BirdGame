@@ -351,7 +351,7 @@
         }
 
         function openSingleSelect(bird) {
-            const params = new URLSearchParams({ commonName: bird.english });
+            const params = new URLSearchParams({ commonName: bird.english, birdPhotosReturn: '1' });
             window.location.href = 'single-select.html?' + params.toString();
         }
 
