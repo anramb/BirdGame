@@ -2863,6 +2863,18 @@
         }
 
         async function preloadBirdNet() {
+            let db = null;
+            let shouldShowOfflineModelPrompt = false;
+            try {
+                db = await openOfflineDB();
+                const modelStatus = await getBirdnetModelStatus(db);
+                shouldShowOfflineModelPrompt = modelStatus.status !== 'ready';
+            } catch (error) {
+                console.warn('[BirdNET offline model startup check] failed:', error);
+            } finally {
+                if (db) db.close();
+            }
+            if (shouldShowOfflineModelPrompt) await showBirdnetOfflineModelPrompt();
             const button = document.getElementById('birdnetIdentifyBtn');
             if (button) button.disabled = true;
             updateBirdNetLoadUi('BirdNET is loading…');
