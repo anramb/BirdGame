@@ -6,6 +6,10 @@ const OFFLINE_DB_NAME = 'ChirpCoachOffline';
 const OFFLINE_DB_VERSION = 1;
 const AUDIO_STORE = 'audioFiles';
 const PACKS_STORE = 'installedPacks';
+const BIRDNET_MODEL_KEY = '__birdnet__/acoustic-v3-preview3.1-global-11k-fp16-pruned.onnx';
+const BIRDNET_MODEL_METADATA_KEY = '__birdnet__/acoustic-model';
+const BIRDNET_MODEL_EXPECTED_BYTES = 71528628;
+const BIRDNET_MODEL_URL = 'models/BirdNET+_V3.0-preview3.1_Global_11K_FP16_pruned.onnx';
 
 // =================== IndexedDB ===================
 
@@ -257,4 +261,103 @@ async function getStorageUsage() {
         };
     }
     return { used: 0, quota: 0, usedMB: '?', quotaMB: '?' };
+}
+
+// =================== BirdNET Acoustic Model ===================
+
+function validateBirdnetModelBlob(blob) {
+    return typeof Blob !== 'undefined' &&
+        blob instanceof Blob &&
+        blob.size === BIRDNET_MODEL_EXPECTED_BYTES;
+}
+
+async function getBirdnetModelStatus(db) {
+    var blob = await getAudioFile(db, BIRDNET_MODEL_KEY);
+    var metadata = await getPackInfo(db, BIRDNET_MODEL_METADATA_KEY);
+    if (validateBirdnetModelBlob(blob)) {
+        return { status: 'ready', blob: blob, metadata: metadata };
+    }
+    if (metadata && metadata.status === 'failed') {
+        return { status: 'failed', blob: null, metadata: metadata };
+    }
+    return { status: 'not-downloaded', blob: null, metadata: metadata };
+}
+
+async function downloadBirdnetModel(onProgress) {
+    var db = await openOfflineDB();
+    var downloadedBytes = 0;
+    await savePackInfo(db, BIRDNET_MODEL_METADATA_KEY, {
+        artifact: BIRDNET_MODEL_KEY,
+        expectedBytes: BIRDNET_MODEL_EXPECTED_BYTES,
+        downloadedBytes: 0,
+        status: 'downloading',
+        installedDate: null,
+        failure: null,
+    });
+    try {
+        var response = await fetch(BIRDNET_MODEL_URL);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        var total = Number(response.headers.get('content-length')) || BIRDNET_MODEL_EXPECTED_BYTES;
+        var blob;
+        if (response.body && response.body.getReader) {
+            var reader = response.body.getReader();
+            var chunks = [];
+            while (true) {
+                var part = await reader.read();
+                if (part.done) break;
+                if (part.value && part.value.byteLength) {
+                    chunks.push(part.value);
+                    downloadedBytes += part.value.byteLength;
+                    if (onProgress) onProgress(downloadedBytes, total);
+                }
+            }
+            blob = new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' });
+        } else {
+            blob = await response.blob();
+            downloadedBytes = blob.size;
+            if (onProgress) onProgress(downloadedBytes, total);
+        }
+        if (!validateBirdnetModelBlob(blob)) {
+            throw new Error('Downloaded BirdNET model size is invalid. Expected ' + BIRDNET_MODEL_EXPECTED_BYTES + ' bytes, received ' + (blob && blob.size || 0) + '.');
+        }
+        await storeAudioFile(db, BIRDNET_MODEL_KEY, blob);
+        var stored = await getAudioFile(db, BIRDNET_MODEL_KEY);
+        if (!validateBirdnetModelBlob(stored)) {
+            throw new Error('BirdNET model storage validation failed.');
+        }
+        await savePackInfo(db, BIRDNET_MODEL_METADATA_KEY, {
+            artifact: BIRDNET_MODEL_KEY,
+            expectedBytes: BIRDNET_MODEL_EXPECTED_BYTES,
+            downloadedBytes: stored.size,
+            status: 'ready',
+            installedDate: new Date().toISOString(),
+            failure: null,
+        });
+        return { blob: stored, downloadedBytes: stored.size };
+    } catch (error) {
+        try { await deleteAudioFile(db, BIRDNET_MODEL_KEY); } catch (ignore) {}
+        try {
+            await savePackInfo(db, BIRDNET_MODEL_METADATA_KEY, {
+                artifact: BIRDNET_MODEL_KEY,
+                expectedBytes: BIRDNET_MODEL_EXPECTED_BYTES,
+                downloadedBytes,
+                status: 'failed',
+                installedDate: null,
+                failure: error.message || String(error),
+            });
+        } catch (ignore) {}
+        throw error;
+    } finally {
+        db.close();
+    }
+}
+
+async function deleteBirdnetModel() {
+    var db = await openOfflineDB();
+    try {
+        await deleteAudioFile(db, BIRDNET_MODEL_KEY);
+        await deletePackInfo(db, BIRDNET_MODEL_METADATA_KEY);
+    } finally {
+        db.close();
+    }
 }

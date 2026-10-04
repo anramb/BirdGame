@@ -17,6 +17,7 @@ const APP_SHELL = [
     './app-icon.png',
     './app.js',
     './allbirds.js',
+    './models/BirdNET+_V3.0-preview3.1_Global_11K_Labels.csv',
     './audio-analyzer.js',
     './models/onnxruntime/ort.min.js',
     './models/onnxruntime/ort-wasm-simd-threaded.wasm',

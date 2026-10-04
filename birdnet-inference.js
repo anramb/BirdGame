@@ -131,6 +131,45 @@
     }
   }
 
+  const OFFLINE_DB_NAME = "ChirpCoachOffline";
+  const OFFLINE_DB_VERSION = 1;
+  const OFFLINE_AUDIO_STORE = "audioFiles";
+  const OFFLINE_BIRDNET_MODEL_KEY = "__birdnet__/acoustic-v3-preview3.1-global-11k-fp16-pruned.onnx";
+  const OFFLINE_BIRDNET_MODEL_EXPECTED_BYTES = 71528628;
+
+  async function getOfflineBirdnetModelBlob() {
+    if (typeof indexedDB === "undefined" || typeof Blob === "undefined") return null;
+    return new Promise((resolve) => {
+      let db = null;
+      const request = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
+      request.onerror = () => resolve(null);
+      request.onupgradeneeded = () => {
+        request.transaction.abort();
+        resolve(null);
+      };
+      request.onsuccess = () => {
+        db = request.result;
+        if (!db.objectStoreNames.contains(OFFLINE_AUDIO_STORE)) {
+          db.close();
+          resolve(null);
+          return;
+        }
+        const getRequest = db.transaction(OFFLINE_AUDIO_STORE, "readonly")
+          .objectStore(OFFLINE_AUDIO_STORE)
+          .get(OFFLINE_BIRDNET_MODEL_KEY);
+        getRequest.onsuccess = () => {
+          const blob = getRequest.result;
+          db.close();
+          resolve(blob instanceof Blob && blob.size === OFFLINE_BIRDNET_MODEL_EXPECTED_BYTES ? blob : null);
+        };
+        getRequest.onerror = () => {
+          db.close();
+          resolve(null);
+        };
+      };
+    });
+  }
+
   // ---------------------------------------------------------------------
   // Lazy ONNX Runtime Web loader — the ~ort library is only fetched the
   // first time BirdNET is actually used, so it never adds load time/weight
@@ -421,31 +460,48 @@
       status("Checking for a cached BirdNET V3 model…");
       const tStart = performance.now();
       let modelBuffer, labelsText;
+      let modelFromCache = false;
+      let modelFromOffline = false;
+      let labelsFromCache = false;
       try {
-        console.log('[BIRDNET DEBUG] model fetchWithCache() begin', CONFIG.MODEL_URL);
-        const { response: modelResp, fromCache: modelFromCache } = await fetchWithCache(CONFIG.MODEL_URL, onProgress);
-        console.log('[BIRDNET DEBUG] model fetchWithCache() resolved', { url: CONFIG.MODEL_URL, fromCache: modelFromCache, ok: modelResp.ok, status: modelResp.status });
-        birdnetLoadTiming.modelResponseComplete = performance.now();
-        console.log('[BIRDNET LOAD MODEL RESPONSE COMPLETE]', {
-          performanceNow: birdnetLoadTiming.modelResponseComplete,
-          fromCache: modelFromCache,
-        });
-        if (!modelResp.ok) {
-          throw new Error(`BirdNET model fetch failed with HTTP ${modelResp.status} — check that ${CONFIG.MODEL_URL} exists on this server.`);
+        const offlineBlob = await getOfflineBirdnetModelBlob();
+        if (offlineBlob) {
+          console.log('[BIRDNET DEBUG] using validated IndexedDB model Blob', { bytes: offlineBlob.size });
+          status("Loading BirdNET V3 model from offline storage…");
+          modelBuffer = await offlineBlob.arrayBuffer();
+          modelFromOffline = true;
+          debugStatus("DEBUG 6: Model loaded");
+        } else {
+          console.log('[BIRDNET DEBUG] model fetchWithCache() begin', CONFIG.MODEL_URL);
+          const modelResult = await fetchWithCache(CONFIG.MODEL_URL, onProgress);
+          const modelResp = modelResult.response;
+          modelFromCache = modelResult.fromCache;
+          console.log('[BIRDNET DEBUG] model fetchWithCache() resolved', { url: CONFIG.MODEL_URL, fromCache: modelFromCache, ok: modelResp.ok, status: modelResp.status });
+          birdnetLoadTiming.modelResponseComplete = performance.now();
+          console.log('[BIRDNET LOAD MODEL RESPONSE COMPLETE]', {
+            performanceNow: birdnetLoadTiming.modelResponseComplete,
+            fromCache: modelFromCache,
+          });
+          if (!modelResp.ok) {
+            throw new Error(`BirdNET model fetch failed with HTTP ${modelResp.status} — check that ${CONFIG.MODEL_URL} exists on this server.`);
+          }
+          status(modelFromCache ? "Loading BirdNET V3 model from browser cache (instant, no re-download)…" : "Downloading BirdNET V3 model (first time only, ~68MB)…");
+          modelBuffer = await modelResp.arrayBuffer();
+          console.log('[BIRDNET DEBUG] model arrayBuffer() resolved', { bytes: modelBuffer.byteLength });
+          debugStatus("DEBUG 6: Model loaded");
         }
-        status(modelFromCache ? "Loading BirdNET V3 model from browser cache (instant, no re-download)…" : "Downloading BirdNET V3 model (first time only, ~68MB)…");
-        modelBuffer = await modelResp.arrayBuffer();
-        console.log('[BIRDNET DEBUG] model arrayBuffer() resolved', { bytes: modelBuffer.byteLength });
-        debugStatus("DEBUG 6: Model loaded");
         debugStatus("DEBUG 7: Loading labels");
         birdnetLoadTiming.arrayBufferAvailable = performance.now();
         console.log('[BIRDNET LOAD ARRAYBUFFER AVAILABLE]', {
           timestamp: birdnetLoadTiming.arrayBufferAvailable,
           modelBytes: modelBuffer.byteLength,
+          fromOffline: modelFromOffline,
         });
 
         console.log('[BIRDNET DEBUG] labels fetch begin', CONFIG.LABELS_URL);
-        const { response: labelsResp, fromCache: labelsFromCache } = await fetchWithCache(CONFIG.LABELS_URL);
+        const labelsResult = await fetchWithCache(CONFIG.LABELS_URL);
+        const labelsResp = labelsResult.response;
+        labelsFromCache = labelsResult.fromCache;
         console.log('[BIRDNET DEBUG] labels fetch resolved', { url: CONFIG.LABELS_URL, fromCache: labelsFromCache, ok: labelsResp.ok, status: labelsResp.status });
         if (!labelsResp.ok) {
           throw new Error(`BirdNET labels fetch failed with HTTP ${labelsResp.status} — check that ${CONFIG.LABELS_URL} exists on this server.`);
@@ -455,7 +511,7 @@
         console.log('[BIRDNET DEBUG] labels text resolved', { characters: labelsText.length });
         debugStatus("DEBUG 8: Labels loaded");
 
-        this.loadedFromCache = modelFromCache && labelsFromCache;
+        this.loadedFromCache = !modelFromOffline && modelFromCache && labelsFromCache;
         status("Model downloaded ✓ Preparing AI engine…");
       } catch (err) {
         console.error('[BIRDNET DEBUG] model/labels loading error', {
@@ -465,9 +521,12 @@
           message: err && err.message,
         });
         debugStatus("DEBUG ERROR: " + (err && err.message ? err.message : String(err)));
+        const offlineHint = typeof navigator !== 'undefined' && navigator.onLine === false
+          ? ' BirdNET model is not downloaded for offline use. Open Downloads and download the BirdNET Acoustic Model while online.'
+          : '';
         throw new Error(
           `Could not load the BirdNET V3 model/labels from ${CONFIG.MODEL_URL} (${err.message}). ` +
-          `Use loadModelFromLocalFiles() with locally downloaded copies as a fallback instead.`
+          `Use loadModelFromLocalFiles() with locally downloaded copies as a fallback instead.` + offlineHint
         );
       }
 

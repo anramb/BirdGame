@@ -81,6 +81,11 @@
             </div>
         </div>
 
+        <div id="birdnetModelSection">
+            <div class="section-title">BirdNET Acoustic Model</div>
+            <div id="birdnetModelCard" class="pack-card"></div>
+        </div>
+
         <!-- Installed packs -->
         <div id="installedSection" style="display: none;">
             <div class="section-title">✅ Installed Packs</div>
@@ -103,6 +108,7 @@
         var packDefs = [];
         var installedPacks = {};
         var downloading = {};
+        var birdnetModelState = { status: 'not-downloaded', metadata: null, error: null, loaded: 0, total: BIRDNET_MODEL_EXPECTED_BYTES };
 
         // =================== Init ===================
         async function init() {
@@ -122,6 +128,8 @@
                 console.warn('Could not read installed packs:', e);
             }
 
+            await loadBirdnetModelStatus();
+            renderBirdnetModel();
             renderPacks();
             updateStorageInfo();
         }
@@ -145,6 +153,96 @@
             var pct = usage.quota > 0 ? Math.min(100, (usage.used / usage.quota) * 100) : 0;
             document.getElementById('storageBarFill').style.width = pct + '%';
         }
+
+        async function loadBirdnetModelStatus() {
+            var db = null;
+            try {
+                db = await openOfflineDB();
+                var result = await getBirdnetModelStatus(db);
+                birdnetModelState = {
+                    status: result.status,
+                    metadata: result.metadata,
+                    error: result.metadata && result.metadata.failure || null,
+                    loaded: result.status === 'ready' ? BIRDNET_MODEL_EXPECTED_BYTES : 0,
+                    total: BIRDNET_MODEL_EXPECTED_BYTES,
+                };
+            } catch (error) {
+                birdnetModelState = { status: 'failed', metadata: null, error: error.message || String(error), loaded: 0, total: BIRDNET_MODEL_EXPECTED_BYTES };
+            } finally {
+                if (db) db.close();
+            }
+        }
+
+        function formatModelBytes(bytes) {
+            return (Number(bytes || 0) / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function renderBirdnetModel() {
+            var card = document.getElementById('birdnetModelCard');
+            if (!card) return;
+            var state = birdnetModelState.status;
+            var button = '';
+            var detail = '';
+            if (state === 'ready') {
+                detail = '<span class="pack-badge installed">Downloaded / Ready</span>';
+                button = '<button class="btn-delete" onclick="window._deleteBirdnetModel()">🗑️ Remove</button>';
+            } else if (state === 'downloading') {
+                var pct = birdnetModelState.total > 0 ? Math.min(100, Math.round((birdnetModelState.loaded / birdnetModelState.total) * 100)) : 0;
+                detail = '<span class="pack-badge not-installed">Downloading</span>';
+                button = '<button class="btn-download" disabled>Downloading…</button>';
+                card.innerHTML = '<div class="pack-header"><div class="pack-name">BirdNET Acoustic Model</div>' + detail + '</div>' +
+                    '<div class="pack-meta"><span>💾 ' + formatModelBytes(BIRDNET_MODEL_EXPECTED_BYTES) + '</span></div>' +
+                    '<div class="progress-container" style="display:block"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+                    '<div class="progress-text">Downloading… ' + pct + '% — ' + formatModelBytes(birdnetModelState.loaded) + ' / ' + formatModelBytes(birdnetModelState.total) + '</div></div>';
+                return;
+            } else if (state === 'failed') {
+                detail = '<span class="pack-badge not-installed">Download failed</span>';
+                button = '<button class="btn-download" onclick="window._downloadBirdnetModel()">↻ Retry download</button>';
+            } else {
+                detail = '<span class="pack-badge not-installed">Not downloaded</span>';
+                button = '<button class="btn-download" onclick="window._downloadBirdnetModel()" ' + (!navigator.onLine ? 'disabled' : '') + '>📥 Download for offline Sound ID</button>';
+            }
+            card.innerHTML = '<div class="pack-header"><div class="pack-name">BirdNET Acoustic Model</div>' + detail + '</div>' +
+                '<div class="pack-meta"><span>💾 ' + formatModelBytes(BIRDNET_MODEL_EXPECTED_BYTES) + '</span></div>' +
+                (state === 'ready' ? '<div class="pack-hotspots">✓ Downloaded — Ready for offline Sound ID</div>' : '') +
+                (state === 'failed' ? '<div class="pack-hotspots">' + (birdnetModelState.error || 'Download failed. Please try again.') + '</div>' : '') +
+                '<div class="pack-actions">' + button + '</div>';
+        }
+
+        window._downloadBirdnetModel = async function() {
+            if (birdnetModelState.status === 'downloading') return;
+            if (!navigator.onLine) {
+                birdnetModelState = { status: 'failed', metadata: null, error: 'An internet connection is required for the first download.', loaded: 0, total: BIRDNET_MODEL_EXPECTED_BYTES };
+                renderBirdnetModel();
+                return;
+            }
+            birdnetModelState = { status: 'downloading', metadata: null, error: null, loaded: 0, total: BIRDNET_MODEL_EXPECTED_BYTES };
+            renderBirdnetModel();
+            try {
+                await downloadBirdnetModel(function(loaded, total) {
+                    birdnetModelState.loaded = loaded;
+                    birdnetModelState.total = total || BIRDNET_MODEL_EXPECTED_BYTES;
+                    renderBirdnetModel();
+                });
+                await loadBirdnetModelStatus();
+            } catch (error) {
+                birdnetModelState = { status: 'failed', metadata: null, error: error.message || String(error), loaded: 0, total: BIRDNET_MODEL_EXPECTED_BYTES };
+            }
+            renderBirdnetModel();
+            updateStorageInfo();
+        };
+
+        window._deleteBirdnetModel = async function() {
+            try {
+                await deleteBirdnetModel();
+                await loadBirdnetModelStatus();
+                renderBirdnetModel();
+                updateStorageInfo();
+            } catch (error) {
+                birdnetModelState = { status: 'failed', metadata: null, error: error.message || String(error), loaded: 0, total: BIRDNET_MODEL_EXPECTED_BYTES };
+                renderBirdnetModel();
+            }
+        };
 
         // =================== Render ===================
         function renderPacks() {

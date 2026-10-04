@@ -1614,6 +1614,7 @@
     <script src="supported-birds.js"></script>
     <script src="spectrogram-generator.js"></script>
     <script src="audio-analyzer.js"></script>
+    <script src="offline-manager.js"></script>
     <!-- PHASE 2A: standalone BirdNET V3 module. Self-contained, does not read
          from or modify BirdAudioAnalyzer/BirdRecorder in any way. ONNX Runtime
          Web itself is only fetched lazily, on first actual use. -->
@@ -2801,6 +2802,66 @@
             if (button) button.disabled = !(userAudioSource || audioBlob || audioFile);
         }
 
+        async function showBirdnetOfflineModelPrompt() {
+            if (document.getElementById('birdnetOfflineModelPrompt')) return;
+            let db = null;
+            try {
+                db = await openOfflineDB();
+                const modelStatus = await getBirdnetModelStatus(db);
+                if (modelStatus.status === 'ready') return;
+            } catch (error) {
+                console.warn('[BirdNET offline model prompt] status check failed:', error);
+            } finally {
+                if (db) db.close();
+            }
+
+            const status = document.getElementById('birdnetLoadStatus');
+            if (!status || !status.parentElement) return;
+            const prompt = document.createElement('div');
+            prompt.id = 'birdnetOfflineModelPrompt';
+            prompt.style.cssText = 'margin-top:8px; padding:10px; border:1px solid #c9d9ef; border-radius:8px; background:#f4f8ff; color:#24415f; text-align:left; line-height:1.45;';
+            const title = document.createElement('div');
+            title.style.fontWeight = '700';
+            title.textContent = 'BirdNET offline model is not downloaded yet.';
+            const detail = document.createElement('div');
+            detail.style.marginTop = '4px';
+            detail.textContent = 'Download the BirdNET model now to use Sound ID when you have no internet connection.';
+            const action = document.createElement('button');
+            action.type = 'button';
+            action.style.cssText = 'margin-top:8px; width:100%; padding:8px 10px; border:0; border-radius:6px; background:#1565c0; color:#fff; font-weight:600; cursor:pointer;';
+            action.textContent = 'Download BirdNET model';
+            action.disabled = navigator.onLine === false;
+            if (action.disabled) {
+                detail.textContent += ' Connect to the internet before downloading.';
+            }
+            let readyToRetry = false;
+            action.addEventListener('click', async () => {
+                if (readyToRetry) {
+                    prompt.remove();
+                    preloadBirdNet();
+                    return;
+                }
+                action.disabled = true;
+                action.textContent = 'Downloading BirdNET model…';
+                try {
+                    await downloadBirdnetModel((loaded, total) => {
+                        const percent = total > 0 ? Math.round(loaded / total * 100) : 0;
+                        action.textContent = 'Downloading BirdNET model… ' + percent + '%';
+                    });
+                    detail.textContent = 'BirdNET model is ready. Start Sound ID again to use it.';
+                    action.textContent = 'Start BirdNET loading';
+                    action.disabled = false;
+                    readyToRetry = true;
+                } catch (error) {
+                    detail.textContent = 'Download failed: ' + (error.message || String(error));
+                    action.textContent = 'Retry download';
+                    action.disabled = navigator.onLine === false;
+                }
+            });
+            prompt.append(title, detail, action);
+            status.parentElement.appendChild(prompt);
+        }
+
         async function preloadBirdNet() {
             const button = document.getElementById('birdnetIdentifyBtn');
             if (button) button.disabled = true;
@@ -2815,6 +2876,7 @@
             } catch (err) {
                 console.error('[BirdNET preload] failed:', err);
                 updateBirdNetLoadUi('BirdNET could not load. Please reload the page.');
+                showBirdnetOfflineModelPrompt();
             }
         }
 
