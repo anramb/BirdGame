@@ -340,11 +340,17 @@
                     reference.addEventListener('click', () => playReference(bird.audio, reference));
                     actions.appendChild(reference);
                 }
-                const more = document.createElement('button');
-                more.type = 'button';
-                more.textContent = 'More calls →';
-                more.addEventListener('click', () => openSingleSelect(bird));
-                actions.appendChild(more);
+                const speciesEntries = candidates.filter((entry) =>
+                    getBaseName(entry.english) === getBaseName(bird.english)
+                );
+                const hasSpeciesAudio = speciesEntries.some((entry) => !!String(entry.audio || '').trim());
+                if (hasSpeciesAudio) {
+                    const more = document.createElement('button');
+                    more.type = 'button';
+                    more.textContent = 'More calls →';
+                    more.addEventListener('click', () => openSingleSelect(bird));
+                    actions.appendChild(more);
+                }
                 card.append(photo, primary, secondary, actions);
                 grid.appendChild(card);
             });
