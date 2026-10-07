@@ -1571,5 +1571,7 @@ const allbirds = [
 
 {english: "Eagle Verreaux's", englishDisplayName: "Verreaux's Eagle", afrikaans: "Arend Witkruis", afrikaansDisplayName: "Witkruisarend", didYouKnow: "", hotspot: "Western Cape Other; Garden Route Other; KZN Other; Free State Other; Mpumalanga Other; Wider Gauteng 100km/Nylsvley Other; Limpopo Other; Northwest Other; Northern Cape/Kalahari/Karoo Other", habitat: "Mountain/Rocky areas", birdgroup: "Raptors", level: "3 Advanced", audio: "All birds/XC392307_VerreauxsEagle.mp3", spectrogram: "All birds/XC392307_VerreauxsEagle.png",image: "All birds/XC392307_VerreauxsEagle.jpg", photographer: "Marna Buys", credit: "© Peter Boesman, www.xeno-canto.org, XC392307, immature calling", licenseLink: "https://creativecommons.org/licenses/by-nc-nd/4.0/", changes: "Original recording", difficulty: 3, photoDifficulty: 1, specDifficulty: 3, exclude: false},
 
+{english: "Stork Abdim's", englishDisplayName: "Abdim's Stork", afrikaans: "Ooievaar Kleinswart", afrikaansDisplayName: "Kleinswartooievaar", didYouKnow: "", hotspot: "Free State Other; Mpumalanga Other; Wider Gauteng 100km/Nylsvley Other; Limpopo Other; Northwest Other; Northern Cape/Kalahari/Karoo Other", habitat: "Woodland/Savanna", birdgroup: "Groundbirds", level: "3 Advanced", audio: "", spectrogram: "",image: "All birds/MB0001_AbdimsStork.jpg", photographer: "Marna Buys", credit: "© ", licenseLink: "", changes: "", difficulty: 3, photoDifficulty: 1, specDifficulty: 3, exclude: false},
+
 ];
 
