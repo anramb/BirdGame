@@ -1596,5 +1596,8 @@ const allbirds = [
 
 {english: "Stork Black", englishDisplayName: "Black Stork", afrikaans: "Ooievaar Swart", afrikaansDisplayName: "Swartooievaar", didYouKnow: "", hotspot: "Western Cape Other; Garden Route Other; KZN Other; Free State Other; Mpumalanga Other; Kruger National Park Other; Wider Gauteng 100km/Nylsvley Other; Limpopo Other; Northwest Other; Northern Cape/Kalahari/Karoo Other; Drakensberg & Sani Pass Other; Isimangaliso Other; Eastern Cape Other", habitat: "Wetland/Marsh; Dams/Rivers/Coast", birdgroup: "Groundbirds", level: "3 Advanced", audio: "", spectrogram: "",image: "All birds/MB0008_BlackStork.jpg", photographer: "Marna Buys", credit: "© ", licenseLink: "", changes: "", difficulty: 3, photoDifficulty: 2, specDifficulty: 3, exclude: false},
 
+{english: "Snake-Eagle Black-chested", englishDisplayName: "Black-chested Snake-Eagle", afrikaans: "Slangarend Swartbors", afrikaansDisplayName: "Swartborsslangarend", didYouKnow: "", hotspot: "KZN Other; Free State Other; Mpumalanga Other; Wider Gauteng 100km/Nylsvley Other; Northern Cape/Kalahari/Karoo Other; Limpopo Other; Northwest Other; Isimangaliso Other", habitat: "Woodland/Savanna", birdgroup: "Raptors", level: "3 Advanced", audio: "", spectrogram: "",image: "All birds/MB0009_BlackChestedSnakeEagle.jpg", photographer: "Marna Buys, immature bird", credit: "© ", licenseLink: "", changes: "", difficulty: 3, photoDifficulty: 3, specDifficulty: 3, exclude: false},
+
+
 ];
 
