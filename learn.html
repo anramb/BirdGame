@@ -491,7 +491,7 @@
 	    pipits: "Pipits",
             raptors: "Raptors",
             seedeaters: "Seedeaters",
-	    swallowsswifts: "Swifts/Swallows",
+	    swallowsswifts: "Swallows/Swifts",
             waders: "Waders",
             warblers: "Warblers",
             waterbirds: "Waterbirds"
@@ -773,7 +773,7 @@
                 Object.keys(allData).forEach(group => {
                     const option = document.createElement('option');
                     option.value = group;
-                    option.textContent = group.charAt(0).toUpperCase() + group.slice(1);
+                    option.textContent = birdgroupMap[group];
                     filterValue.appendChild(option);
                 });
             } else if (type === 'hotspot') {

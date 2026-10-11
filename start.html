@@ -314,34 +314,47 @@
         window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
             deferredPrompt = e;
-            var btn = document.getElementById('addToHomeBtn');
-            var manual = document.getElementById('manualAddTip');
-            if (btn) btn.style.display = 'block';
-            if (manual) manual.style.display = 'none';
-            showInstallTip();
+            if (showInstallTip()) {
+                var btn = document.getElementById('addToHomeBtn');
+                var manual = document.getElementById('manualAddTip');
+                if (btn) btn.style.display = 'block';
+                if (manual) manual.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', function() {
+            deferredPrompt = null;
+            document.getElementById('addToHomeBtn').style.display = 'none';
+            document.getElementById('manualAddTip').style.display = 'none';
+            document.getElementById('installTip').style.display = 'none';
         });
         
         function addToHomeScreen() {
             if (!deferredPrompt) return;
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(function() {
+            deferredPrompt.userChoice.then(function(choice) {
                 deferredPrompt = null;
                 document.getElementById('addToHomeBtn').style.display = 'none';
-                document.getElementById('installTip').style.display = 'none';
+                document.getElementById('manualAddTip').style.display = 'block';
+                if (choice.outcome === 'dismissed') {
+                    document.getElementById('installTip').style.display = 'block';
+                }
             });
         }
         
         // Show install tip if not dismissed and not already installed as PWA
         function showInstallTip() {
-            const dismissed = localStorage.getItem('installTipDismissed');
+            const dismissed = sessionStorage.getItem('installTipDismissed');
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
             if (!dismissed && !isStandalone) {
                 document.getElementById('installTip').style.display = 'block';
+                return true;
             }
+            return false;
         }
         
         function dismissInstallTip() {
-            localStorage.setItem('installTipDismissed', 'true');
+            sessionStorage.setItem('installTipDismissed', 'true');
             document.getElementById('installTip').style.display = 'none';
         }
         

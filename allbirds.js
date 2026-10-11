@@ -1594,5 +1594,7 @@ const allbirds = [
 
 {english: "Harrier Black", englishDisplayName: "Black Harrier", afrikaans: "Vleivalk Witkruis", afrikaansDisplayName: "Witkruisvleivalk", didYouKnow: "", hotspot: "Western Cape Other; Garden Route Other; Free State Other; Mpumalanga Other; Wider Gauteng 100km/Nylsvley Other; Northern Cape/Kalahari/Karoo Other; Drakensberg & Sani Pass Other; Eastern Cape Other", habitat: "Fynbos; Scrub/Shrub; Field/Farmland/Plains", birdgroup: "Raptors", level: "3 Advanced", audio: "", spectrogram: "",image: "All birds/MB0007_Witkruisvleivalk.jpg", photographer: "Marna Buys", credit: "© ", licenseLink: "", changes: "", difficulty: 3, photoDifficulty: 2, specDifficulty: 3, exclude: false},
 
+{english: "Stork Black", englishDisplayName: "Black Stork", afrikaans: "Ooievaar Swart", afrikaansDisplayName: "Swartooievaar", didYouKnow: "", hotspot: "Western Cape Other; Garden Route Other; KZN Other; Free State Other; Mpumalanga Other; Kruger National Park Other; Wider Gauteng 100km/Nylsvley Other; Limpopo Other; Northwest Other; Northern Cape/Kalahari/Karoo Other; Drakensberg & Sani Pass Other; Isimangaliso Other; Eastern Cape Other", habitat: "Wetland/Marsh; Dams/Rivers/Coast", birdgroup: "Groundbirds", level: "3 Advanced", audio: "", spectrogram: "",image: "All birds/MB0008_BlackStork.jpg", photographer: "Marna Buys", credit: "© ", licenseLink: "", changes: "", difficulty: 3, photoDifficulty: 2, specDifficulty: 3, exclude: false},
+
 ];
 
