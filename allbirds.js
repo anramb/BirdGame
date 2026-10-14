@@ -1622,5 +1622,8 @@ const allbirds = [
 
 {english: "Roller European", englishDisplayName: "European Roller", afrikaans: "Troupant Europese", afrikaansDisplayName: "Europese Troupant", didYouKnow: "", hotspot: "Isimangaliso Other; Kruger National Park Other; Wider Gauteng 100km/Nylsvley Other; Limpopo Other; KZN Other; Eastern Cape Other; Garden Route Other; Mpumalanga Other; Northwest Other", habitat: "Grassland; Woodland/Savanna", birdgroup: "Garden and Woodland", level: "3 Advanced", audio: "", spectrogram: "", image: "All birds/MB0019_EuropeanRoller.jpg", photographer: "Marna Buys", credit: "", licenseLink: "", changes: "Original recording", difficulty: 3, photoDifficulty: 2, specDifficulty: 3, exclude: false},
 
+{english: "Pelican Great White", englishDisplayName: "Great White Pelican", afrikaans: "Pelikaan Grootwit", afrikaansDisplayName: "Grootwitpelikaan", didYouKnow: "", hotspot: "Western Cape Other; Eastern Cape Other; Free State Other; Northwest Other; KZN Other; Isimangaliso Other; Limpopo Other; Kruger National Park Other", habitat: "Dams/Rivers/Coast", birdgroup: "Waterbirds", level: "3 Advanced", audio: "", spectrogram: "", image: "All birds/MB0020_GreatWhitePelican.jpg", photographer: "Marna Buys", credit: "", licenseLink: "", changes: "Original recording", difficulty: 3, photoDifficulty: 2, specDifficulty: 3, exclude: false},
+
+
 ];
 
