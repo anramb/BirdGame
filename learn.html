@@ -499,12 +499,20 @@
         const allData = {};
         const allBirdsArr = typeof allbirds !== 'undefined' ? allbirds : [];
         Object.entries(birdgroupMap).forEach(([key, group]) => {
-            allData[key] = allBirdsArr.filter(bird => bird && bird.birdgroup === group && !bird.exclude && !bird.identifyOnly);
+            allData[key] = allBirdsArr.filter(bird =>
+                bird && bird.birdgroup === group && !bird.exclude && !bird.identifyOnly &&
+                typeof bird.audio === 'string' && bird.audio.trim() !== ''
+            );
         });
         
         // Helper: get all birds from allbirds
         function getAllBirds() {
-            return typeof allbirds !== 'undefined' ? allbirds.filter(b => !b.exclude && !b.identifyOnly) : [];
+            return typeof allbirds !== 'undefined'
+                ? allbirds.filter(b =>
+                    !b.exclude && !b.identifyOnly &&
+                    typeof b.audio === 'string' && b.audio.trim() !== ''
+                )
+                : [];
         }
         
         // Helper: get unique values from a semicolon-separated field

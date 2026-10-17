@@ -176,7 +176,7 @@ function startGame() {
   const lvl = document.getElementById("levelFilter").value;
 
   filtered = birds.filter(bird => {
-    if (!bird) return false;
+    if (!bird || typeof bird.audio !== 'string' || bird.audio.trim() === '') return false;
     let match1 = true;
     if (type !== "none" && selectedValues.length > 0) {
       match1 = selectedValues.some(val => (bird[type] || "").toLowerCase().includes(val.toLowerCase()));
