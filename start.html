@@ -67,6 +67,43 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
+
+        .start-bird-search-wrapper {
+            position: relative;
+            margin: 0 0 20px;
+            text-align: left;
+        }
+        #startBirdSearch {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        #startBirdSearch:focus { border-color: #667eea; outline: none; }
+        #startBirdDropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            background: #fff;
+            border: 2px solid #667eea;
+            border-top: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            z-index: 100;
+        }
+        .start-bird-option {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            font-size: .9em;
+        }
+        .start-bird-option:hover { background: #f0f0ff; }
+        .start-bird-option-secondary { color: #888; font-size: .8em; margin-top: 2px; }
         
         .mode-icon {
             font-size: 2em;
@@ -196,6 +233,11 @@
 
     <div class="container">
         <h1>Chirp Coach</h1>
+
+        <div class="start-bird-search-wrapper" id="startBirdSearchWrapper">
+            <input type="text" id="startBirdSearch" placeholder="Search for a bird..." autocomplete="off" oninput="searchStartBirds()" onfocus="showStartBirdDropdown()">
+            <div id="startBirdDropdown"></div>
+        </div>
         
         <div class="mode-selection" id="mainMenu">
             <button class="mode-card" onclick="window.location.href='bird-photos.html'" style="background:#2E7D6B;">
@@ -291,6 +333,7 @@
     
     <div style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 8px; background: rgba(255,255,255,0.9); color: #666; font-size: 0.7em; z-index: 1000;">Created by Marna Buys with Windsurf</div>
     
+    <script src="allbirds.js"></script>
     <script>
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
@@ -308,6 +351,122 @@
             document.getElementById('mainMenu').style.display = 'grid';
             window.scrollTo(0, 0);
         }
+
+        const startCallSuffixes = [
+            'song & immitation', 'song & imitation', 'interaction m & f', 'male & female',
+            '2 birds interacting', 'advertising call', 'alarm call', 'territorial call',
+            'contact call', 'flight call', 'call variation', 'variation of call',
+            'call male', 'call female', 'courting male', 'duet', 'song', 'drumming',
+            'additional', 'immature', 'adult', 'juvenile', 'male', 'female', 'call', 'ec', 'wc'
+        ];
+
+        function startGetBaseName(name) {
+            let result = String(name || '').trim();
+            let changed = true;
+            while (changed) {
+                changed = false;
+                const lower = result.toLowerCase();
+                for (const suffix of startCallSuffixes) {
+                    if (lower.endsWith(' ' + suffix)) {
+                        result = result.substring(0, result.length - suffix.length - 1).trim();
+                        changed = true;
+                        break;
+                    }
+                }
+                if (!changed) {
+                    const numbered = result.match(/\s\d+$/);
+                    if (numbered) {
+                        result = result.substring(0, result.length - numbered[0].length).trim();
+                        changed = true;
+                    }
+                }
+            }
+            return result;
+        }
+
+        function startGetSearchKeys(name) {
+            if (!name) return [];
+            const lower = name.toLowerCase();
+            const noSpaces = lower.replace(/\s+/g, '');
+            const words = lower.split(/\s+/);
+            const rotated = words.length > 1
+                ? [...words.slice(1), words[0]].join('')
+                : noSpaces;
+            return [noSpaces, rotated];
+        }
+
+        function startGroupedBirds() {
+            const groups = {};
+            (typeof allbirds !== 'undefined' ? allbirds : []).forEach((bird) => {
+                if (!bird || bird.exclude === true || bird.exclude === 'true' || bird.identifyOnly === true) return;
+                const base = startGetBaseName(bird.english);
+                if (!groups[base]) groups[base] = [];
+                groups[base].push(bird);
+            });
+            return groups;
+        }
+
+        function showStartBirdDropdown() {
+            document.getElementById('startBirdDropdown').style.display = 'block';
+            searchStartBirds();
+        }
+
+        function hideStartBirdDropdown() {
+            document.getElementById('startBirdDropdown').style.display = 'none';
+        }
+
+        function searchStartBirds() {
+            const input = document.getElementById('startBirdSearch');
+            const dropdown = document.getElementById('startBirdDropdown');
+            const query = (input.value || '').toLowerCase().replace(/\s+/g, '');
+            const language = localStorage.getItem('birdAppLanguage') || 'en';
+            const groups = startGroupedBirds();
+            let species = Object.entries(groups).map(([baseName, entries]) => ({
+                baseName,
+                entries,
+                displayName: language === 'af'
+                    ? startGetBaseName(entries[0].afrikaans)
+                    : (entries[0].englishDisplayName || baseName),
+            }));
+            if (query) {
+                species = species.filter((entry) => entry.entries.some((bird) => {
+                    const keys = [...startGetSearchKeys(bird.english), ...startGetSearchKeys(bird.afrikaans)];
+                    return keys.some((key) => key.includes(query));
+                }));
+            }
+            species.sort((a, b) => a.displayName.localeCompare(b.displayName, language === 'af' ? 'af' : 'en', { sensitivity: 'base' }));
+            dropdown.innerHTML = '';
+            if (!species.length) {
+                if (query) {
+                    dropdown.textContent = 'No birds found';
+                    dropdown.style.display = 'block';
+                }
+                return;
+            }
+            species.slice(0, 30).forEach((entry) => {
+                const option = document.createElement('div');
+                option.className = 'start-bird-option';
+                option.textContent = entry.displayName;
+                const secondary = document.createElement('div');
+                secondary.className = 'start-bird-option-secondary';
+                secondary.textContent = language === 'af'
+                    ? (entry.entries[0].englishDisplayName || entry.baseName)
+                    : (entry.entries[0].afrikaansDisplayName || entry.entries[0].afrikaans || '');
+                option.appendChild(secondary);
+                option.addEventListener('mousedown', (event) => event.preventDefault());
+                option.addEventListener('click', () => {
+                    const params = new URLSearchParams({ commonName: entry.entries[0].english });
+                    window.location.href = 'single-select.html?' + params.toString();
+                });
+                dropdown.appendChild(option);
+            });
+            dropdown.style.display = 'block';
+        }
+
+        document.addEventListener('click', function(event) {
+            const wrapper = document.getElementById('startBirdSearchWrapper');
+            if (wrapper && !wrapper.contains(event.target)) hideStartBirdDropdown();
+        });
 
         // Intercept browser install prompt — show custom "Add to Home Screen" button instead
         let deferredPrompt;
